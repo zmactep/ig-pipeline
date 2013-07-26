@@ -207,6 +207,11 @@ public:
         return m_anno.getRecordByLabel(label);
     }
 
+    record_type & getRecord(size_t record)
+    {
+        return m_anno[record];
+    }
+
     size_t size()
     {
         return m_trie.size();
@@ -273,93 +278,107 @@ public:
                                         int gap, score_matrix const & matrix,
                                         size_t count)
     {
-        typedef std::pair<std::string, simple_matrix2i> node_cache_type;
-        typedef std::pair<std::string, simple_matrix2i*> stack_cache_type;
-        typedef trie<node_cache_type>::iterator cmp_t;
-
-        std::vector<alignment_result> results;
-        std::string query(begin, end);
-        alicont ali(query, gap, matrix);
-        trie<node_cache_type>* tmp;
-        copyTrie(&tmp);
-
-        std::string target;
-        std::stack<size_t> index_stack;
-        std::vector<trie<node_cache_type>::iterator> leafs;
-        for (trie<node_cache_type>::iterator i = tmp->begin() + 1;
-                                             i != tmp->end();
-                                             ++i)
+        struct results_set
         {
-            target.push_back(i.symbol());
-            if (!index_stack.empty() && i.prev().fork() &&
-                    i.prev().index() != index_stack.top())
+            std::set<alignment_result> m_set;
+            size_t                     m_count;
+
+            results_set(size_t c) : m_count(c)
             {
-                while (!index_stack.empty() && index_stack.top() != i.prev().index())
+            }
+
+            bool operator()(alignment_result && res)
+            {
+                m_set.insert(res);
+                if (m_set.size() > m_count)
                 {
-                    index_stack.pop();
-                    ali.pop();
+                    m_set.erase(m_set.begin());
                 }
+                return true;
             }
-            if (i.leaf())
-            {
-                leafs.push_back(i);
-                *i = std::make_pair(target, ali.score(target));
-                ali.push(target, &(i->second));
-                index_stack.push(i.index());
-                target.clear();
-            }
-            else if (i.fork())
-            {
-                *i = std::make_pair(target, ali.score(target));
-                ali.push(target, &(i->second));
-                index_stack.push(i.index());
-                target.clear();
-            }
-        }
+        };
 
-        std::sort(leafs.begin(), leafs.end(), [](cmp_t a, cmp_t b)
-            {return a->second.back().back() > b->second.back().back();});
-        size_t current_count = 0;
-        for (std::vector<trie<node_cache_type>::iterator>::iterator i = leafs.begin();
-                                                                   i != leafs.end();
-                                                                   ++i, ++current_count)
-        {
-            if (current_count == count)
-            {
-                break;
-            }
-            ali.clear();
+        results_set rs(count);
 
-            std::stack<stack_cache_type> st;
-            trie<node_cache_type>::iterator iter = *i;
+        align_template(begin, end, gap, matrix, rs);
 
-            while (iter != tmp->begin())
-            {
-                if (iter->second.size() != 0)
-                {
-                    st.push(std::make_pair(iter->first, &(iter->second)));
-                }
-                --iter;
-            }
-
-            while (st.size() != 0)
-            {
-                stack_cache_type t = st.top();
-                st.pop();
-                ali.push(t.first, t.second);
-            }
-
-            results.push_back(ali.alignment());
-        }
-
-        delete tmp;
+        std::vector<alignment_result> results(rs.m_set.begin(), rs.m_set.end());
         return results;
     }
 
     template <class Iterator>
-    std::vector<alignment_result> align_ex(Iterator begin, Iterator end,
+    std::vector<alignment_result> align_sc(Iterator begin, Iterator end,
                                            int gap, score_matrix const & matrix,
-                                           size_t count)
+                                           double score_part)
+    {
+        struct results_vector
+        {
+            std::vector<alignment_result> m_vec;
+            double                        m_score;
+
+            results_vector(double s) : m_score(s)
+            {
+            }
+
+            bool operator()(alignment_result && res)
+            {
+                if (res.score >= m_score)
+                {
+                    m_vec.push_back(res);
+                }
+                return true;
+            }
+        };
+
+        std::string query(begin, end);
+        results_vector rv(score_part *
+                          needleman_wunsch(query, query, gap,
+                                           matrix).back().back());
+
+        align_template(begin, end, gap, matrix, rv);
+
+        return rv.m_vec;
+    }
+
+    template <class Iterator>
+    record_type annotate(Iterator begin, Iterator end, int gap,
+                         score_matrix const & matrix)
+    {
+        std::vector<alignment_result> vec(std::move(align(begin, end, gap, matrix, 1)));
+        std::string & query = vec[0].first;
+        std::string & target = vec[0].second;
+        size_t target_id = vec[0].target_id;
+        record_type result(std::distance(begin, end));
+        for (size_t i = 0; i < target.size(); ++i)
+        {
+            if (target[i] == '-' && i != 0)
+            {
+                data_type & data = result.push(-1, query[i]);
+                data = result[result.size() - 2];
+            }
+            else if (target[i] == '-' && i == 0)
+            {
+                result.push(-1, query[i]);
+            }
+            else if (query[i] == '-')
+            {
+                continue;
+            }
+            else
+            {
+                data_type & data = result.push(-1, query[i]);
+                data = getRecord(target_id)[i];
+            }
+        }
+
+        return result;
+    }
+
+private:
+    template <class Iterator, class Callable>
+    void align_template(Iterator begin, Iterator end,
+                        int gap, score_matrix const & matrix,
+                        Callable & callfunc)
     {
         typedef std::pair<std::string, simple_matrix2i> node_cache_type;
 
@@ -368,7 +387,6 @@ public:
         trie<node_cache_type>* tmp;
         copyTrie(&tmp);
 
-        std::set<alignment_result> results_set;
         std::string target;
         std::stack<size_t> index_stack;
 
@@ -393,10 +411,11 @@ public:
                 ali.push(i->first, &(i->second));
                 index_stack.push(i.index());
                 target.clear();
-                results_set.insert(ali.alignment());
-                if (results_set.size() > count)
+                alignment_result res = ali.alignment();
+                res.target_id = iter(i.index())->back().record;
+                if (!callfunc(std::move(res)))
                 {
-                    results_set.erase(results_set.begin());
+                    break;
                 }
             }
             else if (i.fork())
@@ -408,11 +427,68 @@ public:
             }
         }
 
-        std::vector<alignment_result> results(results_set.begin(), results_set.end());
-
         delete tmp;
-        return results;
     }
+
+//    template <class Iterator>
+//    std::vector<alignment_result> align(Iterator begin, Iterator end,
+//                                        int gap, score_matrix const & matrix,
+//                                        size_t count)
+//    {
+//        typedef std::pair<std::string, simple_matrix2i> node_cache_type;
+
+//        std::string query(begin, end);
+//        alicont ali(query, gap, matrix);
+//        trie<node_cache_type>* tmp;
+//        copyTrie(&tmp);
+
+//        std::set<alignment_result> results_set;
+//        std::string target;
+//        std::stack<size_t> index_stack;
+
+//        for (trie<node_cache_type>::iterator i = tmp->begin() + 1;
+//                                             i != tmp->end();
+//                                             ++i)
+//        {
+//            target.push_back(i.symbol());
+//            if (!index_stack.empty() && i.prev().fork() &&
+//                    i.prev().index() != index_stack.top())
+//            {
+//                while (!index_stack.empty() && index_stack.top() != i.prev().index())
+//                {
+//                    *(tmp->iter(index_stack.top())) = node_cache_type();
+//                    index_stack.pop();
+//                    ali.pop();
+//                }
+//            }
+//            if (i.leaf())
+//            {
+//                *i = std::move(std::make_pair(target, ali.score(target)));
+//                ali.push(i->first, &(i->second));
+//                index_stack.push(i.index());
+//                target.clear();
+//                alignment_result res = ali.alignment();
+//                res.target_id = iter(i.index())->back().record;
+//                results_set.insert(std::move(res));
+//                if (results_set.size() > count)
+//                {
+//                    results_set.erase(results_set.begin());
+//                }
+//            }
+//            else if (i.fork())
+//            {
+//                *i = std::move(std::make_pair(target, ali.score(target)));
+//                ali.push(i->first, &(i->second));
+//                index_stack.push(i.index());
+//                target.clear();
+//            }
+//        }
+
+//        std::vector<alignment_result> results(results_set.begin(), results_set.end());
+
+//        delete tmp;
+//        return results;
+//    }
 
 private:
     std::string m_name;

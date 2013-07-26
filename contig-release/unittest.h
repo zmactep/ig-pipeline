@@ -55,3 +55,4 @@ void test_fasta_push();
 void test_alicont();
 void test_contig_alicont();
 void test_contig_alicont2();
+void test_contig_alicont3();

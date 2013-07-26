@@ -18,13 +18,15 @@ struct alignment_result
     std::string second;
     int         score;
 
+    size_t      target_id;
+
     alignment_result() : score(0)
     {
     }
 
     alignment_result(std::string const & f,
                      std::string const & s,
-                     int sc) : first(f), second(s), score(sc)
+                     int sc) : first(f), second(s), score(sc), target_id(-1)
     {
     }
 

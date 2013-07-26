@@ -21,7 +21,8 @@ void test()
 //    test_fasta_push();
 //    test_alicont();
 //    test_contig_alicont();
-    test_contig_alicont2();
+//    test_contig_alicont2();
+    test_contig_alicont3();
     s = clock() - s;
     std::cout << "Test time: " << (double) s / CLOCKS_PER_SEC << std::endl;
 }

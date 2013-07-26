@@ -9,6 +9,32 @@
 
 #include "../unittest.h"
 
+std::pair<Read, size_t> import_data_a(std::string const & path,
+                                      contig<Alphabet, RegionProp> & my_contig)
+{
+    FastaReader fr(path);
+    Read tmp_read;
+    std::cout << "Import started" << std::endl;
+    size_t count = 0;
+    size_t real_length = 0;
+    while (!fr.is_eof())
+    {
+        fr >> tmp_read;
+        std::vector<RegionProp<Alphabet>> v(tmp_read.seq.size());
+        for (size_t i = 0; i < v.size(); ++i)
+        {
+            v[i].region_id = rand() % 7;
+        }
+        std::cout << std::endl;
+        my_contig.push(tmp_read.seq.begin(), tmp_read.seq.end(), v.begin(), tmp_read.name);
+        real_length += tmp_read.seq.size();
+        count++;
+    }
+    std::cout << "Import ended (" << count << ")" << std::endl;
+
+    return std::make_pair(tmp_read, real_length);
+}
+
 void test_alicont()
 {
     score_matrix m("../data/BLOSUM62.txt");
@@ -52,7 +78,7 @@ void test_contig_alicont()
 
     std::string query = "GCGTTG";
     score_matrix m("../data/BLOSUM62.txt");
-    auto r = my_contig.align_ex(query.begin(), query.end(), -5, m, 3);
+    auto r = my_contig.align(query.begin(), query.end(), -5, m, 3);
     for (auto i : r)
     {
         std::cout << i.score << std::endl << i.first
@@ -65,19 +91,36 @@ void test_contig_alicont()
 void test_contig_alicont2()
 {
     contig<Alphabet, RegionProp> my_contig("CONTIG-TEST", Alphabet::getAlphabet());
-    import_data("../data/germline/human/VH.fasta", my_contig);
-    //import_data("/home/mactep/Data/NGS-llama/VH_corrected.fasta", my_contig);
+    //import_data("../data/germline/human/VH.fasta", my_contig);
+    import_data("../data/other/VH_corrected.fasta", my_contig);
     std::string query = "CAGGTTCAGCTGGTGCAGTCTGGGGCTGAGGTGAAGAAGCCTGGGGCCTCAGTGAAGGTTTCCTGCAAGGCTTCTGGATACACCTTCACTAGCTATGCTATGCATTGGGTGCGCCAGGCCCCCGGACAAAGGCTTGAGTGGATGGGATGGAGCAACGCTGGCAATGGTAACACAAAATATTCACAGGAGTTCCAGGGCAGAGTCACCATTACCAGGGACACATCCGCGAGCACAGCCTACATGGAGCTGAGCAGCCTGAGATCTGAGGACATGGCTGTGTATTACTGTGCGAGAGA";
 
-    score_matrix m("../data/BLOSUM62.txt");
+    score_matrix m("../data/NUC4.4.txt");
     time_t t = clock();
-    auto r = my_contig.align_ex(query.begin(), query.end(), -5, m, 10);
+    auto r = my_contig.align_sc(query.begin(), query.end(), -5, m, 0.8);
     std::cout << "Alignment time: " << (double)(clock() - t) / CLOCKS_PER_SEC << std::endl;
     for (auto i : r)
     {
-        std::cout << i.score << std::endl << i.first
-                             << std::endl << i.second
-                             << std::endl << std::endl;
+        std::cout << i.score  << " (" << i.target_id << ")" << std::endl
+                  << i.first  << std::endl
+                  << i.second << std::endl << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void test_contig_alicont3()
+{
+    contig<Alphabet, RegionProp> my_contig("CONTIG-TEST", Alphabet::getAlphabet());
+    import_data_a("../data/germline/human/VH.fasta", my_contig);
+    std::string query = "CAGGTTTCTGGGGCTGAGGTGAAGAAGCCTGGGGGCAAGGCTTCTGGATACACCTTCACTAGCTATGCTATGCATTGGGTGCGCCAGGCCCCCGGACAAAGGCTTGAGTGGATGGGATGGAGCAACGCTGGCAATGGTAACACAAAATATTCACAGGAGTTCCAGGGCAGAGTCACCATTACCAGGGACACATCCGCGAGCACAGCCTACATGGAGCTGAGCAGCCTGAGATCTGAGGACATGGCTGTGTATTACTGTGCGAGAGA";
+
+    score_matrix m("../data/NUC4.4.txt");
+    time_t t = clock();
+    auto r = my_contig.annotate(query.begin(), query.end(), -5, m);
+    std::cout << "Alignment time: " << (double)(clock() - t) / CLOCKS_PER_SEC << std::endl;
+    for (size_t i = 0; i < r.size(); ++i)
+    {
+        std::cout << r[i].region_id;
     }
     std::cout << std::endl;
 }
