@@ -16,5 +16,5 @@
 *.a
 
 # IDE
-build-*
+build*
 *.user

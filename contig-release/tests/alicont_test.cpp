@@ -11,7 +11,7 @@
 
 void test_alicont()
 {
-    score_matrix m("/home/mactep/BLOSUM62.txt");
+    score_matrix m("../data/BLOSUM62.txt");
     alicont a("MEANLY", -5, std::move(m));
     simple_matrix2i m1 = std::move(a.score("PLEA"));
     a.push("PLEA", &m1);
@@ -51,7 +51,7 @@ void test_contig_alicont()
     my_contig.push(s5.begin(), s5.end(), "s5");
 
     std::string query = "GCGTTG";
-    score_matrix m("/home/mactep/BLOSUM62.txt");
+    score_matrix m("../data/BLOSUM62.txt");
     auto r = my_contig.align_ex(query.begin(), query.end(), -5, m, 3);
     for (auto i : r)
     {
@@ -65,11 +65,11 @@ void test_contig_alicont()
 void test_contig_alicont2()
 {
     contig<Alphabet, RegionProp> my_contig("CONTIG-TEST", Alphabet::getAlphabet());
-    //import_data("/home/mactep/DEV/au-summer-2013/data/germline/human/VH.fasta", my_contig);
-    import_data("/home/mactep/Data/NGS-llama/VH_corrected.fasta", my_contig);
+    import_data("../data/germline/human/VH.fasta", my_contig);
+    //import_data("/home/mactep/Data/NGS-llama/VH_corrected.fasta", my_contig);
     std::string query = "CAGGTTCAGCTGGTGCAGTCTGGGGCTGAGGTGAAGAAGCCTGGGGCCTCAGTGAAGGTTTCCTGCAAGGCTTCTGGATACACCTTCACTAGCTATGCTATGCATTGGGTGCGCCAGGCCCCCGGACAAAGGCTTGAGTGGATGGGATGGAGCAACGCTGGCAATGGTAACACAAAATATTCACAGGAGTTCCAGGGCAGAGTCACCATTACCAGGGACACATCCGCGAGCACAGCCTACATGGAGCTGAGCAGCCTGAGATCTGAGGACATGGCTGTGTATTACTGTGCGAGAGA";
 
-    score_matrix m("/home/mactep/BLOSUM62.txt");
+    score_matrix m("../data/BLOSUM62.txt");
     time_t t = clock();
     auto r = my_contig.align_ex(query.begin(), query.end(), -5, m, 10);
     std::cout << "Alignment time: " << (double)(clock() - t) / CLOCKS_PER_SEC << std::endl;
