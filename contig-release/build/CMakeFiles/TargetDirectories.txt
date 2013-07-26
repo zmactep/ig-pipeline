@@ -1,0 +1,1 @@
+/home/mactep/DEV/qtcreator/contig-release/build/CMakeFiles/contig.dir
