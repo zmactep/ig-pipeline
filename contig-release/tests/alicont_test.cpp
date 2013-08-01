@@ -25,7 +25,6 @@ std::pair<Read, size_t> import_data_a(std::string const & path,
         {
             v[i].region_id = rand() % 7;
         }
-        std::cout << std::endl;
         my_contig.push(tmp_read.seq.begin(), tmp_read.seq.end(), v.begin(), tmp_read.name);
         real_length += tmp_read.seq.size();
         count++;

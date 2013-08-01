@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <limits>
 #include <vector>
 #include <map>
 
@@ -61,7 +62,7 @@ public:
 
     iterator end()
     {
-        return iterator(this, -1);
+        return iterator(this, std::numeric_limits<size_t>::max());
     }
 
     const_iterator begin() const
@@ -71,7 +72,7 @@ public:
 
     const_iterator end() const
     {
-        return const_iterator(this, -1);
+        return const_iterator(this, std::numeric_limits<size_t>::max());
     }
 
     size_t size() const
@@ -113,7 +114,7 @@ private:
             return node->id();
         }
 
-        return -1;
+        return std::numeric_limits<size_t>::max();
     }
 
     size_t prev(size_t i) const
@@ -124,7 +125,7 @@ private:
             return node->id();
         }
 
-        return -1;
+        return std::numeric_limits<size_t>::max();
     }
 
     size_t dfsNext(size_t i) const
@@ -150,7 +151,7 @@ private:
         if (m_trie->dfs_cache.size() == m_cont.size())
             return;
 
-        m_trie->dfs_cache = std::vector<size_t>(m_cont.size(), -1);
+        m_trie->dfs_cache = std::vector<size_t>(m_cont.size(), std::numeric_limits<size_t>::max());
         dfs(0, 0);
     }
 

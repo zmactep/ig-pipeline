@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <limits>
 
 #include "score_matrix.hpp"
 
@@ -26,7 +27,8 @@ struct alignment_result
 
     alignment_result(std::string const & f,
                      std::string const & s,
-                     int sc) : first(f), second(s), score(sc), target_id(-1)
+                     int sc)
+        : first(f), second(s), score(sc), target_id(std::numeric_limits<size_t>::max())
     {
     }
 
