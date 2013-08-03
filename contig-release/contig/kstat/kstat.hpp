@@ -80,6 +80,15 @@ public:
         return hash_val;
     }
 
+    bool inAlphabet(byte symbol) const
+    {
+        if (std::find(m_alphabet.begin(), m_alphabet.end(), symbol) != m_alphabet.end())
+        {
+            return true;
+        }
+        return false;
+    }
+
 private:
     std::vector<byte>                m_alphabet;
     std::vector<std::set<link_type>> m_data;

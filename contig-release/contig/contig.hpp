@@ -53,12 +53,16 @@ public:
     iterator push(Iterator1 begin, Iterator1 end, Iterator2 anno_begin,
                   LabelType label)
     {
+        for (Iterator1 iter = begin; iter != end; ++iter)
+        {
+            if (!m_stat.inAlphabet(*iter))
+                return this->end();
+        }
+
         size_t record_length = std::distance(begin, end);
 
         record_type & new_record = m_anno.add(label, record_length);
         iterator trie_iter = m_trie.begin();
-
-        link_type link;
 
         for (Iterator1 iter = begin; iter != end; ++iter, ++anno_begin)
         {
