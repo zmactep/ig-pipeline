@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iterator>
+#include <limits>
 
 #include "trie.hpp"
 
@@ -14,7 +15,7 @@ class trie_const_iterator : public std::iterator<std::bidirectional_iterator_tag
 public:
     friend class trie<T>;
 
-    trie_const_iterator() : m_trie(nullptr), m_current(-1)
+    trie_const_iterator() : m_trie(nullptr), m_current(std::numeric_limits<size_t>::max())
     {
     }
 

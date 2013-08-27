@@ -8,6 +8,7 @@
 #include <stack>
 
 #include <ctime>
+#include <limits>
 #include <iostream>
 
 #include "trie/trie.hpp"
@@ -52,12 +53,16 @@ public:
     iterator push(Iterator1 begin, Iterator1 end, Iterator2 anno_begin,
                   LabelType label)
     {
+        for (Iterator1 iter = begin; iter != end; ++iter)
+        {
+            if (!m_stat.inAlphabet(*iter))
+                return this->end();
+        }
+
         size_t record_length = std::distance(begin, end);
 
         record_type & new_record = m_anno.add(label, record_length);
         iterator trie_iter = m_trie.begin();
-
-        link_type link;
 
         for (Iterator1 iter = begin; iter != end; ++iter, ++anno_begin)
         {
@@ -85,33 +90,25 @@ public:
     template <class Iterator>
     iterator push(Iterator begin, Iterator end, LabelType label)
     {
-        size_t record_length = std::distance(begin, end);
-
-        record_type & new_record = m_anno.add(label, record_length);
-        typename trie_type::iterator trie_iter = m_trie.begin();
-
-        link_type link;
-        for (Iterator iter = begin; iter != end; ++iter)
+        struct abi_false
         {
-            byte symbol = *iter;
-            data_type new_data = data_type();
+            data_type operator*() const
+            {
+                return data_type();
+            }
 
-            // Add trie node
-            trie_iter = m_trie.insert(trie_iter, symbol);
+            abi_false & operator++()
+            {
+                return *this;
+            }
 
-            // Add annotation node and link annotation to trie node
-            data_type & data = new_record.push(trie_iter.index(), symbol);
-            // Add annotation data
-            data = new_data;
+            abi_false & operator++(int)
+            {
+                return *this;
+            }
+        };
 
-            // Link trie node and annotation data
-            trie_iter->push_back(m_anno.last());
-
-            // Add statistics data and link it with the node
-            m_stat.add(iter, end, trie_iter.index());
-        }
-
-        return trie_iter - (record_length - 1);
+        return push(begin, end, abi_false(), label);
     }
 
     std::vector<data_type> getAnnotations(const_iterator iter) const
@@ -353,12 +350,12 @@ public:
         {
             if (target[i] == '-' && i != 0)
             {
-                data_type & data = result.push(-1, query[i]);
+                data_type & data = result.push(std::numeric_limits<size_t>::max(), query[i]);
                 data = result[result.size() - 2];
             }
             else if (target[i] == '-' && i == 0)
             {
-                result.push(-1, query[i]);
+                result.push(std::numeric_limits<size_t>::max(), query[i]);
             }
             else if (query[i] == '-')
             {
@@ -366,7 +363,7 @@ public:
             }
             else
             {
-                data_type & data = result.push(-1, query[i]);
+                data_type & data = result.push(std::numeric_limits<size_t>::max(), query[i]);
                 data = getRecord(target_id)[i];
             }
         }

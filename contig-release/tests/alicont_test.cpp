@@ -25,7 +25,6 @@ std::pair<Read, size_t> import_data_a(std::string const & path,
         {
             v[i].region_id = rand() % 7;
         }
-        std::cout << std::endl;
         my_contig.push(tmp_read.seq.begin(), tmp_read.seq.end(), v.begin(), tmp_read.name);
         real_length += tmp_read.seq.size();
         count++;
@@ -76,7 +75,7 @@ void test_contig_alicont()
     my_contig.push(s4.begin(), s4.end(), "s4");
     my_contig.push(s5.begin(), s5.end(), "s5");
 
-    std::string query = "GCGTTG";
+    std::string query = "GCTGTTG";
     score_matrix m("../data/BLOSUM62.txt");
     auto r = my_contig.align(query.begin(), query.end(), -5, m, 3);
     for (auto i : r)

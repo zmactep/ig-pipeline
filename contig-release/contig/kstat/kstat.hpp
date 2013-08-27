@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <vector>
 #include <set>
 
@@ -32,7 +33,7 @@ public:
             return false;
         }
         size_t hash_val = hash(begin, begin + m_k);
-        if (hash_val == -1)
+        if (hash_val == std::numeric_limits<size_t>::max())
         {
             return false;
         }
@@ -48,7 +49,7 @@ public:
             return nullptr;
         }
         size_t hash_val = hash(begin, begin + m_k);
-        if (hash_val == -1)
+        if (hash_val == std::numeric_limits<size_t>::max())
         {
             return nullptr;
         }
@@ -61,7 +62,7 @@ public:
         size_t hash_val = 0;
         if (begin > end - m_k)
         {
-            return -1;
+            return std::numeric_limits<size_t>::max();
         }
         Iterator iter = begin;
         size_t power = 0;
@@ -70,13 +71,22 @@ public:
                     std::find(m_alphabet.begin(), m_alphabet.end(), (byte)*iter);
             if (fiter == m_alphabet.end())
             {
-                return -1;
+                return std::numeric_limits<size_t>::max();
             }
             hash_val += m_pow_cache[power] * (fiter - m_alphabet.begin());
             power++;
             ++iter;
         }
         return hash_val;
+    }
+
+    bool inAlphabet(byte symbol) const
+    {
+        if (std::find(m_alphabet.begin(), m_alphabet.end(), symbol) != m_alphabet.end())
+        {
+            return true;
+        }
+        return false;
     }
 
 private:
