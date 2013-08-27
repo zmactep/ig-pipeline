@@ -25,17 +25,17 @@ public:
     friend class contig_const_iterator<T, Property, LabelType>;
     friend class contig_iterator<T, Property, LabelType>;
 
-    typedef Property<T>                        			  data_type;
-    typedef std::vector<byte>				   			  alphabet_type;
-    typedef annotation<T, Property, LabelType> 			  anno_type;
-    typedef typename anno_type::index          			  link_type;
-    typedef typename anno_type::record_type    			  record_type;
-    typedef trie<std::vector<link_type>>				  trie_type;
-    typedef typename trie_type::index_type				  index_type;
-    typedef kstatistics<index_type>		      			  kstat_type;
+    typedef Property<T>                                           data_type;
+    typedef std::vector<byte>                                     alphabet_type;
+    typedef annotation<T, Property, LabelType>                    anno_type;
+    typedef typename anno_type::index                             link_type;
+    typedef typename anno_type::record_type                       record_type;
+    typedef trie<std::vector<link_type>>                          trie_type;
+    typedef typename trie_type::index_type                        index_type;
+    typedef kstatistics<index_type>                               kstat_type;
 
-    typedef typename trie_type::const_iterator      	  const_iterator;
-    typedef typename trie_type::iterator       			  iterator;
+    typedef typename trie_type::const_iterator                    const_iterator;
+    typedef typename trie_type::iterator                          iterator;
 
     typedef contig_const_iterator<T, Property, LabelType> const_aiterator;
     typedef contig_iterator<T, Property, LabelType>       aiterator;
