@@ -5,9 +5,13 @@ set(LIB_DIR "../lib")
 set(BUILD_DIR "../build")
 
 add_subdirectory(io)
+add_subdirectory(utils)
 
 include_directories(../include)
 include_directories(../include/io)
+include_directories(../include/utils)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/io/libio.a
+        DESTINATION ${CMAKE_HOME_DIRECTORY}/${LIB_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/utils/libutils.a
         DESTINATION ${CMAKE_HOME_DIRECTORY}/${LIB_DIR})

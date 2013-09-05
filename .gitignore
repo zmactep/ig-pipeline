@@ -15,6 +15,17 @@
 *.la
 *.a
 
+# Logs
+
+*.log
+
+# OS X stuff
+.DS_Store
+
 # IDE
 build*
 *.user
+.project
+.pydevproject
+.idea
+.cproject
