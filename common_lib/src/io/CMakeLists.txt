@@ -10,4 +10,5 @@ add_library(io STATIC
             fasta_reader.cpp
             kabat_reader.cpp
             nomenclature.cpp
+            generic_nomenclature.cpp
             read.cpp)

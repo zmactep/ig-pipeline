@@ -10,8 +10,6 @@
 #include "nomenclature.h"
 #include "read.h"
 
-std::map<std::string, int> regionName2code;
-
 void usage(){
 	std::cout << "Usage for generating train data: svm_data_generator train fasta_file nomenclature_file sliding_window_size" << std::endl;
 	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
@@ -20,24 +18,12 @@ void usage(){
 void split_read_by_nomenclature(const std::string& r, const Nomenclature& n, std::map<int, std::string>& output) {
 	//no length checks here are explicit - we better through an exception
 	int offset = 0;
-	std::string region = r.substr(0, n.getCDR1begin() - 1);
-	output.insert(std::make_pair(regionName2code["FR1"], region));
-	offset += region.length();
 
-	region = r.substr(n.getCDR1begin() - 1, n.getFR2begin() - 1 - offset);
-	output.insert(std::make_pair(regionName2code["CDR1"], region));
-	offset += region.length();
-
-	region = r.substr(n.getFR2begin() - 1, n.getCDR2begin() - 1 - offset);
-	output.insert(std::make_pair(regionName2code["FR2"], region));
-	offset += region.length();
-
-	region = r.substr(n.getCDR2begin() - 1, n.getFR3begin() - 1 - offset);
-	output.insert(std::make_pair(regionName2code["CDR2"], region));
-	offset += region.length();
-
-	region = r.substr(n.getFR3begin() - 1, n.getFR3end() - offset);
-	output.insert(std::make_pair(regionName2code["FR3"], region));
+	for (int i = 0; i < n.getNumRegions(); ++i) {
+		std::string region = r.substr(offset + n.getRegionBegin(i) - 1, n.getRegionEnd(i) - offset);
+		output.insert(std::make_pair(i, region));
+		offset += region.length();
+	}
 }
 
 void print_svm_entry(int label, const std::string& line, const std::string& comment) {
@@ -92,19 +78,8 @@ void process_read(const Read& r, int window_size) {
 	}
 }
 
-void build_regionName2code() {
-	//SVM uses numerics (not categories) as labels -> we need to provide appropriate mapping
-	regionName2code.insert(std::make_pair("FR1", 1));
-	regionName2code.insert(std::make_pair("CDR1", 2));
-	regionName2code.insert(std::make_pair("FR2", 3));
-	regionName2code.insert(std::make_pair("CDR2", 4));
-	regionName2code.insert(std::make_pair("FR3", 5));
-	regionName2code.insert(std::make_pair("CDR3", 6));
-}
-
 void generate_train_date(char ** argv) {
 	const int window_size = atoi(argv[4]);
-	build_regionName2code();
 
 	try {
 		std::map<std::string, Nomenclature> seq2nomenclature;
