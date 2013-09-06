@@ -13,7 +13,8 @@
 std::map<std::string, int> regionName2code;
 
 void usage(){
-	std::cout << "Usage: svm_data_generator fasta_file nomenclature_file sliding_window_size" << std::endl;
+	std::cout << "Usage for generating train data: svm_data_generator train fasta_file nomenclature_file sliding_window_size" << std::endl;
+	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
 }
 
 void split_read_by_nomenclature(const std::string& r, const Nomenclature& n, std::map<int, std::string>& output) {
@@ -60,6 +61,7 @@ void get_seq2nomenclature(const char* filename, std::map<std::string, Nomenclatu
 	}
 }
 
+//for train data
 void process_read(const Read& r, const std::map<std::string, Nomenclature>& seq2nomenclature, int window_size) {
 	std::map<int, std::string> regions;
 	try {
@@ -80,6 +82,16 @@ void process_read(const Read& r, const std::map<std::string, Nomenclature>& seq2
 	}
 }
 
+//for predict data
+void process_read(const Read& r, int window_size) {
+	if (r.getSeq().length() > window_size) {
+		std::vector<std::string> kmers = KmerGenerator::getKmers(r.getSeq(), window_size);
+		for (std::vector<std::string>::const_iterator it = kmers.begin(); it != kmers.end(); ++it) {
+			print_svm_entry(0, *it, r.getName());
+		}
+	}
+}
+
 void build_regionName2code() {
 	//SVM uses numerics (not categories) as labels -> we need to provide appropriate mapping
 	regionName2code.insert(std::make_pair("FR1", 1));
@@ -90,20 +102,15 @@ void build_regionName2code() {
 	regionName2code.insert(std::make_pair("CDR3", 6));
 }
 
-int main(int argc, char ** argv) {
-	if (4 != argc) {
-		usage();
-		return 0;
-	}
-
-	const int window_size = atoi(argv[3]);
+void generate_train_date(char ** argv) {
+	const int window_size = atoi(argv[4]);
 	build_regionName2code();
 
 	try {
 		std::map<std::string, Nomenclature> seq2nomenclature;
-		get_seq2nomenclature(argv[2], seq2nomenclature);
+		get_seq2nomenclature(argv[3], seq2nomenclature);
 
-		FastaReader fasta_reader(argv[1]);
+		FastaReader fasta_reader(argv[2]);
 		Read r;
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
@@ -112,6 +119,36 @@ int main(int argc, char ** argv) {
 
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
+	}
+}
+
+void generate_predict_date(char ** argv) {
+	const int window_size = atoi(argv[3]);
+	try {
+		FastaReader fasta_reader(argv[2]);
+		Read r;
+		while (!fasta_reader.eof()) {
+			fasta_reader >> r;
+			process_read(r, window_size);
+		}
+	} catch (std::exception& e){
+		std::cout << "Error: " << e.what() << std::endl;
+	}
+}
+
+int main(int argc, char ** argv) {
+	if (5 != argc && 4 != argc) {
+		usage();
+		return 0;
+	}
+
+	if (!strcmp(argv[1], "train") && 5 == argc) {
+		generate_train_date(argv);
+	} else if (!strcmp(argv[1], "predict") && 4 == argc) {
+		generate_predict_date(argv);
+	} else {
+		std::cout << "unknown mode: not train and not predict." << std::endl;
+		usage();
 	}
 	return 0;
 }
