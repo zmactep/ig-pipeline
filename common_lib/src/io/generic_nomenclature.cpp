@@ -1,8 +1,9 @@
 #include <stdlib.h>
+#include <iostream>
+#include <string>
 #include "nomenclature.h"
 #include "generic_exception.h"
 #include "tokenizer.h"
-
 #define MIN_COL_NUM 11
 
 GenericNomenclature::GenericNomenclature(const std::string& data) {
@@ -14,17 +15,19 @@ std::string GenericNomenclature::getRefName() const {
 }
 
 void GenericNomenclature::parse(const std::string& data) {
-	std::vector<std::string> tokens = Tokenizer::tokenize(data);
-	if (tokens.size() < MIN_COL_NUM) {
-		throw GenericException("Not enough data: " + data);
+	if (data.empty()) {
+		throw GenericException("Empty line in GenericNomenclature::parse");
 	}
-
+	std::vector<std::string> tokens = Tokenizer::tokenize(data);
 	this->ref_name = tokens[0];
-	regions.clear();
-	regions.resize(tokens.size() - 1);
+	regions.clear();;
 
-	for (unsigned int i = 1; i < tokens.size(); ++i) {
-		regions[i - 1] = atoi(tokens[i].c_str());
+	try {
+		for (unsigned int i = 1; i < tokens.size(); ++i) {
+			regions.push_back(std::stoi(tokens[i]));
+		}
+	} catch (std::exception& e) {
+		//std::clog << "Parse error: " << data << std::endl;
 	}
 }
 

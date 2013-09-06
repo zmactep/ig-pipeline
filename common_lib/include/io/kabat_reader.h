@@ -4,13 +4,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "nomenclature.h"
+#include "generic_nomenclature.h"
 
 class KabatReader{
 public:
 	KabatReader(const std::string & filename);
 	virtual ~KabatReader();
-	KabatReader& operator>>(Nomenclature &n);
+	KabatReader& operator>>(GenericNomenclature &n);
 	bool eof() const;
 private:
 	std::ifstream input;

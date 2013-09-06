@@ -12,7 +12,7 @@ KabatReader::~KabatReader() {
 	input.close();
 }
 
-KabatReader& KabatReader::operator>>(Nomenclature &n) {
+KabatReader& KabatReader::operator>>(GenericNomenclature &n) {
 	if(!input.is_open()) {
 		throw GenericException("File is not opened");
 	}

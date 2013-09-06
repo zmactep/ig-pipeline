@@ -7,15 +7,15 @@
 #include "kmer_generator.h"
 #include "fasta_reader.h"
 #include "kabat_reader.h"
-#include "nomenclature.h"
+#include "generic_nomenclature.h"
 #include "read.h"
 
 void usage(){
-	std::cout << "Usage for generating train data: svm_data_generator train fasta_file nomenclature_file sliding_window_size" << std::endl;
+	std::cout << "Usage for generating train data: svm_data_generator train fasta_file GenericNomenclature_file sliding_window_size" << std::endl;
 	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
 }
 
-void split_read_by_nomenclature(const std::string& r, const Nomenclature& n, std::map<int, std::string>& output) {
+void split_read_by_GenericNomenclature(const std::string& r, const GenericNomenclature& n, std::map<int, std::string>& output) {
 	//no length checks here are explicit - we better through an exception
 	int offset = 0;
 
@@ -34,13 +34,13 @@ void print_svm_entry(int label, const std::string& line, const std::string& comm
 	std::cout << "# " << comment << std::endl;
 }
 
-void get_seq2nomenclature(const char* filename, std::map<std::string, Nomenclature>& seq2nomenclature) {
+void get_seq2GenericNomenclature(const char* filename, std::map<std::string, GenericNomenclature>& seq2GenericNomenclature) {
 	KabatReader kabat_reader(filename);
-	Nomenclature n;
+	GenericNomenclature n;
 	while (!kabat_reader.eof()) {
 		try {
 			kabat_reader >> n;
-			seq2nomenclature.insert(std::make_pair(n.getRefName(), n));
+			seq2GenericNomenclature.insert(std::make_pair(n.getRefName(), n));
 		} catch (std::exception& e) {
 			std::clog << "Error parsing line in kabat_reader: " << e.what() << std::endl;
 		}
@@ -48,12 +48,12 @@ void get_seq2nomenclature(const char* filename, std::map<std::string, Nomenclatu
 }
 
 //for train data
-void process_read(const Read& r, const std::map<std::string, Nomenclature>& seq2nomenclature, int window_size) {
+void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size) {
 	std::map<int, std::string> regions;
 	try {
-		split_read_by_nomenclature(r.getSeq(), seq2nomenclature.find(r.getName())->second, regions);
+		split_read_by_GenericNomenclature(r.getSeq(), seq2GenericNomenclature.find(r.getName())->second, regions);
 	} catch (std::exception& e){
-		std::clog << "Error splitting read by nomenclature: " << r.getName() << std::endl;
+		std::clog << "Error splitting read by GenericNomenclature: " << r.getName() << std::endl;
 	}
 
 	for (std::map<int, std::string>::const_iterator it1 = regions.begin(); it1 != regions.end(); ++it1) {
@@ -82,16 +82,19 @@ void generate_train_date(char ** argv) {
 	const int window_size = atoi(argv[4]);
 
 	try {
-		std::map<std::string, Nomenclature> seq2nomenclature;
-		get_seq2nomenclature(argv[3], seq2nomenclature);
+		std::map<std::string, GenericNomenclature> seq2nomenclature;
+		get_seq2GenericNomenclature(argv[3], seq2nomenclature);
 
 		FastaReader fasta_reader(argv[2]);
 		Read r;
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
-			process_read(r, seq2nomenclature, window_size);
+			try {
+				process_read(r, seq2nomenclature, window_size);
+			} catch (std::exception& e) {
+				std::clog << "Error processing read: " << e.what() << std::endl;
+			}
 		}
-
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
 	}
@@ -104,7 +107,11 @@ void generate_predict_date(char ** argv) {
 		Read r;
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
-			process_read(r, window_size);
+			try {
+				process_read(r, window_size);
+			} catch (std::exception& e) {
+				std::clog << "Error processing read: " << e.what() << std::endl;
+			}
 		}
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
