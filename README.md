@@ -3,7 +3,7 @@ ig-pipeline
 
 SVM regions/genes predictor
 ===========================
-svm_data_generator and libsvm folders
+Location: svm_data_generator and libsvm-3.17 folders
 
 Сборка
 ------
