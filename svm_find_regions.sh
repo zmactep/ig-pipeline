@@ -1,10 +1,10 @@
 #!/bin/sh
 
-EXPECTED_ARGS=4
+EXPECTED_ARGS=5
 
 if [ $# -ne $EXPECTED_ARGS ]
 then
-  echo "Usage: svm_find_regions.sh input_train.fasta input_kabat input_predict.fasta window_size"
+  echo "Usage: svm_find_regions.sh input_train.fasta input_kabat input_predict.fasta svm_window_size avg_window_size"
   exit
 fi
 
@@ -26,7 +26,7 @@ echo "Done"
 
 awk '{print $NF}' ./svm_data_generator/bin/predictdata.svm > read_names.txt
 paste read_names.txt ./libsvm-3.17/output.txt > data.txt
-python ./parse_svm_output.py > result.txt
+python ./parse_svm_output.py data.txt $5 $4
 
 rm data.txt ./libsvm-3.17/traindata.svm.model ./libsvm-3.17/output.txt read_names.txt
-echo "Done. Result is in result.txt"
+echo "Done. Result is in results.txt. Debug output in debug_prediction.txt and debug_prediction_avg.txt"

@@ -15,14 +15,18 @@ void usage(){
 	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
 }
 
-void split_read_by_GenericNomenclature(const std::string& r, const GenericNomenclature& n, std::map<int, std::string>& output) {
-	//no length checks here are explicit - we better through an exception
-	int offset = 0;
-
-	for (int i = 0; i < n.getNumRegions(); ++i) {
-		std::string region = r.substr(offset + n.getRegionBegin(i) - 1, n.getRegionEnd(i) - offset);
-		output.insert(std::make_pair(i, region));
-		offset += region.length();
+void split_read_by_GenericNomenclature(const Read& r, const GenericNomenclature& n, std::map<int, std::string>& output) {
+	int i = 0;
+	try {
+		for (; i < n.getNumRegions(); ++i) {
+			std::string region = r.getSeq().substr(n.getRegionBegin(i) - 1, n.getRegionEnd(i) - n.getRegionBegin(i) + 1);
+			output.insert(std::make_pair(i, region));
+		}
+	} catch (std::exception& e){
+		const int start = n.getRegionBegin(i) - 1;
+		const int size = n.getRegionEnd(i) - n.getRegionBegin(i) + 1;
+			std::clog << "Error splitting read by GenericNomenclature: " << r.getName() <<
+					": substring index out of range: start = " << start << "; size = " << size << std::endl;
 	}
 }
 
@@ -50,11 +54,12 @@ void get_seq2GenericNomenclature(const char* filename, std::map<std::string, Gen
 //for train data
 void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size) {
 	std::map<int, std::string> regions;
-	try {
-		split_read_by_GenericNomenclature(r.getSeq(), seq2GenericNomenclature.find(r.getName())->second, regions);
-	} catch (std::exception& e){
-		std::clog << "Error splitting read by GenericNomenclature: " << r.getName() << std::endl;
+	std::map<std::string, GenericNomenclature>::const_iterator it;
+	if (seq2GenericNomenclature.end() == (it = seq2GenericNomenclature.find(r.getName()))) {
+		std::clog << "Missing nomenclature for read " << r.getName() << std::endl;
+		return;
 	}
+	split_read_by_GenericNomenclature(r, it->second, regions);
 
 	for (std::map<int, std::string>::const_iterator it1 = regions.begin(); it1 != regions.end(); ++it1) {
 		const int label = it1->first;
