@@ -14,7 +14,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common_lib/lib)
 
 add_executable(svm_data_generator
   main.cpp)
-target_link_libraries(svm_data_generator utils io z)
+target_link_libraries(svm_data_generator io utils z)
 
 install(TARGETS svm_data_generator DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
         
