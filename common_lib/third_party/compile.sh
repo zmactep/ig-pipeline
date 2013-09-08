@@ -7,7 +7,7 @@ cd ./gtest-1.6.0
 rm -rf ./build
 mkdir ./build
 cd ./build
-cmake ..
+cmake -DCMAKE_CXX_FLAGS="-std=c++11" ..
 make
 cp *.a ../../lib 
 cd ..

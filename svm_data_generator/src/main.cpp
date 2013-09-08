@@ -15,6 +15,7 @@ void usage(){
 	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
 }
 
+//TODO move to separate lib
 void split_read_by_GenericNomenclature(const Read& r, const GenericNomenclature& n, std::map<int, std::string>& output) {
 	int i = 0;
 	try {
