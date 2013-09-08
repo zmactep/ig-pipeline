@@ -3,14 +3,14 @@ ig-pipeline
 
 SVM regions/genes predictor
 ===========================
-Location: svm_data_generator and libsvm-3.17 folders
+Location: svm_data_generator
 
 Сборка
 ------
     cd ./svm_data_generator
     ./compile.sh
-    cd ../common_lib/third_partylibsvm-3.17
-    make
+    cd ../common_lib
+    ./compile.sh
 
 Запуск
 ------
