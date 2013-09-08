@@ -9,8 +9,6 @@ Location: svm_data_generator
 ------
     cd ./svm_data_generator
     ./compile.sh
-    cd ../common_lib
-    ./compile.sh
 
 Запуск
 ------
