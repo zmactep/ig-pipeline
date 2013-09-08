@@ -9,7 +9,7 @@ Location: svm_data_generator and libsvm-3.17 folders
 ------
     cd ./svm_data_generator
     ./compile.sh
-    cd ../libsvm-3.17
+    cd ../common_lib/third_partylibsvm-3.17
     make
 
 Запуск
