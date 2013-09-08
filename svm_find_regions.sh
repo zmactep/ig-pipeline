@@ -16,7 +16,7 @@ cd ./svm_data_generator/bin
 echo "Done."
 
 cd ../../
-echo "traing SVM..."
+echo "training SVM..."
 
 cd ./common_lib/third_party/libsvm-3.17/
 ./svm-train -h 0 ../../../svm_data_generator/bin/traindata.svm 

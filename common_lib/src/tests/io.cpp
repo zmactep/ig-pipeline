@@ -19,7 +19,7 @@ TEST(Model, NomenclatureTest) {
 }
 
 TEST(IO, SimpleTest) {
-	std::ifstream input("./bin/data/sample.txt");
+	std::ifstream input("./data/sample.txt");
 	ASSERT_TRUE(input.is_open() == true);
 	std::string line;
 	std::getline(input, line);

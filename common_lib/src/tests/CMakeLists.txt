@@ -6,6 +6,8 @@ enable_testing()
 
 cmake_policy(SET CMP0015 OLD)
 
+find_package (Threads)
+
 #gtest
 include_directories(../../include/io)
 include_directories(../../include/utils)
@@ -20,8 +22,8 @@ add_executable(io_test
 add_executable(utils_test
   utils.cpp)
     
-target_link_libraries(utils_test utils gtest gtest_main)
-target_link_libraries(io_test io utils gtest gtest_main)
+target_link_libraries(utils_test utils gtest gtest_main pthread)
+target_link_libraries(io_test io utils gtest gtest_main pthread)
 
 add_test(NAME io_test COMMAND io_test)
 add_test(NAME utils_test COMMAND utils_test)
