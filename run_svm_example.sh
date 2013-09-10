@@ -1,2 +1,4 @@
 #!/bin/sh
-./svm_find_regions.sh ./data/germline/human/VJK_combinations.fasta ./data/nomenclature/human/VJK_combinations.kabat ./data/germline/human/VH.fasta 10 5
+
+python ./data/split_fasta_to_learn_and_train_datasets.py ./data/germline/human/VJK_combinations.fasta 70
+./svm_find_regions.sh ./train.fasta ./data/nomenclature/human/VJK_combinations.kabat test.fasta 20 10

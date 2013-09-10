@@ -18,4 +18,6 @@ echo "Done"
 echo "Building libsvm"
 cd ./libsvm-3.17
 make
+cd ./../libsvm-string-3.17
+make
 echo "Done"

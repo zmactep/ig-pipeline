@@ -32,11 +32,6 @@ void split_read_by_GenericNomenclature(const Read& r, const GenericNomenclature&
 }
 
 void print_svm_entry(int label, const std::string& line, const std::string& comment) {
-	std::cout << label << " ";
-	for (int i = 0; i < line.size(); ++i) {
-		std::cout << i << ":" << (int)line[i] << " ";
-	}
-	std::cout << "# " << comment << std::endl;
 }
 
 void get_seq2GenericNomenclature(const char* filename, std::map<std::string, GenericNomenclature>& seq2GenericNomenclature) {
@@ -68,18 +63,23 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 		if (r.getSeq().length() > window_size) {
 			std::vector<std::string> kmers = KmerGenerator::getKmers(it1->second, window_size);
 			for (std::vector<std::string>::const_iterator it2 = kmers.begin(); it2 != kmers.end(); ++it2) {
-				print_svm_entry(label, *it2, r.getName());
+				const std::string& line = *it2;
+				const std::string& comment = r.getName();
+				std::cout << label << " " << line << std::endl;
 			}
 		}
 	}
 }
 
 //for predict data
-void process_read(const Read& r, int window_size) {
+void process_read(const Read& r, int window_size, std::ofstream& comments_output) {
 	if (r.getSeq().length() > window_size) {
 		std::vector<std::string> kmers = KmerGenerator::getKmers(r.getSeq(), window_size);
 		for (std::vector<std::string>::const_iterator it = kmers.begin(); it != kmers.end(); ++it) {
-			print_svm_entry(0, *it, r.getName());
+			const std::string& line = *it;
+			const std::string& comment = r.getName();
+			std::cout << 0 << " " << line << std::endl;
+			comments_output << comment << std::endl;
 		}
 	}
 }
@@ -107,6 +107,7 @@ void generate_train_date(char ** argv) {
 }
 
 void generate_predict_date(char ** argv) {
+	std::ofstream output("read_names.txt");
 	const int window_size = atoi(argv[3]);
 	try {
 		FastaReader fasta_reader(argv[2]);
@@ -114,7 +115,7 @@ void generate_predict_date(char ** argv) {
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
 			try {
-				process_read(r, window_size);
+				process_read(r, window_size, output);
 			} catch (std::exception& e) {
 				std::clog << "Error processing read: " << e.what() << std::endl;
 			}
@@ -122,6 +123,7 @@ void generate_predict_date(char ** argv) {
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
 	}
+	output.close();
 }
 
 int main(int argc, char ** argv) {
