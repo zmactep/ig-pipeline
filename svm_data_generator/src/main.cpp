@@ -11,7 +11,7 @@
 #include "read.h"
 
 void usage(){
-	std::cout << "Usage for generating train data: svm_data_generator train fasta_file GenericNomenclature_file sliding_window_size" << std::endl;
+	std::cout << "Usage for generating train data: svm_data_generator train fasta_file GenericNomenclature_file sliding_window_size no_region_borders_flag" << std::endl;
 	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
 }
 
@@ -48,24 +48,39 @@ void get_seq2GenericNomenclature(const char* filename, std::map<std::string, Gen
 }
 
 //for train data
-void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size) {
+void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size, int no_borders) {
 	std::map<int, std::string> regions;
 	std::map<std::string, GenericNomenclature>::const_iterator it;
 	if (seq2GenericNomenclature.end() == (it = seq2GenericNomenclature.find(r.getName()))) {
 		std::clog << "Missing nomenclature for read " << r.getName() << std::endl;
 		return;
 	}
-	split_read_by_GenericNomenclature(r, it->second, regions);
 
-	for (std::map<int, std::string>::const_iterator it1 = regions.begin(); it1 != regions.end(); ++it1) {
-		const int label = it1->first;
+	const GenericNomenclature& nomenclature = it->second;
+	const std::string cap(window_size / 2, 'B'); //'B' is not an amino acid nor a nucleotide
+	const std::string capped_seq = cap + r.getSeq() + cap; //add caps to sequence to deal with sliding window near the edges
+	if (!no_borders) {
+		split_read_by_GenericNomenclature(r, nomenclature, regions);
 
-		if (r.getSeq().length() > window_size) {
-			std::vector<std::string> kmers = KmerGenerator::getKmers(it1->second, window_size);
-			for (std::vector<std::string>::const_iterator it2 = kmers.begin(); it2 != kmers.end(); ++it2) {
-				const std::string& line = *it2;
-				const std::string& comment = r.getName();
-				std::cout << label << " " << line << std::endl;
+		for (std::map<int, std::string>::const_iterator it1 = regions.begin(); it1 != regions.end(); ++it1) {
+			const int label = it1->first;
+
+			if (capped_seq.length() > window_size) {
+				std::vector<std::string> kmers = KmerGenerator::getKmers(it1->second, window_size);
+				for (std::vector<std::string>::const_iterator it2 = kmers.begin(); it2 != kmers.end(); ++it2) {
+					const std::string& line = *it2;
+					std::cout << label << " " << line << std::endl;
+				}
+			}
+		}
+	} else {
+		if (capped_seq.length() > window_size) {
+			std::vector<std::string> kmers = KmerGenerator::getKmers(capped_seq, window_size);
+			int current_kmer = 0;
+			for (int current_region = 0; current_region < nomenclature.getNumRegions(); ++current_region) {
+				for (int j = nomenclature.getRegionBegin(current_region); j <= nomenclature.getRegionEnd(current_region); ++j) {
+					std::cout << current_region << " " << kmers[current_kmer++] << std::endl;
+				}
 			}
 		}
 	}
@@ -73,8 +88,11 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 
 //for predict data
 void process_read(const Read& r, int window_size, std::ofstream& comments_output) {
-	if (r.getSeq().length() > window_size) {
-		std::vector<std::string> kmers = KmerGenerator::getKmers(r.getSeq(), window_size);
+	const std::string cap(window_size / 2, 'B'); //'B' is not an amino acid nor a nucleotide
+	const std::string capped_seq = cap + r.getSeq() + cap; //add caps to sequence to deal with sliding window near the edges
+
+	if (capped_seq.length() > window_size) {
+		std::vector<std::string> kmers = KmerGenerator::getKmers(capped_seq, window_size);
 		for (std::vector<std::string>::const_iterator it = kmers.begin(); it != kmers.end(); ++it) {
 			const std::string& line = *it;
 			const std::string& comment = r.getName();
@@ -86,6 +104,7 @@ void process_read(const Read& r, int window_size, std::ofstream& comments_output
 
 void generate_train_date(char ** argv) {
 	const int window_size = atoi(argv[4]);
+	const int no_borders = atoi(argv[5]);
 
 	try {
 		std::map<std::string, GenericNomenclature> seq2nomenclature;
@@ -96,7 +115,7 @@ void generate_train_date(char ** argv) {
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
 			try {
-				process_read(r, seq2nomenclature, window_size);
+				process_read(r, seq2nomenclature, window_size, no_borders);
 			} catch (std::exception& e) {
 				std::clog << "Error processing read: " << e.what() << std::endl;
 			}
@@ -107,7 +126,7 @@ void generate_train_date(char ** argv) {
 }
 
 void generate_predict_date(char ** argv) {
-	std::ofstream output("read_names.txt");
+	std::ofstream comments_output("read_names.txt");
 	const int window_size = atoi(argv[3]);
 	try {
 		FastaReader fasta_reader(argv[2]);
@@ -115,7 +134,7 @@ void generate_predict_date(char ** argv) {
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
 			try {
-				process_read(r, window_size, output);
+				process_read(r, window_size, comments_output);
 			} catch (std::exception& e) {
 				std::clog << "Error processing read: " << e.what() << std::endl;
 			}
@@ -123,16 +142,16 @@ void generate_predict_date(char ** argv) {
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
 	}
-	output.close();
+	comments_output.close();
 }
 
 int main(int argc, char ** argv) {
-	if (5 != argc && 4 != argc) {
+	if (6 != argc && 4 != argc) {
 		usage();
 		return 0;
 	}
 
-	if (!strcmp(argv[1], "train") && 5 == argc) {
+	if (!strcmp(argv[1], "train") && 6 == argc) {
 		generate_train_date(argv);
 	} else if (!strcmp(argv[1], "predict") && 4 == argc) {
 		generate_predict_date(argv);
