@@ -17,7 +17,8 @@ def main():
 
     common_keys = set(ref_dict.keys()) & set(input_dict.keys())
     abs_score = sum([get_abs_score(ref_dict[key], input_dict[key]) for key in common_keys])
-    print('Absolute score: %s' % abs_score)
+    mismatches_per_read = abs_score / len(common_keys) if len(common_keys) != 0 else 1
+    print('Absolute score: %s; Mismatches per read: %s' % (abs_score, mismatches_per_read))
 
 # return: key = sequence_name, value = list of regions len
 def parse_kabat_line(line):
