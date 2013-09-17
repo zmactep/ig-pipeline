@@ -31,7 +31,12 @@ void split_read_by_GenericNomenclature(const Read& r, const GenericNomenclature&
 	}
 }
 
-void print_svm_entry(int label, const std::string& line, const std::string& comment) {
+void print_svm_entry(int label, const std::string& line, std::ofstream& svm_output) {
+	svm_output << label << " ";
+	for (int i = 0; i < line.size(); ++i) {
+		svm_output << i + 1 << ":" << (int)line[i] << " ";
+	}
+	svm_output << std::endl;
 }
 
 void get_seq2GenericNomenclature(const char* filename, std::map<std::string, GenericNomenclature>& seq2GenericNomenclature) {
@@ -48,7 +53,7 @@ void get_seq2GenericNomenclature(const char* filename, std::map<std::string, Gen
 }
 
 //for train data
-void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size, int no_borders) {
+void process_read(const Read& r, const std::map<std::string, GenericNomenclature>& seq2GenericNomenclature, int window_size, int no_borders, std::ofstream& svm_output) {
 	std::map<int, std::string> regions;
 	std::map<std::string, GenericNomenclature>::const_iterator it;
 	if (seq2GenericNomenclature.end() == (it = seq2GenericNomenclature.find(r.getName()))) {
@@ -70,6 +75,7 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 				for (std::vector<std::string>::const_iterator it2 = kmers.begin(); it2 != kmers.end(); ++it2) {
 					const std::string& line = *it2;
 					std::cout << label << " " << line << std::endl;
+					print_svm_entry(label, line, svm_output);
 				}
 			}
 		}
@@ -79,7 +85,9 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 			int current_kmer = 0;
 			for (int current_region = 0; current_region < nomenclature.getNumRegions(); ++current_region) {
 				for (int j = nomenclature.getRegionBegin(current_region); j <= nomenclature.getRegionEnd(current_region); ++j) {
-					std::cout << current_region << " " << kmers[current_kmer++] << std::endl;
+					std::cout << current_region << " " << kmers[current_kmer] << std::endl;
+					print_svm_entry(current_region, kmers[current_kmer], svm_output);
+					current_kmer++;
 				}
 			}
 		}
@@ -87,7 +95,7 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 }
 
 //for predict data
-void process_read(const Read& r, int window_size, std::ofstream& comments_output) {
+void process_read(const Read& r, int window_size, std::ofstream& comments_output, std::ofstream& svm_output) {
 	const std::string cap(window_size / 2, 'B'); //'B' is not an amino acid nor a nucleotide
 	const std::string capped_seq = cap + r.getSeq() + cap; //add caps to sequence to deal with sliding window near the edges
 
@@ -98,13 +106,15 @@ void process_read(const Read& r, int window_size, std::ofstream& comments_output
 			const std::string& comment = r.getName();
 			std::cout << 0 << " " << line << std::endl;
 			comments_output << comment << std::endl;
+			print_svm_entry(0, line, svm_output);
 		}
 	}
 }
 
-void generate_train_date(char ** argv) {
+void generate_train_data(char ** argv) {
 	const int window_size = atoi(argv[4]);
 	const int no_borders = atoi(argv[5]);
+	std::ofstream svm_output("train.libsvm");
 
 	try {
 		std::map<std::string, GenericNomenclature> seq2nomenclature;
@@ -115,7 +125,7 @@ void generate_train_date(char ** argv) {
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
 			try {
-				process_read(r, seq2nomenclature, window_size, no_borders);
+				process_read(r, seq2nomenclature, window_size, no_borders, svm_output);
 			} catch (std::exception& e) {
 				std::clog << "Error processing read: " << e.what() << std::endl;
 			}
@@ -123,10 +133,12 @@ void generate_train_date(char ** argv) {
 	} catch (std::exception& e){
 		std::cout << "Error: " << e.what() << std::endl;
 	}
+	svm_output.close();
 }
 
-void generate_predict_date(char ** argv) {
+void generate_predict_data(char ** argv) {
 	std::ofstream comments_output("read_names.txt");
+	std::ofstream svm_output("predict.libsvm");
 	const int window_size = atoi(argv[3]);
 	try {
 		FastaReader fasta_reader(argv[2]);
@@ -134,7 +146,7 @@ void generate_predict_date(char ** argv) {
 		while (!fasta_reader.eof()) {
 			fasta_reader >> r;
 			try {
-				process_read(r, window_size, comments_output);
+				process_read(r, window_size, comments_output, svm_output);
 			} catch (std::exception& e) {
 				std::clog << "Error processing read: " << e.what() << std::endl;
 			}
@@ -143,6 +155,7 @@ void generate_predict_date(char ** argv) {
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 	comments_output.close();
+	svm_output.close();
 }
 
 int main(int argc, char ** argv) {
@@ -152,9 +165,9 @@ int main(int argc, char ** argv) {
 	}
 
 	if (!strcmp(argv[1], "train") && 6 == argc) {
-		generate_train_date(argv);
+		generate_train_data(argv);
 	} else if (!strcmp(argv[1], "predict") && 4 == argc) {
-		generate_predict_date(argv);
+		generate_predict_data(argv);
 	} else {
 		std::cout << "unknown mode: not train and not predict." << std::endl;
 		usage();

@@ -26,6 +26,8 @@ def main():
         name2prediction = [line.rstrip().split('\t')[:2] for line in file]
         # name2prediction is supposed to be sorted here -> no need to sort in groupby
         for key, group in groupby(name2prediction, lambda x: x[0]):
+            if not key:
+                continue
             # key is a seq_name, and prediction is a list of region predictions for each position in sequence
             prediction = [x[1] for x in group]
             # Post processing step: averaging, merging small regions, etc...

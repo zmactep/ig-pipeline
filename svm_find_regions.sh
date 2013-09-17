@@ -8,42 +8,35 @@ then
   exit
 fi
 
-
+echo "Start date: " `date` 
 echo "Generating datafiles..."
 cd ./svm_data_generator/bin
-./svm_data_generator train ../../$1 ../../$2 $4 $7 > traindata.svm
-./svm_data_generator predict ../../$3 $4 > predictdata.svm
+./svm_data_generator train ../../$1 ../../$2 $4 $7 > /dev/null 2> /dev/null
+./svm_data_generator predict ../../$3 $4 > /dev/null 2> /dev/null
 echo "Done."
 
 cd ../../
 
-echo "training SVM..."
-cd ./common_lib/third_party/libsvm-string-3.17/
-./svm-train -h 0 -t 5 ../../../svm_data_generator/bin/traindata.svm 
-echo "predicting ..."
+echo "Training and predicting..."
+export CLASSPATH=./common_lib/third_party/weka-3.6.10/weka.jar
+java -Xmx2048M weka.filters.unsupervised.attribute.NumericToNominal -i ./svm_data_generator/bin/train.libsvm -o train_nominal.arff 2> /dev/null
+java -Xmx2048M weka.filters.unsupervised.attribute.NumericToNominal -i ./svm_data_generator/bin/predict.libsvm -o predict_nominal.arff 2> /dev/null
+CLASS_NAMES=$(cat ./train_nominal.arff | grep class) 
+#fix headers to make it look the same
+gsed -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./train_nominal.arff
+gsed -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./predict_nominal.arff
+gsed -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./train_nominal.arff 
+gsed -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./predict_nominal.arff 
 
-num_cores=8
-# Work out lines per file.
-total_lines=$(cat ../../../svm_data_generator/bin/predictdata.svm | wc -l)
-((lines_per_file = (total_lines + num_cores - 1) / num_cores))
-# Split the actual file, maintaining lines.
-split -l $lines_per_file ../../../svm_data_generator/bin/predictdata.svm input
-for f in input*
-do
- out="output$f"
- echo "Processing $f to $out"
- ./svm-predict $f traindata.svm.model $out &
-done
-echo "Waiting for prediction to finish..."
-wait
-cat ./output* > output.txt
-cd ../../..
-echo "Done"
+java -Xmx2048M weka.classifiers.trees.RandomForest -I 10 -K 0 -S 1 -no-cv -p 0 -t ./train_nominal.arff -T ./predict_nominal.arff > prediction.txt
+tail -n +6 prediction.txt | awk '{print $3}' | cut -d: -f2 > prediction.filtered.txt 
+echo "Done."
 
-paste ./svm_data_generator/bin/read_names.txt ./common_lib/third_party/libsvm-string-3.17/output.txt > data.txt
+paste ./svm_data_generator/bin/read_names.txt ./prediction.filtered.txt > data.txt
 python ./parse_svm_output.py --input_file data.txt --sliding_window_size $5 --merge_threshold $6
 
 python ./data/compare_kabat.py --ref $2 --input results.txt
-#rm data.txt ./common_lib/third_party/libsvm-string-3.17/input* ./common_lib/third_party/libsvm-string-3.17/output* ./common_lib/third_party/libsvm-string-3.17/traindata.svm.model ./svm_data_generator/bin/read_names.txt
+#rm data.txt ./svm_data_generator/bin/read_names.txt train_nominal.arff predict_nominal.arff prediction.filtered.txt prediction.txt 
 echo "Done. Result is in results.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt"
+echo "End date: " `date` 
 
