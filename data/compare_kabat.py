@@ -30,15 +30,16 @@ def main():
     mismatches_per_read = abs_score / len(common_keys) if len(common_keys) != 0 else 1
     print('Absolute score: %s; Mismatches per read: %s' % (abs_score, mismatches_per_read))
 
-# return: key = sequence_name, value = list of regions len
+# return: key = sequence_name, value = list of regions
 def parse_kabat_line(line):
     tokens = line.split()
     key = tokens.pop(0).strip()
-    value = [int(tokens[i + 1]) - int(tokens[i]) + 1 for i in range(0, len(tokens), 2)]
-    return key, value
+    return key, tokens
 
 def get_abs_score(first, second):
-    return sum([abs(fst - snd) for fst, snd in zip_longest(first, second, fillvalue=0)])
+    first_regions = [int(first[i + 1]) - int(first[i]) + 1 for i in range(0, len(first), 2)]
+    second_regions = [int(second[i + 1]) - int(second[i]) + 1 for i in range(0, len(second), 2)]
+    return sum([abs(fst - snd) for fst, snd in zip_longest(first_regions, second_regions, fillvalue=0)])
 
 if __name__ == "__main__":
    main()
