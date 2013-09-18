@@ -4,7 +4,7 @@ EXPECTED_ARGS=7
 
 if [ $# -ne $EXPECTED_ARGS ]
 then
-  echo "Usage: svm_find_regions.sh input_train.fasta input_kabat input_predict.fasta svm_window_size avg_window_size merge_threshold no_region_borders_in_train"
+  echo "Usage: svm_find_regions.sh input_train.fasta input_kabat input_predict.fasta svm_window_size sliding_window_size merge_threshold no_region_borders_in_train"
   exit
 fi
 
