@@ -23,20 +23,25 @@ java -Xmx2048M weka.filters.unsupervised.attribute.NumericToNominal -i ./svm_dat
 java -Xmx2048M weka.filters.unsupervised.attribute.NumericToNominal -i ./svm_data_generator/bin/predict.libsvm -o predict_nominal.arff 2> /dev/null
 CLASS_NAMES=$(cat ./train_nominal.arff | grep class) 
 #fix headers to make it look the same
-gsed -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./train_nominal.arff
-gsed -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./predict_nominal.arff
-gsed -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./train_nominal.arff 
-gsed -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./predict_nominal.arff 
+if [ -e /bin/sed ]; then
+	SED=sed
+else
+	SED=gsed
+fi
+$SED -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./train_nominal.arff
+$SED -r -i 's/([0-9]*) \{.*\}/\1 {65,66,67,71,78,84}/g' ./predict_nominal.arff
+$SED -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./train_nominal.arff 
+$SED -i "s/@attribute class {65,66,67,71,78,84}/$CLASS_NAMES/g" ./predict_nominal.arff 
 
 java -Xmx2048M weka.classifiers.trees.RandomForest -I 10 -K 0 -S 1 -no-cv -p 0 -t ./train_nominal.arff -T ./predict_nominal.arff > prediction.txt
 tail -n +6 prediction.txt | awk '{print $3}' | cut -d: -f2 > prediction.filtered.txt 
 echo "Done."
 
 paste ./svm_data_generator/bin/read_names.txt ./prediction.filtered.txt > data.txt
-python ./parse_svm_output.py --input_file data.txt --sliding_window_size $5 --merge_threshold $6
+python3.3 ./parse_svm_output.py --input_file data.txt --sliding_window_size $5 --merge_threshold $6
 
-python ./data/compare_kabat.py --ref $2 --input results.txt
+python3.3 ./data/compare_kabat.py --ref $2 --input results.txt
 #rm data.txt ./svm_data_generator/bin/read_names.txt train_nominal.arff predict_nominal.arff prediction.filtered.txt prediction.txt 
-echo "Done. Result is in results.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt"
+echo "Done. Result is in results.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt. Comparison is in comparison.kabat"
 echo "End date: " `date` 
 
