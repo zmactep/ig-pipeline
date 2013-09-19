@@ -1,0 +1,42 @@
+{
+  "mids": [
+            {
+                "d_type": "VH",
+                "direction": "forward",
+                "mid": "ATAGATAGAC",
+                "primer": "GCCTACGGCAGCCGCTGGATTGTTATTAC"
+            },
+            {
+                "d_type": "VH",
+                "direction": "reversed",
+                "mid": "ATATAGTCGC",
+                "primer": "CACAGACGGGCCTTTTGTAGAC"
+            },
+
+            {
+                "d_type": "VL",
+                "direction": "forward",
+                "mid": "ATCTACTGAC",
+                "primer": "GCTGCTGCTGGTCTGCTGCTCCTCGCTG"
+            },
+            {
+                "d_type": "VL",
+                "direction": "reversed",
+                "mid": "CACGTAGATC",
+                "primer": "GGCGGGAAAATAAAAACAGACGG"
+            },
+
+            {
+                "d_type": "VK",
+                "direction": "forward",
+                "mid": "CACGTGTCGC",
+                "primer": "GCTGCTGCTGGTCTGCTGCTCCTCGCTG"
+            },
+            {
+                "d_type": "VK",
+                "direction": "reversed",
+                "mid": "CATACTCTAC",
+                "primer": "GGCGGGAAAATAAAAACAGACGG"
+            }
+          ]
+}

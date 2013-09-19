@@ -22,6 +22,8 @@
 # OS X stuff
 .DS_Store
 
+# Stuff
+__pycache__
 # IDE
 build*
 *.user
@@ -29,3 +31,4 @@ build*
 .pydevproject
 .idea
 .cproject
+.ropeproject
