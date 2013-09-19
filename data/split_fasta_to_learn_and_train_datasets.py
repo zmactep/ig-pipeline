@@ -10,14 +10,12 @@ def main(argv):
     split = float(argv[2])
     train = open('train.fasta', 'w')
     test = open('test.fasta', 'w')
-    input = open(input_file, "rU")
     random.seed()
-    for record in SeqIO.parse(input, "fasta"):
+    for record in SeqIO.parse(input_file, "fasta"):
         if random.randint(0, 100) < split:
             SeqIO.write(record, train, "fasta")
         else:
             SeqIO.write(record, test, "fasta")
-    input.close()
     test.close()
     train.close()
 
