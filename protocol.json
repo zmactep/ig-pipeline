@@ -1,0 +1,63 @@
+Request:
+{"task" : "find patterns",
+ "input" : {
+    "files" : ["file1.fasta", "file2.fasta"],
+    "params" : {
+       "ml_windowsize" : 10,
+       "avg_widowsize" : 8,
+       "merge_threshold" : 5,
+       "modelpath" : "/123/123/model1"
+    }
+ },
+ "output" : {
+    "outdir" : "blablabla"
+ }
+}
+
+Response:
+{"status" : "ok",
+ "fullpath" : ["/tmp/loh/output.kabat"]
+}
+
+-----------------
+
+Resuest:
+{"task" : "generate model",
+ "input" : {
+    "files" : {"kabat" : "blabla.kabat", "fasta" : "blabdla.fasta"},
+    "params" : {
+      "ml_windowsize" : 10,
+      "algo" : "random forest",
+      "algo_params" : "-l 10 -S 0"
+    },
+    "comment" : "I am cool!",
+    "group" : "regions"
+  },
+  "output" : {
+     "outdir" : "blablabla"
+  }
+}
+
+Response:
+{"status" : "ok",
+ "fullpath" : "path",
+ "description" : "V.fasta V.kabat algo1 params comment 01.01.1970"
+}
+
+-----------------
+
+Request:
+{"task" : "model list",
+ "input" : {
+    "group" : "regions"
+  }
+}
+
+Response:
+{"status" : "ok",
+ "data" : [{"fullpath" : "path",
+            "description" : "V.fasta V.kabat ..."
+           },
+           ...
+          ]
+}
