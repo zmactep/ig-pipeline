@@ -12,7 +12,7 @@ def main(argv):
     test = open('test.fasta', 'w')
     random.seed()
     for record in SeqIO.parse(input_file, "fasta"):
-        if random.randint(0, 100) < split:
+        if random.uniform(0, 100) < split:
             SeqIO.write(record, train, "fasta")
         else:
             SeqIO.write(record, test, "fasta")
