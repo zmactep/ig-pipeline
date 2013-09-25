@@ -35,7 +35,7 @@ then
 fi
 
 #fix headers to make it look the same
-python3.3 ./fix_weka_header.py ./tmp/train_nominal.arff
+python ./fix_weka_header.py ./tmp/train_nominal.arff
 rm ./tmp/train_nominal.arff
 mv ./result.arff ./tmp/train_nominal.arff
 mv ./header.txt ./tmp/

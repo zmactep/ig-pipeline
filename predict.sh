@@ -58,8 +58,8 @@ echo "Done."
 echo "Current time: " `date`
 
 paste ./tmp/read_names.txt ./tmp/prediction.filtered.txt > ./tmp/data.txt
-python3.3 ./parse_svm_output.py --input_file ./tmp/data.txt --sliding_window_size $4 --merge_threshold $5
-python3.3 ./data/compare_kabat.py --ref $1 --input ./results.txt
+python ./parse_svm_output.py --input_file ./tmp/data.txt --sliding_window_size $4 --merge_threshold $5
+python ./data/compare_kabat.py --ref $1 --input ./results.txt
 
 mv ./results.txt ./tmp/results.txt
 mv ./debug_prediction.txt ./tmp/debug_prediction.txt 
