@@ -11,4 +11,4 @@ USAGE
 =====
 curl http://localhost:8080/?query=whatever
 server will runs train_model_example.sh (blocking call) and outputs result.
-Logs are in testFile.log
+Logs are in ig-backend.log
