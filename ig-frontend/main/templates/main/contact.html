@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Feedback</h1>
+  </div>
+
+{#  <form class="form-horizontal" method="POST" action="{% url 'main:contact' %}" role="form">#}
+{#    {% csrf_token %}#}
+{#    <div class="form-group">#}
+{#        <label for="inputEmail" class="col-lg-2 control-label">Email</label>#}
+{#        {% if user.is_authenticated %}#}
+{#            <div class="col-lg-10">#}
+{#                <p class="form-control-static">{{ user.email }}</p>#}
+{#                <input type="hidden" name="inputEmail" id="inputEmail" value="{{ user.email }}">#}
+{#            </div>#}
+{#        {% else %}#}
+{#            <div class="col-lg-10">#}
+{#                <input required="required" type="email" class="form-control" name="inputEmail" id="inputEmail" placeholder="Email">#}
+{#            </div>#}
+{#        {% endif %}#}
+{#    </div>#}
+{#    <div class="form-group">#}
+{#        <label for="inputText" class="col-lg-2 control-label">Message</label>#}
+{#        <div class="col-lg-10">#}
+{#            <textarea required="required" class="form-control" rows="10" name="inputText" id="inputText" placeholder="Message"></textarea>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <div class="form-group">#}
+{#        <div class="col-md-2 col-md-offset-10">#}
+{#            <button type="submit" class="btn btn-default btn-block">Send</button>#}
+{#        </div>#}
+{#    </div>#}
+{#    </form>#}
+
+<form class="well span8">
+  {% csrf_token %}
+  <div class="row">
+		<div class="col-md-4">
+			<label>First Name</label>
+			<input type="text" id="firstname" name="firstname" class="form-control" placeholder="Your First Name" required="required">
+			<label>Last Name</label>
+			<input type="text" id="lastname" name="lastname" class="form-control" placeholder="Your Last Name" required="required">
+			<label>Email Address</label>
+            {% if user.is_authenticated %}
+                <p class="span3">{{ user.email }}</p>
+                <input type="hidden" id="email" name="email" value="{{ user.email }}">
+            {% else %}
+                <input type="text" id="email" name="email" class="form-control" placeholder="Your email address" required="required">
+            {% endif %}
+          	<label>Subject</label>
+			<select id="subject" name="subject" class="form-control">
+				<option value="na" selected="">Choose One:</option>
+				<option value="service">General Customer Service</option>
+				<option value="suggestions">Suggestions</option>
+				<option value="product">Product Support</option>
+			</select>
+		</div>
+		<div class="col-md-8">
+			<label>Message</label>
+			<textarea name="message" id="message" class="form-control" rows="10" required="required"></textarea><br>
+            <button type="submit" class="btn btn-primary pull-right">Send</button>
+		</div>
+	</div>
+</form>
+
+{% endblock %}
