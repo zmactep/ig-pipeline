@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if user.username == viewuser %}
+        {% include "userprofile/myprofile.html" %}
+    {% else %}
+        {% include "userprofile/otherprofile.html" %}
+    {% endif %}
+
+{% endblock %}

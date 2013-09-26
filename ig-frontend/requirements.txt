@@ -1,0 +1,5 @@
+Django>=1.5.3
+django-admin-tools>=0.5.1
+django-registration>=1.0
+django-shortuuidfield>=0.1.2
+django-uni-form>=0.9.0

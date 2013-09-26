@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="page-header">
+          <h1>Request</h1>
+    </div>
+
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'main:send_request' %}">
+            {% csrf_token %}
+            Server: <input type="text" name="server" id="server" required="true" value="" /><br>
+            Port: <input type="text" name="port" id="port" required="true" value="" /><br>
+            Request:<br><textarea name="rtext" id="rtext" cols="40" rows="3"></textarea><br>
+            <input type="submit" value="Send" />
+        </form>
+    {% else %}
+        Please, authorize to make some actions.
+    {% endif %}
+
+{% endblock %}
