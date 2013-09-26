@@ -1,0 +1,41 @@
+option java_outer_classname = "Command";
+option java_package = "protocol";
+
+message RequestCommand {
+    required string task = 1;
+
+    message Params {
+        optional string algo = 1;
+        optional string algoParams = 2;
+        required string mlWindowsize = 3;
+        optional string avgWidowsize = 4;
+        optional string mergeThreshold = 5;
+        optional string modelPath = 6;
+    }
+
+    message Input {
+        repeated string files = 1;
+        optional Params params = 2;
+        optional string comment = 3;
+        optional string group = 4;
+    }
+
+    message Output {
+        required string outdir = 1;
+    }
+
+    required Input input = 2;
+    optional Output output = 3;
+}
+
+
+message ResponseCommand {
+    required string status = 1;
+
+    message PathAndDescription {
+        required string fullpath = 1;
+        optional string description = 2;
+    }
+
+    repeated PathAndDescription data = 2;
+}

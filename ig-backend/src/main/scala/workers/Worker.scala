@@ -41,7 +41,7 @@ abstract class Worker(masterLocation: ActorPath)
     // Our derivation has completed its task
     case WorkComplete(result) =>
       log.info("Work is complete.  Result {}.", result)
-      master ! WorkIsDone(self)
+      master ! WorkIsDone(self, result)
       master ! WorkerRequestsWork(self)
       // We're idle now
       context.become(idle)

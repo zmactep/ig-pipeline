@@ -10,7 +10,6 @@ import scala.concurrent.{ExecutionContext, Await}
 import spray.can.Http
 import spray.http.HttpMethods._
 import spray.http.{ HttpRequest, HttpResponse}
-import spray.can.client.HostConnectorSettings
 import spray.can.server.ServerSettings
 
 /**

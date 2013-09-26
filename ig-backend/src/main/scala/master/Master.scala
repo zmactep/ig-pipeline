@@ -1,6 +1,9 @@
 package master
 
 import akka.actor.{Terminated, ActorRef, Actor, ActorLogging}
+import akka.pattern.ask
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,8 +18,13 @@ class Master extends Actor with ActorLogging {
   import MasterWorkerProtocol._
   import scala.collection.mutable.{Map, Queue}
 
+  //TODO make atomic
+  var jobId = 0
   // Holds known workers and what they may be working on
-  val workers = Map.empty[ActorRef, Option[Tuple2[ActorRef, Any]]]
+  val workers = Map.empty[ActorRef, Option[Tuple2[Int, Tuple2[ActorRef, Any]]]]
+
+  val readyJobs = Map.empty[Int, Any]
+
   // Holds the incoming list of work to be done as well
   // as the memory of who asked for it
   val workQ = Queue.empty[Tuple2[ActorRef, Any]]
@@ -51,19 +59,23 @@ class Master extends Actor with ActorLogging {
           worker ! NoWorkToBeDone
         else if (workers(worker) == None) {
           val (workSender, work) = workQ.dequeue()
-          workers += (worker -> Some(workSender -> work))
-          // Use the special form of 'tell' that lets us supply
-          // the sender
-          worker.tell(WorkToBeDone(work), workSender)
+          workers += (worker -> Some(jobId -> (workSender -> work)))
+          worker ! WorkToBeDone(work, jobId)
+          workSender ! "Your job is enqueued with id = " + jobId
+          jobId += 1
         }
       }
 
     // Worker has completed its work and we can clear it out
-    case WorkIsDone(worker) =>
+    case WorkIsDone(worker, result) =>
       if (!workers.contains(worker))
         log.error("Blurgh! {} said it's done work but we didn't know about him", worker)
-      else
+      else {
+        val (jobId, _) = workers(worker).get
         workers += (worker -> None)
+        readyJobs += (jobId -> result)
+        log.debug("Your job result #{} is saved", jobId)
+      }
 
     // A worker died.  If he was doing anything then we need
     // to give it to someone else so we just add it back to the
@@ -72,15 +84,25 @@ class Master extends Actor with ActorLogging {
       if (workers.contains(worker) && workers(worker) != None) {
         log.error("Blurgh! {} died while processing {}", worker, workers(worker))
         // Send the work that it was doing back to ourselves for processing
-        val (workSender, work) = workers(worker).get
+        val (_, (workSender, work)) = workers(worker).get   //TODO jobId is changed here - we will not find task by old id
         self.tell(work, workSender)
       }
       workers -= worker
 
     // Anything other than our own protocol is "work to be done"
     case work =>
-      log.info("Queueing {}", work)
-      workQ.enqueue(sender -> work)
-      notifyWorkers()
+      if (work.toString.startsWith("get_result: ")) {
+        val jobId = Integer.parseInt(work.toString.split(" ")(1))
+        log.info("Requesting result for {}", jobId)
+        if (readyJobs.contains(jobId)) {
+          sender ! "Your result: " + readyJobs.get(jobId).getOrElse("")
+        } else {
+          sender ! "Your job id not found"
+        }
+      } else {
+        log.info("Queueing {}", work)
+        workQ.enqueue(sender -> work)
+        notifyWorkers()
+      }
   }
 }

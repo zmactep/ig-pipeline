@@ -22,8 +22,8 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     Future {
       val cwd = context.system.settings.config.getString("ig-backend.tools_root")
       val execResult = Process(Seq("./train_model_example.sh"), new java.io.File(cwd)).!!
-      workSender ! "Your request: " + msg + ". Response: " + execResult
-      WorkComplete("done")
+      log.debug("Your request: " + msg + ". Response: " + execResult)
+      WorkComplete(execResult)
     } pipeTo self
   }
 }

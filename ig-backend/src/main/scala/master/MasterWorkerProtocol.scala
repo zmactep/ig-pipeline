@@ -13,7 +13,7 @@ object MasterWorkerProtocol {
   // Messages from Workers
   case class WorkerCreated(worker: ActorRef)
   case class WorkerRequestsWork(worker: ActorRef)
-  case class WorkIsDone(worker: ActorRef)
+  case class WorkIsDone(worker: ActorRef, result: Any)
 
   // Messages to Workers
   case class WorkToBeDone(work: Any)
