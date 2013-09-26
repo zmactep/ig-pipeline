@@ -1,7 +1,7 @@
 INSTALLATION
 ============
-Make sure that ../svm_data_generator is compiled! (cd ../svm_data_generator && compile.sh). Then run:
-mvn clean package
+Make sure that ../svm_data_generator is compiled! (cd ../svm_data_generator && compile.sh). Install protobuf compiler version 2.5.0. Then run:
+* mvn clean package
 
 RUN
 ===
