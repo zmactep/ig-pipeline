@@ -7,13 +7,39 @@
     </div>
 
     {% if user.is_authenticated %}
-        <form method="post" action="{% url 'main:send_request' %}">
+        <form id="request_form" name="request_form">
             {% csrf_token %}
             Server: <input type="text" name="server" id="server" required="true" value="" /><br>
             Port: <input type="text" name="port" id="port" required="true" value="" /><br>
             Request:<br><textarea name="rtext" id="rtext" cols="40" rows="3"></textarea><br>
-            <input type="submit" value="Send" />
+            <input type="submit" name="submitb" id="submitb" value="Send" />
         </form>
+        <br>
+        <div class="page-header">
+              <h1>Response</h1>
+        </div>
+        <div name="div_response" id="div_response">
+            No answer.
+        </div>
+
+        <script type="text/javascript">
+        $(document).ready(function(){
+            var form = $("#request_form");
+            form.submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'main:send_request' %}",
+                    data: form.serialize(),
+                    success: function (response) {
+                        $("#div_response").html(JSON.stringify(response));
+                    }
+                });
+
+                return false;
+            });
+        });
+        </script>
     {% else %}
         Please, authorize to make some actions.
     {% endif %}

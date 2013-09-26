@@ -16,7 +16,6 @@
     <!-- Bootstrap theme -->
     <link href="{% static 'css/bootstrap-theme.min.css' %}" rel="stylesheet">
 
-
     <!-- Custom styles for this template -->
     <style>
         body {
@@ -24,7 +23,28 @@
             padding-bottom: 30px;
         }
 
+        #loading-indicator {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            margin-left: -256px;
+            margin-top: -256px;
+        }
     </style>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="{% static 'assets/js/jquery.js' %}">
+        $(document).ajaxSend(function(event, request, settings) {
+            $('#loading-indicator').show();
+        });
+
+        $(document).ajaxComplete(function(event, request, settings) {
+            $('#loading-indicator').hide();
+        });
+    </script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'assets/js/holder.js' %}"></script>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -36,6 +56,10 @@
   <body>
     {% include "navbar.html" %}
 
+    <div name="loading-indicator" id="loading-indicator" style="display:none;">
+        <img src="{% static 'images/loading.gif' %}" />
+    </div>
+
     <div class="container">
 
         {% block content %}
@@ -43,11 +67,5 @@
 
     </div> <!-- /container -->
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{% static 'assets/js/jquery.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'assets/js/holder.js' %}"></script>
   </body>
 </html>

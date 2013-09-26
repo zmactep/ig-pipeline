@@ -2,7 +2,9 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
+
 import socket
+import json
 
 
 def index(request):
@@ -10,9 +12,13 @@ def index(request):
 
 
 def send_request(request):
-    server = request.POST['server']
-    port = int(request.POST['port'])
-    rtext = request.POST['rtext']
+    print("OK!")
+    server = request.POST.get('server')
+    port = int(request.POST.get('port', 0))
+    rtext = request.POST.get('rtext')
+
+    if not server or not port or not rtext:
+        return HttpResponse("", content_type="application/json")
 
     s = socket.socket()
     s.connect((server, port))
@@ -22,4 +28,4 @@ def send_request(request):
 
     s.close()
 
-    return render(request, "main/showresponse.html", {"result": result})
+    return HttpResponse(json.dumps({'status': 'ok', 'text': result.decode()}), content_type="application/json")
