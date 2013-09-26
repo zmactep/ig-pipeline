@@ -12,7 +12,6 @@ def index(request):
 
 
 def send_request(request):
-    print("OK!")
     server = request.POST.get('server')
     port = int(request.POST.get('port', 0))
     rtext = request.POST.get('rtext')
