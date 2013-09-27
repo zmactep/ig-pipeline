@@ -9,7 +9,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await}
 import spray.can.Http
 import spray.http.HttpMethods._
-import spray.http.{ HttpRequest, HttpResponse}
+import spray.http._
+import spray.httpx.unmarshalling._
 import spray.can.server.ServerSettings
 
 /**
@@ -51,26 +52,44 @@ class HttpConnectionHandler(remote: InetSocketAddress, connection: ActorRef) ext
 
   def receive: Receive = {
 
-    case HttpRequest(GET, uri, _, _, _) =>
-      uri.query.get("query") match {
-        case Some(query) => {
-          import ExecutionContext.Implicits.global
-          implicit val timeout = Timeout(2000, SECONDS)
-
-          val future = context.actorSelection("/user/master") ? query recover {
-            case _ => "Timeout error"
-          }
-          val result = Await.result(future, timeout.duration).asInstanceOf[String]
-          log.debug("Sent to browser: " + result)
-          sender ! HttpResponse(entity = result)
-        }
-        case None => sender ! HttpResponse(entity = "Empty query.")
-      }
+    case HttpRequest(GET, uri, _, entity, _) => handleQuery(sender, GET, uri, entity)
+    case HttpRequest(POST, uri, _, entity, _) => handleQuery(sender, POST, uri, entity)
     case _: Tcp.ConnectionClosed =>
       log.debug("Stopping, because connection for remote address {} closed", remote)
       context.stop(self)
     case Terminated(`connection`) =>
       log.debug("Stopping, because connection for remote address {} died", remote)
       context.stop(self)
+  }
+
+  private def handleQuery(sender: ActorRef, method : spray.http.HttpMethod, uri: spray.http.Uri, entity : spray.http.HttpEntity) = {
+    val query = method match {
+      case GET => uri.query.get("query")
+      case POST => {
+        entity.as[HttpForm] match {
+          case Right(form) => {
+            FormFieldExtractor(form).field("query").as[String] match {
+              case Right(fieldval) => Option(fieldval)
+              case Left(fieldval) => Option(None)
+            }
+          }
+          case Left(form) => Option(None)
+        }
+      }
+    }
+    query match {
+      case Some(query) => {
+        import ExecutionContext.Implicits.global
+        implicit val timeout = Timeout(2000, SECONDS)
+
+        val future = context.actorSelection("/user/master") ? query recover {
+          case _ => "Timeout error"
+        }
+        val result = Await.result(future, timeout.duration).asInstanceOf[String]
+        log.debug("Sent to browser: " + result)
+        sender ! HttpResponse(entity = result)
+      }
+      case None => sender ! HttpResponse(entity = "Empty query.")
+    }
   }
 }

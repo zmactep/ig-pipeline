@@ -9,8 +9,12 @@ java -jar ./target/ig-backend-1.0-SNAPSHOT.jar
 
 USAGE
 =====
-curl http://localhost:8080/?query=whatever
+GET:
+curl http://localhost:9999/?query=whatever
+POST:
+curl -F query=test -F another=testtest http://localhost:9999/
 You will get job id in response. You can now pass it as a param:
-curl http://localhost:8080/?query=get_result:%200
+curl http://localhost:9999/?query=get_result:%200
+curl -F 'query=get_result: 0' http://localhost:9999/
 output will be shown if it is ready
 Logs are in ig-backend.log

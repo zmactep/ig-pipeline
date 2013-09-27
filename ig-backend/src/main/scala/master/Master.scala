@@ -91,7 +91,8 @@ class Master extends Actor with ActorLogging {
 
     // Anything other than our own protocol is "work to be done"
     case work =>
-      if (work.toString.startsWith("get_result: ")) {
+      val cmd = work.toString
+      if (cmd.startsWith("get_result: ")) {
         val jobId = Integer.parseInt(work.toString.split(" ")(1))
         log.info("Requesting result for {}", jobId)
         if (readyJobs.contains(jobId)) {
