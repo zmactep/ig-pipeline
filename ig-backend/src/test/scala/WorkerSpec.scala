@@ -93,8 +93,8 @@ with MustMatchers {
       val fs1 = Future.sequence(List("Hithere", "Guys").map { s => m ? s })
       Await.result(fs1, 1 second) must be (List("Your job is enqueued with id = 0", "Your job is enqueued with id = 1"))
       // We should get it all back
-      val fs2 = Future.sequence(List("get_result: 0", "get_result: 1", "get_result: 42").map { s => m ? s })
-      Await.result(fs2, 1 second) must be (List("Your result: done", "Your result: done", "Your job id not found"))
+      val fs2 = Future.sequence(List("get_result: 0", "get_result: 1").map { s => m ? s })
+      Await.result(fs2, 1 second) must be (List("Your result: done", "Your result: done"))
     } //}2
   }
 }

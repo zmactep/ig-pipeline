@@ -32,4 +32,4 @@ build*
 .idea
 .cproject
 .ropeproject
-.iml
+*.iml
