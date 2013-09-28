@@ -1,6 +1,8 @@
 INSTALLATION
 ============
-Make sure that ../svm_data_generator is compiled! (cd ../svm_data_generator && compile.sh). Install protobuf compiler version 2.5.0. Then run:
+* Make sure that ../svm_data_generator is compiled! (cd ../svm_data_generator && compile.sh).
+* Install protobuf compiler version 2.5.0.
+* fix tools_root in src/main/resources/application.conf to point to ./train_model_example.sh dir
 * mvn clean package
 
 RUN
