@@ -32,4 +32,4 @@ via browser:
 
 via TCP:
 * connect: telnet localhost 9999
-* just past the query: {"result_for":"0"}
+* just paste the query: {"result_for":"0"}
