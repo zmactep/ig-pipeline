@@ -21,6 +21,7 @@ class Master extends Actor with ActorLogging {
   //TODO make atomic
   var jobId = 0
   // Holds known workers and what they may be working on
+  //jobId, worksender, work
   val workers = Map.empty[ActorRef, Option[Tuple2[Int, Tuple2[ActorRef, Any]]]]
 
   val readyJobs = Map.empty[Int, Any]
@@ -92,6 +93,7 @@ class Master extends Actor with ActorLogging {
     // Anything other than our own protocol is "work to be done"
     case work =>
       val cmd = work.toString
+      log.debug("Ready jobs: " + readyJobs);
       if (cmd.startsWith("get_result: ")) {
         val jobId = Integer.parseInt(work.toString.split(" ")(1))
         log.info("Requesting result for {}", jobId)

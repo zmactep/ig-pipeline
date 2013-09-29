@@ -16,7 +16,6 @@ class TestWorker(masterLocation: ActorPath) extends Worker(masterLocation) {
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
     Future {
-      workSender ! msg
       WorkComplete("done")
     } pipeTo self
   }
@@ -49,7 +48,7 @@ with MustMatchers {
     new BadTestWorker(ActorPath.fromString(
       "akka://%s/user/%s".format(system.name, name)))))
 
-  /*"Worker" should {
+  "Worker" should {
     "work" in {
       // Spin up the master
       val m = system.actorOf(Props[Master], "master")
@@ -96,5 +95,5 @@ with MustMatchers {
       val fs2 = Future.sequence(List("get_result: 0", "get_result: 1", "get_result: 42").map { s => m ? s })
       Await.result(fs2, 1 second) must be (List("Your result: done", "Your result: done", "Your job id not found"))
     } //}2
-  }  */
+  }
 }
