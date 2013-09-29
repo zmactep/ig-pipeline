@@ -4,7 +4,7 @@
         <file>ig-backend.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%-4relative [%thread] %-5level %logger{35} [%file:%line] - %msg%n</pattern>
+            <pattern>%-4relative [%thread] %date %-5level %logger{35} [%file:%line] - %msg%n</pattern>
         </encoder>
     </appender>
 

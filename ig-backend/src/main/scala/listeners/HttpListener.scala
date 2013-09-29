@@ -51,7 +51,6 @@ class HttpConnectionHandler(remote: InetSocketAddress, connection: ActorRef) ext
   context.watch(connection)
 
   def receive: Receive = {
-
     case HttpRequest(GET, uri, _, entity, _) => handleQuery(sender, GET, uri, entity)
     case HttpRequest(POST, uri, _, entity, _) => handleQuery(sender, POST, uri, entity)
     case _: Tcp.ConnectionClosed =>
