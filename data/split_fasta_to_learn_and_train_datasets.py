@@ -7,9 +7,10 @@ from Bio import SeqIO
 
 def main(argv):
     input_file = argv[1]
-    split = float(argv[2])
-    train = open('train.fasta', 'w')
-    test = open('test.fasta', 'w')
+    output_folder = argv[2]
+    split = float(argv[3])
+    train = open(output_folder + 'train.fasta', 'w')
+    test = open(output_folder + 'test.fasta', 'w')
     random.seed()
     for record in SeqIO.parse(input_file, "fasta"):
         if random.uniform(0, 100) < split:

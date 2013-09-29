@@ -11,8 +11,8 @@
 #include "read.h"
 
 void usage(){
-	std::cout << "Usage for generating train data: svm_data_generator train fasta_file GenericNomenclature_file sliding_window_size no_region_borders_flag" << std::endl;
-	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size" << std::endl;
+	std::cout << "Usage for generating train data: svm_data_generator train fasta_file GenericNomenclature_file sliding_window_size no_region_borders_flag working_dir" << std::endl;
+	std::cout << "Usage for generating predict data: svm_data_generator predict fasta_file sliding_window_size working_dir" << std::endl;
 }
 
 //TODO move to separate lib
@@ -114,7 +114,7 @@ void process_read(const Read& r, int window_size, std::ofstream& comments_output
 void generate_train_data(char ** argv) {
 	const int window_size = atoi(argv[4]);
 	const int no_borders = atoi(argv[5]);
-	std::ofstream svm_output("train.libsvm");
+	std::ofstream svm_output(std::string(argv[6]) + "train.libsvm");
 
 	try {
 		std::map<std::string, GenericNomenclature> seq2nomenclature;
@@ -137,8 +137,8 @@ void generate_train_data(char ** argv) {
 }
 
 void generate_predict_data(char ** argv) {
-	std::ofstream comments_output("read_names.txt");
-	std::ofstream svm_output("predict.libsvm");
+	std::ofstream comments_output(std::string(argv[4]) + "read_names.txt");
+	std::ofstream svm_output(std::string(argv[4]) + "predict.libsvm");
 	const int window_size = atoi(argv[3]);
 	try {
 		FastaReader fasta_reader(argv[2]);
@@ -159,14 +159,14 @@ void generate_predict_data(char ** argv) {
 }
 
 int main(int argc, char ** argv) {
-	if (6 != argc && 4 != argc) {
+	if (7 != argc && 5 != argc) {
 		usage();
 		return 0;
 	}
 
-	if (!strcmp(argv[1], "train") && 6 == argc) {
+	if (!strcmp(argv[1], "train") && 7 == argc) {
 		generate_train_data(argv);
-	} else if (!strcmp(argv[1], "predict") && 4 == argc) {
+	} else if (!strcmp(argv[1], "predict") && 5 == argc) {
 		generate_predict_data(argv);
 	} else {
 		std::cout << "unknown mode: not train and not predict." << std::endl;

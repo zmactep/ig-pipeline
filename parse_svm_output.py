@@ -9,15 +9,17 @@ def main():
     parser.add_argument('--input_file', nargs=1, help='input kabat')
     parser.add_argument('--sliding_window_size', nargs=1, type=int, help='sliding window size')
     parser.add_argument('--merge_threshold', nargs=1, type=int, help='threshold len for merge with neighbour')
+    parser.add_argument('--output', nargs=1, help='output_dir')
     args = parser.parse_args()
 
     input_file = args.input_file.pop(0)
+    output_dir = args.output.pop(0)
     sliding_window_size = args.sliding_window_size.pop(0)
     merge_threshold = args.merge_threshold.pop(0)
 
-    debug_prediction = open('debug_prediction.txt', 'w')
-    debug_prediction_avg = open('debug_prediction_avg.txt', 'w')
-    results = open('results.txt', 'w')
+    debug_prediction = open(output_dir + 'debug_prediction.txt', 'w')
+    debug_prediction_avg = open(output_dir + 'debug_prediction_avg.txt', 'w')
+    results = open(output_dir + 'results.txt', 'w')
 
     with open(input_file) as file:
         #name2prediction is a list of key value pairs: key is seq_name, value is region prediction for single nucleotide
