@@ -16,7 +16,6 @@
 *.a
 
 # Logs
-
 *.log
 
 # OS X stuff
@@ -24,6 +23,7 @@
 
 # Stuff
 __pycache__
+
 # IDE
 build*
 *.user
@@ -33,3 +33,6 @@ build*
 .cproject
 .ropeproject
 *.iml
+
+#sqlite db
+*.db
