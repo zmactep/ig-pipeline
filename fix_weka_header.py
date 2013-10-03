@@ -4,8 +4,9 @@ import sys
 
 def main(argv):
     input_file = argv[1]
-    result = open('result.arff', 'w')
-    header_file = open('header.txt', 'w')
+    output_dir = argv[2]
+    result = open(output_dir + 'result.arff', 'w')
+    header_file = open(output_dir + 'header.txt', 'w')
     header = []
     is_header_end = False
     with open(input_file, 'rU') as input_file:

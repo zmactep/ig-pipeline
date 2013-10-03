@@ -2,6 +2,7 @@ package workers
 
 import master.MasterWorkerProtocol
 import akka.actor.{ActorRef, ActorPath, ActorLogging, Actor}
+import master.MasterWorkerProtocol.WorkIsDone
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,6 +43,11 @@ abstract class Worker(masterLocation: ActorPath)
     case WorkComplete(result) =>
       log.info("Work is complete.  Result {}.", result)
       master ! WorkIsDone(self, result)
+      master ! WorkerRequestsWork(self)
+      // We're idle now
+      context.become(idle)
+    case akka.actor.Status.Failure(e) =>
+      master ! WorkIsDone(self, "Failed to run job: " + e.toString)
       master ! WorkerRequestsWork(self)
       // We're idle now
       context.become(idle)

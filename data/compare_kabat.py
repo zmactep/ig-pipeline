@@ -7,6 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='Calculateprediction score for predicted kabat.')
     parser.add_argument('--ref', nargs=1, help='reference kabat')
     parser.add_argument('--input', nargs=1, help='test kabat')
+    parser.add_argument('--output', nargs=1, help='output_dir')
     args = parser.parse_args()
 
     with open(args.ref.pop(0), 'rU') as reference_file:
@@ -17,7 +18,7 @@ def main():
 
     common_keys = set(ref_dict.keys()) & set(input_dict.keys())
 
-    with open('comparison.kabat', 'w') as comparison_file:
+    with open(args.output.pop(0) + 'comparison.kabat', 'w') as comparison_file:
         for key in common_keys:
             comparison_file.write('%s\t%s\n' % (key, '\t'.join([str(i) for i in ref_dict[key]])))
             comparison_file.write('%s\t%s\n' % (key, '\t'.join([str(i) for i in input_dict[key]]))) 

@@ -16,7 +16,6 @@ class TestWorker(masterLocation: ActorPath) extends Worker(masterLocation) {
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
     Future {
-      workSender ! msg
       WorkComplete("done")
     } pipeTo self
   }

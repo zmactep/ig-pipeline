@@ -26,7 +26,7 @@ Resuest:
  "input" : {
     "files" : ["blabla.kabat", "blabdla.fasta"],
     "params" : {
-      "ml_windowsize" : "10",
+      "mlWindowsize" : "10",
       "algo" : "random forest",
       "algoParams" : "-l 10 -S 0"
     },

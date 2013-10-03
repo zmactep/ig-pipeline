@@ -1,6 +1,7 @@
 import akka.actor.{ActorPath, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
-import listeners.HttpListener
+import java.net.InetSocketAddress
+import listeners.{TcpListener, HttpListener}
 import master.Master
 import workers.SimpleWorker
 
@@ -17,6 +18,7 @@ object Main extends App {
   val conf = ConfigFactory.load()
 
   val httpListener = system.actorOf(HttpListener.props("localhost", conf.getInt("ig-backend.http_port")), "http-listener")
+  val tcpListener = system.actorOf(TcpListener.props(new InetSocketAddress("localhost", conf.getInt("ig-backend.tcp_port"))), "tcp-listener")
   val m = system.actorOf(Props[Master], "master")
 
   val w1 = worker("master")

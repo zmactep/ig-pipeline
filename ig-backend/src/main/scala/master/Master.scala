@@ -1,9 +1,7 @@
 package master
 
 import akka.actor.{Terminated, ActorRef, Actor, ActorLogging}
-import akka.pattern.ask
-import scala.concurrent.duration._
-import scala.concurrent.Await
+import org.json.JSONObject
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,6 +19,7 @@ class Master extends Actor with ActorLogging {
   //TODO make atomic
   var jobId = 0
   // Holds known workers and what they may be working on
+  //jobId, worksender, work
   val workers = Map.empty[ActorRef, Option[Tuple2[Int, Tuple2[ActorRef, Any]]]]
 
   val readyJobs = Map.empty[Int, Any]
@@ -91,8 +90,10 @@ class Master extends Actor with ActorLogging {
 
     // Anything other than our own protocol is "work to be done"
     case work =>
-      if (work.toString.startsWith("get_result: ")) {
-        val jobId = Integer.parseInt(work.toString.split(" ")(1))
+      val cmd = work.toString.trim
+      log.debug("Ready jobs: " + readyJobs)
+      if (cmd.contains("result_for")) {
+        val jobId = new JSONObject(cmd).getInt("result_for")
         log.info("Requesting result for {}", jobId)
         if (readyJobs.contains(jobId)) {
           sender ! "Your result: " + readyJobs.get(jobId).getOrElse("")

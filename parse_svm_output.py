@@ -5,19 +5,21 @@ from itertools import groupby, islice
 from collections import Counter
 
 def main():
-    parser = argparse.ArgumentParser(description='Calculateprediction score for predicted kabat.')
+    parser = argparse.ArgumentParser(description='Calculate prediction score for predicted kabat.')
     parser.add_argument('--input_file', nargs=1, help='input kabat')
     parser.add_argument('--sliding_window_size', nargs=1, type=int, help='sliding window size')
     parser.add_argument('--merge_threshold', nargs=1, type=int, help='threshold len for merge with neighbour')
+    parser.add_argument('--output', nargs=1, help='output_dir')
     args = parser.parse_args()
 
     input_file = args.input_file.pop(0)
+    output_dir = args.output.pop(0)
     sliding_window_size = args.sliding_window_size.pop(0)
     merge_threshold = args.merge_threshold.pop(0)
 
-    debug_prediction = open('debug_prediction.txt', 'w')
-    debug_prediction_avg = open('debug_prediction_avg.txt', 'w')
-    results = open('results.txt', 'w')
+    debug_prediction = open(output_dir + 'debug_prediction.txt', 'w')
+    debug_prediction_avg = open(output_dir + 'debug_prediction_avg.txt', 'w')
+    results = open(output_dir + 'results.txt', 'w')
 
     with open(input_file) as file:
         #name2prediction is a list of key value pairs: key is seq_name, value is region prediction for single nucleotide
@@ -50,6 +52,7 @@ def slide_window(iterable, window_size):
 def kabat_range(name, prediction, merge_threshold):
     result = []
     previous_stop = 0
+    first_region_number = prediction[0]
     for key, group in groupby(prediction):
         sum_range = sum([1 for x in group])
         start = previous_stop + 1
@@ -74,6 +77,10 @@ def kabat_range(name, prediction, merge_threshold):
             merged_ranges.append(previous)
             previous = (x, y)
     merged_ranges.append(previous)
+    # fill leading missing regions with (0, 0).
+    # Ex: if prediction starts with region 2, we add (0,0) twice - for region 0 and 1
+    for i in range(int(first_region_number)):
+        merged_ranges.insert(0, (0, 0))
     return name + '\t' + '\t'.join([str(x) + '\t' + str(y) for x, y in merged_ranges])
 
 if __name__ == "__main__":
