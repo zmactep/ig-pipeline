@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="page-header">
+        <h1>Dialog with {{ username }}</h1>
+    </div>
+
+
+    <div class="container">
+        <div class="div-400-scroll show-grid" id="message_holder" name="message_holder">
+        {% for msg in messages %}
+            <div class="row show-grid">
+                <div class="col-md-4">
+                    <b>{{ msg.sender.username }}</b> <br>
+                    {{ msg.send_date }}
+                </div>
+                <div class="col-md-8">
+                    {% if msg.is_read %}
+                    <div class="div-inner" id="msg-{{ msg.id }}" name="msg-{{ msg.id }}">
+                    {% else %}
+                    <div class="div-inner unread" id="msg-{{ msg.id }}" name="msg-{{ msg.id }}">
+                    {% endif %}
+                        {{ msg.text }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        <form id="message_form" name="message_form">
+        {% csrf_token %}
+        <div class="row">
+            <input type="hidden" id="dialog_id" name="dialog_id" value="{{ dialog_id }}" />
+            <input type="hidden" id="username" name="username" value="{{ username }}" />
+            <textarea required="required" class="form-control" rows="3" name="msg" id="msg" placeholder="Message"></textarea>
+        </div>
+        <div class="row">
+            <input type="submit" id="sbut" name="sbut" class="btn btn-info pull-right" value="Send" />
+        </div>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        function mark_read() {
+            if ("{{ dialog_id }}" == "0") {
+                return false;
+            }
+
+            $.ajax({
+                dataType: "JSON",
+                type: "GET",
+                url: "{% url 'messages:mark_read' dialog_id %}",
+                success: function (response) {
+                    if (response["status"] == "ok") {
+                        var mid = response["mid"];
+                        for (var i = 0; i < mid.length; i++) {
+                            $("#msg-" + mid[i]).attr("class", "div-inner");
+                        }
+                    }
+                }
+            });
+
+            return false;
+        }
+
+        $(document).ready(function() {
+            $("#msg").click(function() {
+                mark_read();
+            });
+
+
+            var form = $("#message_form");
+            form.submit(function(event) {
+                event.preventDefault();
+                $("#msg").attr("readonly", "readonly");
+                $("#sbut").prop("disabled", true);
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'messages:send_message' %}",
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response["status"] == "ok") {
+                            var s = '<div class="row show-grid"><div class="col-md-4"><b>{{ user.username }}</b> <br>' +
+                                    response['date'] +
+                                    '</div><div class="col-md-8"><div class="div-inner unread">' +
+                                    $("#msg").val() +
+                                    '</div></div></div>';
+                            $("#message_holder").append(s);
+                        }
+                        $("#msg").val('');
+                        $("#msg").removeAttr("readonly");
+                        $("#sbut").prop("disabled", false);
+                    }
+                });
+
+                return false;
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="page-header">
+        <h1>Messages</h1>
+    </div>
+
+    {% for dialog, latest, collocutor in dialog_list %}
+        <div class="row pointer div-hover show-grid dialog" onclick="go_to_dialog('{{ collocutor }}');">
+            <div class="col-md-2">
+                <b>{{ collocutor.username }}</b>
+            </div>
+
+            <div class="col-md-8">
+                {% if latest.is_read %}
+                <div class="div-inner">
+                {% else %}
+                <div class="div-inner unread">
+                {% endif %}
+                    <b>{{ latest.sender.username }}:</b> <br>
+                    {{ latest.text }}
+                </div>
+
+            </div>
+            <div class="col-md-2">
+                {{ latest.send_date }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <script type="text/javascript">
+        function go_to_dialog(collocutor) {
+            window.location = "{% url 'messages:dialog' 'collocutor' %}".replace('collocutor', collocutor);
+        }
+    </script>
+
+{% endblock %}

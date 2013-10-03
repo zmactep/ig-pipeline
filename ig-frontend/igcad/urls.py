@@ -27,6 +27,8 @@ urlpatterns = patterns('',
     url(r'^', include('main.urls', namespace='main')),
     # User profile
     url(r'^user/', include('userprofile.urls', namespace='userprofile')),
+    # Messages
+    (r'^messages/', include('messages.urls', namespace='messages')),
 
     url(r'^static/', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
 )

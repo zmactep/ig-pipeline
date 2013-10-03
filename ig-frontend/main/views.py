@@ -28,7 +28,7 @@ def send_request(request):
     rtext = request.POST.get('rtext')
 
     if not server or not port or not rtext:
-        return HttpResponse("", content_type="application/json")
+        return HttpResponse(json.dumps({'status': 'fail', 'text': "wrong request"}), content_type="application/json")
 
     s = socket.socket()
     s.connect((server, port))
