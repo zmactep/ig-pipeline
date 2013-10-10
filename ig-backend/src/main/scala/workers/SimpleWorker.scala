@@ -20,9 +20,12 @@ import protocol.Command.ResponseCommand.PathAndDescription
 
 class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) with ActorLogging{
   implicit val ec = context.dispatcher
-  val toolsRoot = context.system.settings.config.getString("ig-backend.tools_root")
-  val storageRoot = context.system.settings.config.getString("ig-backend.storage_root")
-  val workDirRoot = context.system.settings.config.getString("ig-backend.working_dir_root") + self.path.name.replace("$","") + "/"
+  val toolsRoot = fixPath(context.system.settings.config.getString("ig-backend.tools_root"))
+  val storageRoot = fixPath(context.system.settings.config.getString("ig-backend.storage_root"))
+  val workDirRoot = fixPath(context.system.settings.config.getString("ig-backend.working_dir_root")) + self.path.name.replace("$","") + "/"
+
+  createDirIfNotExists(workDirRoot)
+  createDirIfNotExists(storageRoot)
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
     Future {
@@ -137,5 +140,8 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       dirExistCheck.mkdir()
     }
   }
+
+  private def fixPath(path: String) : String = if (path.endsWith("/")) path else path + "/"
+
 }
 
