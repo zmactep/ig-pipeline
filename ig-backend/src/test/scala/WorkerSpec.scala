@@ -61,9 +61,9 @@ with MustMatchers {
       m ! "Guys"
       // We should get it all back
       expectMsgAllOf("Your job is enqueued with id = 0", "Your job is enqueued with id = 1")
-      m ! "get_result: 0"
-      m ! "get_result: 1"
-      expectMsgAllOf("Your result: done", "Your result: done")
+      m ! "{\"result_for\":\"0\"}"
+      m ! "{\"result_for\":\"1\"}"
+      expectMsgAllOf("done", "done")
     }
     "still work if one dies" in { //{2
     // Spin up the master
@@ -76,10 +76,10 @@ with MustMatchers {
       m ! "Guys"
       // We should get it all back
       expectMsgAllOf("Your job is enqueued with id = 0", "Your job is enqueued with id = 1")
-      m ! "get_result: 0"
-      m ! "get_result: 2"
+      m ! "{\"result_for\":\"0\"}"
+      m ! "{\"result_for\":\"2\"}"
       //TODO fix a bug with task_id reassignment
-      expectMsgAllOf("Your result: done", "Your job id not found")
+      expectMsgAllOf("done", "Your job id not found")
     } //}2
     "work with Futures" in { //{2
       import ExecutionContext.Implicits.global
@@ -92,8 +92,8 @@ with MustMatchers {
       val fs1 = Future.sequence(List("Hithere", "Guys").map { s => m ? s })
       Await.result(fs1, 1 second) must be (List("Your job is enqueued with id = 0", "Your job is enqueued with id = 1"))
       // We should get it all back
-      val fs2 = Future.sequence(List("get_result: 0", "get_result: 1", "get_result: 42").map { s => m ? s })
-      Await.result(fs2, 1 second) must be (List("Your result: done", "Your result: done", "Your job id not found"))
+      val fs2 = Future.sequence(List("{\"result_for\":\"0\"}", "{\"result_for\":\"1\"}", "{\"result_for\":\"42\"}").map { s => m ? s })
+      Await.result(fs2, 1 second) must be (List("done", "done", "Your job id not found"))
     } //}2
   }
 }

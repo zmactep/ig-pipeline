@@ -96,7 +96,7 @@ class Master extends Actor with ActorLogging {
         val jobId = new JSONObject(cmd).getInt("result_for")
         log.info("Requesting result for {}", jobId)
         if (readyJobs.contains(jobId)) {
-          sender ! "Your result: " + readyJobs.get(jobId).getOrElse("")
+          sender ! readyJobs.get(jobId).getOrElse("")
         } else {
           sender ! "Your job id not found"
         }
