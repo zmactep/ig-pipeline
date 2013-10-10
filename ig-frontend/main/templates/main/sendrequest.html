@@ -46,7 +46,7 @@
         });
         </script>
     {% else %}
-        Please, authorize to make some actions.
+        {% include 'main/not_auth.html' %}
     {% endif %}
 
 {% endblock %}

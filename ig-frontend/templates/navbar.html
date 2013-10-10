@@ -25,7 +25,7 @@
             <li class="divider"></li>
             <li class="dropdown-header">New info</li>
             <li><a href="#">Results <span class="badge pull-right">{{ new_results }}</span></a></li>
-            <li><a href="#">Mail <span class="badge pull-right">{{ new_mail }}</span></a></li>
+            <li><a href="{% url 'messages:list' %}">Mail <span class="badge pull-right">{{ new_mail }}</span></a></li>
           </ul>
         </li>
         {% endif %}

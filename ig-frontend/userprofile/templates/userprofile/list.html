@@ -6,6 +6,27 @@
     <h1>User list</h1>
   </div>
 
-  Userlist will be here!
+  <table class="table table-striped">
+    <thead>
+        <tr>
+            <td>#</td>
+            <td>Username</td>
+            <td>Real Name</td>
+            <td>Registration Date</td>
+            <td>Send message</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in userlist %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td><a href="{% url 'userprofile:profile' u.username %}">{{ u.username }}</a></td>
+                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                <td>{{ u.date_joined }}</td>
+                <td><a href="{% url 'messages:dialog' u.username %}"><span class="glyphicon glyphicon-envelope"></span></a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+  </table>
 
 {% endblock %}
