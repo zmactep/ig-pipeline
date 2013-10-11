@@ -10,12 +10,11 @@ from registration.forms import RegistrationFormUniqueEmail
 from registration.backends.default.views import RegistrationView
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
 
-    # Uncomment the admin/doc line below to enable admin documentation:
+    # Admin
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 
     # Auth system
@@ -23,10 +22,15 @@ urlpatterns = patterns('',
         name='registration_register'),
     url(r'', include('registration.backends.default.urls')),
 
-    # Main page content
-    url(r'^', include('main.urls', namespace='main')),
+    # Tasks dashboard
+    url(r'^', include('igtasks.urls', namespace='igtasks')),
+
+    # Info page content
+    url(r'^info/', include('main.urls', namespace='main')),
+
     # User profile
     url(r'^user/', include('userprofile.urls', namespace='userprofile')),
+
     # Messages
     (r'^messages/', include('messages.urls', namespace='messages')),
 

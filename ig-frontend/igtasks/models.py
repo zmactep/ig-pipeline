@@ -4,8 +4,6 @@ from django.forms import ModelForm
 
 import json
 
-# Create your models here.
-
 class TaskRequest(models.Model):
     FIND_PATTERNS = 1
     GENERATE_MODEL = 2

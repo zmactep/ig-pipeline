@@ -64,17 +64,7 @@ class HttpConnectionHandler(remote: InetSocketAddress, connection: ActorRef) ext
   private def handleQuery(sender: ActorRef, method : spray.http.HttpMethod, uri: spray.http.Uri, entity : spray.http.HttpEntity) = {
     val query = method match {
       case GET => uri.query.get("query")
-      case POST => {
-        entity.as[HttpForm] match {
-          case Right(form) => {
-            FormFieldExtractor(form).field("query").as[String] match {
-              case Right(fieldval) => Option(fieldval)
-              case Left(fieldval) => Option(None)
-            }
-          }
-          case Left(form) => Option(None)
-        }
-      }
+      case POST => if (entity.asString.isEmpty) None else Some(entity.asString)
     }
     query match {
       case Some(query) => {
