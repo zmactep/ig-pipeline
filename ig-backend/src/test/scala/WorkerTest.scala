@@ -44,6 +44,9 @@ with MustMatchers {
       val task = "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
       val fs1 = Future.sequence(List(task, task).map { s => master ? s })
       Await.result(fs1, 1 second) must be (List("Your job is enqueued with id = 2", "Your job is enqueued with id = 3"))
+
+      Thread.sleep(2000)
+
       val fs2 = Future.sequence(List("{\"result_for\":\"2\"}", "{\"result_for\":\"3\"}", "{\"result_for\":\"42\"}").map { s => master ? s })
       Await.result(fs2, 1 second) must be (List("{\"status\": \"ok\"}", "{\"status\": \"ok\"}", "Your job id not found"))
     }
