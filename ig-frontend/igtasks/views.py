@@ -1,7 +1,7 @@
-from django.views.generic.edit import CreateView
-from django.http import HttpRequest, HttpResponse
-from igtasks.models import TaskRequest
+from django.http import HttpResponse
 from igtasks.models import TaskRequestForm
+from igtasks.models import TaskRequest
+from django.shortcuts import render
 
 import urllib.parse
 import urllib.request
@@ -11,10 +11,23 @@ import sys
 
 log = logging.getLogger('all')
 
-class TaskCreateView(CreateView):
-    model = TaskRequest
-    form_class = TaskRequestForm
-    template_name = "send_request.html"
+
+def create(request):
+    if request.method == 'POST': # If the form has been submitted...
+        form = TaskRequestForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            task_request = TaskRequest(task=data['task'])
+            task_request.save()
+            log.debug("Got request: %s" % task_request)
+            return HttpResponse(json.dumps(ask_server(data['server'], data['port'], task_request.__str__())),
+                                content_type="application/json")
+
+    else:
+        form = TaskRequestForm() # An unbound form
+
+    return render(request, 'send_request.html', dictionary={'form': form})
+
 
 def send_request(request):
     server = request.POST.get('server')
@@ -22,20 +35,20 @@ def send_request(request):
     rtext = request.POST.get('rtext')
 
     log.debug("Got request: server = %s; port = %d; rtext = %s" % (server, port, rtext))
+    return HttpResponse(json.dumps(ask_server(server, port, rtext)), content_type="application/json")
 
-    if not server or not port or not rtext:
-        return HttpResponse(json.dumps({'status': 'fail', 'text': "wrong request"}), content_type="application/json")
 
+def ask_server(server, port, query):
     try:
         uri = 'http://' + server + ':' + str(port)
-        log.debug("Request to ig-backend @ %s: %s" % (uri, rtext))
-        req = urllib.request.Request(uri, rtext.encode('utf-8'), method='POST')
+        log.debug("Request to ig-backend @ %s: %s" % (uri, query))
+        req = urllib.request.Request(uri, query.encode('utf-8'), method='POST')
 
         response = urllib.request.urlopen(req)
         result = response.read().decode()
         log.debug("Response from ig-backend: %s" % result)
-
-        return HttpResponse(json.dumps(result), content_type="application/json")
+        return result
     except:
-        log.debug(sys.exec_info()[0])
-        return HttpResponse(json.dumps({'status': 'fail', 'text': "Server error"}), content_type="application/json")
+        type, value, tb = sys.exc_info()
+        log.debug('%s', value)
+        return {'status': 'fail', 'text': "Server error"}

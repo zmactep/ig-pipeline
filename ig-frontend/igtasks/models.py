@@ -1,8 +1,10 @@
 from django.db import models
-from django.core import serializers
-from django.forms import ModelForm
+from django import forms
+from django.forms.models import model_to_dict
 
 import json
+import logging
+log = logging.getLogger('all')
 
 class TaskRequest(models.Model):
     FIND_PATTERNS = 1
@@ -13,13 +15,17 @@ class TaskRequest(models.Model):
         (GENERATE_MODEL, 'generate model'),
         (MODEL_LIST, 'model list')
     )
+
     task = models.IntegerField(choices=TASK_CHOICES, default=MODEL_LIST)
 
     def __str__(self):
-        data = self.get_queryset()[:1]
-        return json.dumps(serializers.serialize('json', data))
+        return json.dumps(model_to_dict(self, fields=[], exclude=[]))
 
-class TaskRequestForm(ModelForm):
-    class Meta:
-        model = TaskRequest
-        fields = ['task']
+
+class TaskRequestForm(forms.Form):
+    server = forms.CharField(widget=forms.TextInput())
+    port = forms.IntegerField()
+    task = forms.ChoiceField(widget = forms.Select(),
+                             choices = ([('1','find patterns'), ('2','generate model'),('3','model list'), ]),
+                             initial ='3',
+                             required = True)
