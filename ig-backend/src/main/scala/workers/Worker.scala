@@ -39,7 +39,7 @@ abstract class Worker(masterLocation: ActorPath)
     // Pass... we shouldn't even get this
     case WorkToBeDone(_) =>
       log.error("Yikes. Master told me to do work, while I'm working.")
-    // Our derivation has completed its task
+    // Our derivation has completed its task                                   F
     case WorkComplete(result) =>
       log.info("Work is complete.  Result {}.", result)
       master ! WorkIsDone(self, result)

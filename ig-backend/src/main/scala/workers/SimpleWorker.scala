@@ -8,6 +8,7 @@ import protocol.Command.{ResponseCommand, RequestCommand}
 import com.googlecode.protobuf.format.JsonFormat
 import java.io.{IOException, FileWriter, BufferedWriter, File}
 import protocol.Command.ResponseCommand.PathAndDescription
+import utils.FileUtils
 
 
 /**
@@ -20,12 +21,14 @@ import protocol.Command.ResponseCommand.PathAndDescription
 
 class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) with ActorLogging{
   implicit val ec = context.dispatcher
-  val toolsRoot = fixPath(context.system.settings.config.getString("ig-backend.tools_root"))
-  val storageRoot = fixPath(context.system.settings.config.getString("ig-backend.storage_root"))
-  val workDirRoot = fixPath(context.system.settings.config.getString("ig-backend.working_dir_root")) + self.path.name.replace("$","") + "/"
+  val toolsRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.tools_root"))
+  val storageRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.storage_root"))
+  val globalWorkdirRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.working_dir_root"))
+  FileUtils.createDirIfNotExists(globalWorkdirRoot)
 
-  createDirIfNotExists(workDirRoot)
-  createDirIfNotExists(storageRoot)
+  val workDirRoot = globalWorkdirRoot + self.path.name.replace("$","") + "/"
+  FileUtils.createDirIfNotExists(workDirRoot)
+  FileUtils.createDirIfNotExists(storageRoot)
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
     Future {
@@ -78,8 +81,8 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       JsonFormat.printToString(responseBuilder.build())
     }
 
-    createDirIfNotExists(workDirRoot)
-    createDirIfNotExists(storageRoot + output.getOutdir)
+    FileUtils.createDirIfNotExists(workDirRoot)
+    FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
 
     val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
     Seq("cp", "-r", workDirRoot, storageRoot + output.getOutdir).!
@@ -91,14 +94,17 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
   }
 
   private def listModels(input: RequestCommand.Input) : String = {
-    val listOfModels = Process("find . -name description.txt", new java.io.File(storageRoot)).!!
+    val models = Process("find . -name description.txt", new java.io.File(storageRoot)).!!
     val responseBuilder = ResponseCommand.newBuilder()
     responseBuilder.setStatus("ok")
-    for (model <- listOfModels.split("\n")) {
-      val pathBuilder = PathAndDescription.newBuilder()
-      pathBuilder.setFullpath(storageRoot + model.replace("description.txt", ""))
-      pathBuilder.setDescription(io.Source.fromFile(storageRoot + model).mkString)
-      responseBuilder.addData(pathBuilder.build())
+
+    if (! models.isEmpty) {
+      for (model <- models.split("\n")) {
+        val pathBuilder = PathAndDescription.newBuilder()
+        pathBuilder.setFullpath(storageRoot + model.replace("description.txt", ""))
+        pathBuilder.setDescription(io.Source.fromFile(storageRoot + model).mkString)
+        responseBuilder.addData(pathBuilder.build())
+      }
     }
     JsonFormat.printToString(responseBuilder.build())
   }
@@ -125,7 +131,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       JsonFormat.printToString(responseBuilder.build())
     }
 
-    createDirIfNotExists(storageRoot + output.getOutdir)
+    FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
     val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
     Seq("cp", "-r", workDirRoot, storageRoot + output.getOutdir).!
 
@@ -133,15 +139,5 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     log.debug("Response: " + response)
     response
   }
-
-  private def createDirIfNotExists(path: String) = {
-    val dirExistCheck = new File(path)
-    if (!dirExistCheck.exists()) {
-      dirExistCheck.mkdir()
-    }
-  }
-
-  private def fixPath(path: String) : String = if (path.endsWith("/")) path else path + "/"
-
 }
 
