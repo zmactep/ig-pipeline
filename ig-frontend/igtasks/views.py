@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from igtasks.models import TaskRequestForm
 from igtasks.models import TaskRequest
 from django.shortcuts import render
+from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 
 import urllib.parse
 import urllib.request
@@ -10,39 +12,57 @@ import json
 import sys
 
 log = logging.getLogger('all')
+backend_uri = 'http://127.0.0.1:8080'
+
+class TaskRequestView(generic.ListView):
+    template_name = 'task_request.html'
+    paginate_by = 25
+    context_object_name = 'tasks'
+
+    def get_queryset(self):
+        return TaskRequest.objects.all()
 
 
 def create(request):
     if request.method == 'POST': # If the form has been submitted...
-        form = TaskRequestForm(request.POST)
+        form = TaskRequestForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-            task_request = TaskRequest(task=data['task'])
-            task_request.save()
-            log.debug("Got request: %s" % task_request)
-            return HttpResponse(json.dumps(ask_server(data['server'], data['port'], task_request.__str__())),
-                                content_type="application/json")
+            task_request = None
+            if int(data['task']) == int(TaskRequest.FIND_PATTERNS):
+                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'],
+                                           input_file_kabat=data['input_file_kabat'],
+                                           model_path=data['model_path'], ml_window_size=data['ml_window_size'],
+                                           avg_window_size=data['avg_window_size'], out_dir=data['out_dir'],
+                                           merge_threshold=data['merge_threshold'])
 
+            if int(data['task']) == int(TaskRequest.GENERATE_MODEL):
+                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'],
+                                           input_file_kabat=data['input_file_kabat'], algo=data['algo'],
+                                           algo_params=data['algo_params'], out_dir=data['out_dir'],
+                                           ml_window_size=data['ml_window_size'])
+            if int(data['task']) == int(TaskRequest.MODEL_LIST):
+                task_request = TaskRequest(task=data['task'], group=data['group'])
+
+            response = ask_server(task_request.get_backend_request())
+            task_request.backend_id = json.loads(response)['id']
+            task_request.save()
+            return HttpResponse(response, content_type="application/json")
     else:
         form = TaskRequestForm() # An unbound form
 
     return render(request, 'send_request.html', dictionary={'form': form})
 
-
-def send_request(request):
-    server = request.POST.get('server')
-    port = int(request.POST.get('port', 0))
-    rtext = request.POST.get('rtext')
-
-    log.debug("Got request: server = %s; port = %d; rtext = %s" % (server, port, rtext))
-    return HttpResponse(json.dumps(ask_server(server, port, rtext)), content_type="application/json")
+@csrf_exempt
+def ask_backend(request):
+    id = request.POST.get('id')
+    return HttpResponse(json.dumps(ask_server(json.dumps({'result_for': id}))), content_type="application/json")
 
 
-def ask_server(server, port, query):
+def ask_server(query):
     try:
-        uri = 'http://' + server + ':' + str(port)
-        log.debug("Request to ig-backend @ %s: %s" % (uri, query))
-        req = urllib.request.Request(uri, query.encode('utf-8'), method='POST')
+        log.debug("Request to ig-backend: %s" % query)
+        req = urllib.request.Request(backend_uri, query.encode('utf-8'), method='POST')
 
         response = urllib.request.urlopen(req)
         result = response.read().decode()

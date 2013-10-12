@@ -1,6 +1,7 @@
 package master
 
 import akka.actor.{Terminated, ActorRef, Actor, ActorLogging}
+import scala.collection.mutable.Set
 import org.json.JSONObject
 
 /**
@@ -23,6 +24,7 @@ class Master extends Actor with ActorLogging {
   val workers = Map.empty[ActorRef, Option[Tuple2[Int, Tuple2[ActorRef, Any]]]]
 
   val readyJobs = Map.empty[Int, Any]
+  val pendingJobs = Set.empty[Int]
 
   // Holds the incoming list of work to be done as well
   // as the memory of who asked for it
@@ -60,7 +62,8 @@ class Master extends Actor with ActorLogging {
           val (workSender, work) = workQ.dequeue()
           workers += (worker -> Some(jobId -> (workSender -> work)))
           worker ! WorkToBeDone(work, jobId)
-          workSender ! "Your job is enqueued with id = " + jobId
+          workSender ! new JSONObject().put("id", jobId).toString
+          pendingJobs += jobId
           jobId += 1
         }
       }
@@ -73,6 +76,7 @@ class Master extends Actor with ActorLogging {
         val (jobId, _) = workers(worker).get
         workers += (worker -> None)
         readyJobs += (jobId -> result)
+        pendingJobs -= jobId
         log.debug("Your job result #{} is saved", jobId)
       }
 
@@ -93,13 +97,21 @@ class Master extends Actor with ActorLogging {
       val cmd = work.toString.trim
       log.debug("Ready jobs: " + readyJobs)
       if (cmd.contains("result_for")) {
-        val jobId = new JSONObject(cmd).getInt("result_for")
-        log.info("Requesting result for {}", jobId)
-        if (readyJobs.contains(jobId)) {
-          sender ! readyJobs.get(jobId).getOrElse("")
-        } else {
-          sender ! "Your job id not found"
+        try {
+          val jobId = new JSONObject(cmd).getString("result_for").toInt
+
+          log.info("Requesting result for {}", jobId.toInt)
+          if (readyJobs.contains(jobId.toInt)) {
+            sender ! readyJobs.get(jobId.toInt).getOrElse("")
+          } else if (pendingJobs.contains(jobId.toInt)) {
+            sender ! "Your job is being processed now"
+          } else {
+            sender ! "Your job id not found"
+          }
+        } catch {
+          case e: Exception => sender ! "Missing job ID in query"
         }
+
       } else {
         log.info("Queueing {}", work)
         workQ.enqueue(sender -> work)

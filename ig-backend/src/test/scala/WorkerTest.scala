@@ -29,7 +29,7 @@ with MustMatchers {
     "work" in {
       master ! "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
       master ! "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
-      expectMsgAllOf("Your job is enqueued with id = 0", "Your job is enqueued with id = 1")
+      expectMsgAllOf("{\"id\":0}", "{\"id\":1}")
 
       Thread.sleep(2000)
 
@@ -43,7 +43,7 @@ with MustMatchers {
       import ExecutionContext.Implicits.global
       val task = "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
       val fs1 = Future.sequence(List(task, task).map { s => master ? s })
-      Await.result(fs1, 1 second) must be (List("Your job is enqueued with id = 2", "Your job is enqueued with id = 3"))
+      Await.result(fs1, 1 second) must be (List("{\"id\":2}", "{\"id\":3}"))
 
       Thread.sleep(2000)
 
