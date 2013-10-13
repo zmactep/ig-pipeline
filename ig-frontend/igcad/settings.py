@@ -129,7 +129,7 @@ INSTALLED_APPS = (
     'userprofile',
     'messages',
     'main',
-    'igtasks',
+    'igsnooper',
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'

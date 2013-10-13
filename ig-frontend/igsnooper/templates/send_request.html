@@ -43,7 +43,7 @@
                 event.preventDefault();
                 $.ajax({
                     type: "POST",
-                    url: "{% url 'igtasks:create_view' %}",
+                    url: "{% url 'igsnooper:create_view' %}",
                     data: form.serialize(),
                     success: function (response) {
                         var response_json = JSON.stringify(response)
