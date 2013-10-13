@@ -56,8 +56,8 @@ echo "Done."
 echo "Current time: " `date`
 
 paste ${6}read_names.txt ${6}prediction.filtered.txt > ${6}data.txt
-python ${7}parse_svm_output.py --input_file ${6}data.txt --sliding_window_size $4 --merge_threshold $5 --output $6
+python ${7}parse_svm_output.py --input_prediction ${6}data.txt --input_fasta $2 --sliding_window_size $4 --merge_threshold $5 --output $6
 python ${7}data/compare_kabat.py --ref $1 --input ${6}results.txt --output $6
 
-echo "Done. Result is in results.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt. Comparison is in comparison.kabat. All in $6"
+echo "Done. Result are in results.kabat and results_pic.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt. Comparison is in comparison.kabat. All in $6"
 echo "End date: " `date` 
