@@ -1,9 +1,0 @@
-[settings]
-max_nthreads=8
-kmer_size=7
-match_score=2
-mismatch_penalty=2
-gap_opening_penalty=3
-gap_extending_penalty=1
-
-[data]

@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 2.6)
+
+project(common_lib)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(LIB_DIR "../lib")
+set(BUILD_DIR "../build")
+
+
+add_subdirectory(io)
+add_subdirectory(utils)
+add_subdirectory(tests)
+
+include_directories(../include)
+include_directories(../include/io)
+include_directories(../include/utils)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/io/libio.a
+        DESTINATION ${PROJECT_SOURCE_DIR}/${LIB_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/utils/libutils.a
+        DESTINATION ${PROJECT_SOURCE_DIR}/${LIB_DIR})
