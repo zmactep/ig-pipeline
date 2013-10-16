@@ -62,7 +62,9 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       val inputFasta = if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)
       val inputKabat = if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)
 
-      toolsRoot + "./train_model.sh " + inputFasta + " " + inputKabat + " " + input.getParams.getMlWindowsize.toInt + " " + workDirRoot + " " + toolsRoot
+      val cmd = toolsRoot + "./ig-snooper/train_model.sh " + inputFasta + " " + inputKabat + " " + input.getParams.getMlWindowsize.toInt + " " + workDirRoot + " " + toolsRoot
+      log.debug(cmd)
+      cmd
     }
 
     def saveDescription(path: String, data: String) = {
@@ -119,9 +121,10 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       val inputKabat = if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)
 
       val params = input.getParams
-      val cmd = toolsRoot + "./predict.sh " + inputKabat + " " + inputFasta + " " + params.getMlWindowsize.toInt + " " +
+      val cmd = toolsRoot + "./ig-snooper/predict.sh " + inputKabat + " " + inputFasta + " " + params.getMlWindowsize.toInt + " " +
         params.getAvgWidowsize.toInt + " " + params.getMergeThreshold.toInt + " " + workDirRoot + " " + toolsRoot + " " +
         storageRoot + params.getModelPath
+      log.debug(cmd)
       cmd
     }
 
