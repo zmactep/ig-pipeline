@@ -10,13 +10,13 @@ fi
 
 echo "Start date: " `date` 
 echo "Generating predict data in libsvm format..."
-if [ ! -f ${7}svm_data_generator/bin/svm_data_generator ] 
+if [ ! -f ${7}ig-snooper/svm_data_generator/bin/svm_data_generator ] 
 then 
   echo "svm_data_generator not found. Abort."
   exit
 fi
 
-${7}svm_data_generator/bin/svm_data_generator predict $2 $3 ${6}> /dev/null 2> /dev/null
+${7}ig-snooper/svm_data_generator/bin/svm_data_generator predict $2 $3 ${6}> /dev/null 2> /dev/null
 
 if [ ! -f ${6}predict.libsvm ] 
 then 
@@ -56,8 +56,8 @@ echo "Done."
 echo "Current time: " `date`
 
 paste ${6}read_names.txt ${6}prediction.filtered.txt > ${6}data.txt
-python ${7}parse_svm_output.py --input_prediction ${6}data.txt --input_fasta $2 --sliding_window_size $4 --merge_threshold $5 --output $6
-python ${7}data/compare_kabat.py --ref $1 --input ${6}results.txt --output $6
+python ${7}ig-snooper/parse_svm_output.py --input_prediction ${6}data.txt --input_fasta $2 --sliding_window_size $4 --merge_threshold $5 --output $6
+python ${7}ig-snooper/compare_kabat.py --ref $1 --input ${6}results.kabat --output $6
 
 echo "Done. Result are in results.kabat and results_pic.txt. Debug output is in debug_prediction.txt and debug_prediction_avg.txt. Comparison is in comparison.kabat. All in $6"
 echo "End date: " `date` 

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 echo "Building libs"
-cd ../common_lib
+cd ../../common_lib
 ./clean_all.sh
 ./compile.sh
 echo "Done"
 
 echo "Building svm_data_generator"
-cd ../svm_data_generator
+cd ../ig-snooper/svm_data_generator
 mkdir ./bin
 mkdir ./build
 cd build

@@ -10,13 +10,13 @@ fi
 
 echo "Start date: " `date` 
 echo "Generating train data in libsvm format..."
-if [ ! -f ${5}svm_data_generator/bin/svm_data_generator ] 
+if [ ! -f ${5}ig-snooper/svm_data_generator/bin/svm_data_generator ] 
 then 
   echo "svm_data_generator not found. Abort."
   exit
 fi
 
-${5}svm_data_generator/bin/svm_data_generator train $1 $2 $3 1 $4> /dev/null 2> /dev/null
+${5}ig-snooper/svm_data_generator/bin/svm_data_generator train $1 $2 $3 1 $4> /dev/null 2> /dev/null
 if [ ! -f ${4}train.libsvm ] 
 then 
   echo "Error in svm_data_generator: no output found. Abort."
@@ -33,7 +33,7 @@ then
 fi
 
 #fix headers to make it look the same
-python ${5}fix_weka_header.py ${4}train_nominal.arff $4
+python ${5}ig-snooper/fix_weka_header.py ${4}train_nominal.arff $4
 mv ${4}result.arff ${4}train_nominal.arff
 
 echo "Train..."
