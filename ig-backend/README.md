@@ -12,7 +12,6 @@ RUN
 
 USAGE
 =====
-
 via HTTP:
 Generate model:
 * curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/nomenclature/human/VJK_combinations.kabat", "/Users/Kos/Dropbox/Biocad/ig-pipeline/tools/ig-snooper/tmp2/train.fasta"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
@@ -32,3 +31,20 @@ via browser:
 via TCP:
 * connect: telnet localhost 9999
 * just paste the query: {"result_for":"0"}
+
+CONFIGURATION FILE
+==================
+You can _override_ existing (but not add new) values with external config. To use external config file run:
+* java -jar -Dconfig.file=/absolute/path/ig-backend.conf  ./target/ig-backend-1.0-SNAPSHOT.jar
+
+Example of ig-backend.conf (values are the same as in application.conf, but it generally must differes):
+
+include "application"
+
+ig-backend {
+    http_port = 8080
+    tcp_port = 9999
+    tools_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/tools/
+    storage_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/storage/
+    working_dir_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/workers/
+}
