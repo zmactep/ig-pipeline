@@ -48,6 +48,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
         case "generate model" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))
         case "model list" => self ! WorkComplete(listModels(requestCommand.getInput))
         case "find patterns" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
+        case "test" => self ! WorkComplete("{\"status\": \"ok\"}")
         //TODO handle this enum from ig-frontend
         case "1" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
         case "2" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))

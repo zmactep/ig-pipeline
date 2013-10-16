@@ -27,8 +27,8 @@ with MustMatchers {
 
   "Worker" should {
     "work" in {
-      master ! "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
-      master ! "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
+      master ! "{\"task\" : \"test\", \"input\": {\"group\": \"regions\"}}"
+      master ! "{\"task\" : \"test\", \"input\": {\"group\": \"regions\"}}"
       expectMsgAllOf("{\"id\":0}", "{\"id\":1}")
 
       Thread.sleep(2000)
@@ -41,7 +41,7 @@ with MustMatchers {
 
     "work with Futures" in {
       import ExecutionContext.Implicits.global
-      val task = "{\"task\" : \"model list\", \"input\": {\"group\": \"regions\"}}"
+      val task = "{\"task\" : \"test\", \"input\": {\"group\": \"regions\"}}"
       val fs1 = Future.sequence(List(task, task).map { s => master ? s })
       Await.result(fs1, 1 second) must be (List("{\"id\":2}", "{\"id\":3}"))
 

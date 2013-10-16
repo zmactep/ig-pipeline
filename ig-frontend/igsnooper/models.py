@@ -85,7 +85,7 @@ class TaskRequestForm(forms.Form):
                              choices=([('1', 'find patterns'), ('2', 'generate model'), ('3', 'model list'), ]),
                              initial='3',
                              required=True)
-    input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/tmp2/train.fasta')
+    input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/tools/ig-snooper/tmp/train.fasta')
     input_file_kabat= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_kabat_id', 'style': 'display: none;'}), label='Input KABAT file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/nomenclature/human/VJK_combinations.kabat')
     model_path      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_path_id', 'style': 'display: none;'}), label='Model file', required=False, initial='task1/model.model')
     out_dir         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'out_dir_id', 'style': 'display: none;'}), label='Output dir', required=False, initial='task1/')
