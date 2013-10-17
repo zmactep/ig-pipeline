@@ -7,6 +7,7 @@ class SplitterMID(object):
     def __init__(self, dt=DomainType.undefined, direct=Direction.undefined):
         self.d_type = dt
         self.direction = direct
+        self.name = ""
         self.mid = ""
         self.primer = ""
 

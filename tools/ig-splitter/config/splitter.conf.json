@@ -3,39 +3,39 @@
             {
                 "d_type": "VH",
                 "direction": "forward",
-                "mid": "ATAGATAGAC",
+                "mid": "TAGCTCTATC",
                 "primer": "GCCTACGGCAGCCGCTGGATTGTTATTAC"
             },
             {
                 "d_type": "VH",
                 "direction": "reversed",
-                "mid": "ATATAGTCGC",
+                "mid": "TATAGACATC",
                 "primer": "CACAGACGGGCCTTTTGTAGAC"
             },
 
             {
                 "d_type": "VL",
                 "direction": "forward",
-                "mid": "ATCTACTGAC",
+                "mid": "CGTATGCGAC",
                 "primer": "GCTGCTGCTGGTCTGCTGCTCCTCGCTG"
             },
             {
                 "d_type": "VL",
                 "direction": "reversed",
-                "mid": "CACGTAGATC",
+                "mid": "CGTCGATCTC",
                 "primer": "GGCGGGAAAATAAAAACAGACGG"
             },
 
             {
                 "d_type": "VK",
                 "direction": "forward",
-                "mid": "CACGTGTCGC",
+                "mid": "CGACACTATC",
                 "primer": "GCTGCTGCTGGTCTGCTGCTCCTCGCTG"
             },
             {
                 "d_type": "VK",
                 "direction": "reversed",
-                "mid": "CATACTCTAC",
+                "mid": "CGAGACGCGC",
                 "primer": "GGCGGGAAAATAAAAACAGACGG"
             }
           ]

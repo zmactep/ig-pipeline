@@ -16,8 +16,8 @@
         {% endif %}
         <form method="POST" action="" accept-charset="UTF-8">
             {% csrf_token %}
-            <input type="text" id="username" class="span4" name="username" placeholder="Username">
-            <input type="password" id="password" class="span4" name="password" placeholder="Password">
+            <input type="text" id="username" class="form-control" name="username" placeholder="Username">
+            <input type="password" id="password" class="form-control" name="password" placeholder="Password">
             <label class="checkbox">
                 <input type="checkbox" name="remember" value="1"> Remember Me
             </label>

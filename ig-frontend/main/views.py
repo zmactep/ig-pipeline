@@ -1,7 +1,9 @@
 from django.shortcuts import render
 
+
 def about(request):
     return render(request, "main/about.html")
+
 
 def contact(request):
     if not request.POST:

@@ -14,8 +14,9 @@ import sys
 log = logging.getLogger('all')
 backend_uri = 'http://127.0.0.1:8080'
 
+
 class TaskRequestView(generic.ListView):
-    template_name = 'task_request.html'
+    template_name = 'igsnooper/task_request.html'
     paginate_by = 25
     context_object_name = 'tasks'
 
@@ -24,7 +25,7 @@ class TaskRequestView(generic.ListView):
 
 
 def create(request):
-    if request.method == 'POST': # If the form has been submitted...
+    if request.method == 'POST':  # If the form has been submitted...
         form = TaskRequestForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
@@ -49,14 +50,15 @@ def create(request):
             task_request.save()
             return HttpResponse(response, content_type="application/json")
     else:
-        form = TaskRequestForm() # An unbound form
+        form = TaskRequestForm()  # An unbound form
 
-    return render(request, 'send_request.html', dictionary={'form': form})
+    return render(request, 'igsnooper/send_request.html', dictionary={'form': form})
+
 
 @csrf_exempt
 def ask_backend(request):
-    id = request.POST.get('id')
-    return HttpResponse(json.dumps(ask_server(json.dumps({'result_for': id}))), content_type="application/json")
+    back_id = request.POST.get('id')
+    return HttpResponse(json.dumps(ask_server(json.dumps({'result_for': back_id}))), content_type="application/json")
 
 
 def ask_server(query):
@@ -69,6 +71,6 @@ def ask_server(query):
         log.debug("Response from ig-backend: %s" % result)
         return result
     except:
-        type, value, tb = sys.exc_info()
+        _, value, _ = sys.exc_info()
         log.debug('%s', value)
         return {'status': 'fail', 'text': "Server error"}

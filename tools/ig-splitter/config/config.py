@@ -5,7 +5,7 @@ splitter_least_len = 300
 splitter_outfasta = "{}-splitted.fasta"
 splitter_max_errors = 8
 
-splitter_vhh_pattern = "[FYI][A-Z*]{4,15}ER[A-Z*]?[GSAF]"
+splitter_vhh_pattern = "ER[A-Z*]?[GSAF]"
 
 svm_train_size = 30
 svm_train_radius = 10

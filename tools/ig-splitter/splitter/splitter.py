@@ -136,8 +136,7 @@ def vh_h_split(vh):
 def length_filter(v):
     vn = {}
     for d_type in v:
-        vn[d_type] = list(filter(lambda x: len(x) > cfg.splitter_least_len,
-                            v[d_type]))
+        vn[d_type] = list(filter(lambda x: len(x) > cfg.splitter_least_len, v[d_type]))
     return vn
 
 
@@ -158,16 +157,13 @@ def run(fasta_source, results_dir):
     config = load_configuration()
     v, us, b = mid_split(SeqIO.parse(fasta_source, "fasta"), config)
     # v, us, b = mid_split(fasta_head(fasta_source, 2000), config)
-    print_info(v)
-    cl = svm_create(v)
-    v2 = svm_split(cl, config, us)
-    print_info(v2)
-    v = merge_splits(v, v2)
-    print_info(v)
-    if cfg.splitter_vhh_pattern:
-        v, vh = pop_vh(v)
-        vh_h = vh_h_split(vh)
-        v = merge_splits(v, vh_h, False)
+    #print_info(v)
+    #cl = svm_create(v)
+    #v2 = svm_split(cl, config, us)
+    #print_info(v2)
+    #v = merge_splits(v, v2)
+    #print_info(v)
     v = length_filter(v)
-    print_info(v)
+    #print_info(v)
     dump_fasta(results_dir, v)
+    SeqIO.write(us, os.path.join(results_dir, cfg.splitter_outfasta.format("unsplitted")), "fasta")
