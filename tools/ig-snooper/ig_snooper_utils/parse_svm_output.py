@@ -1,37 +1,33 @@
 #!/usr/bin/python
 
-import argparse
+import os
+import re
 from itertools import groupby, islice
 from collections import Counter
 from Bio import SeqIO
 from math import floor
 
-def main():
-    parser = argparse.ArgumentParser(description='Calculate prediction score for predicted kabat.')
-    parser.add_argument('--input_fasta', nargs=1, help='input fasta')
-    parser.add_argument('--input_prediction', nargs=1, help='input prediction')
-    parser.add_argument('--sliding_window_size', nargs=1, type=int, help='sliding window size')
-    parser.add_argument('--merge_threshold', nargs=1, type=int, help='threshold len for merge with neighbour')
-    parser.add_argument('--output', nargs=1, help='output_dir')
-    args = parser.parse_args()
 
-    input_fasta = args.input_fasta.pop(0)
-    input_prediction = args.input_prediction.pop(0)
-    output_dir = args.output.pop(0)
-    sliding_window_size = args.sliding_window_size.pop(0)
-    merge_threshold = args.merge_threshold.pop(0)
-
-    debug_prediction = open(output_dir + 'debug_prediction.txt', 'w')
-    debug_prediction_avg = open(output_dir + 'debug_prediction_avg.txt', 'w')
-    results_kabat = open(output_dir + 'results.kabat', 'w')
-    results_pic = open(output_dir + 'results_pic.txt', 'w')
+def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size, merge_threshold):
+    debug_prediction = open(os.path.join(output_dir, 'debug_prediction.txt'), 'w')
+    debug_prediction_avg = open(os.path.join(output_dir, 'debug_prediction_avg.txt'), 'w')
+    results_kabat = open(os.path.join(output_dir, 'results.kabat'), 'w')
+    results_pic = open(os.path.join(output_dir, 'results_pic.txt'), 'w')
     input_fasta_iterator = SeqIO.parse(input_fasta, "fasta")
 
-    with open(input_prediction) as file:
+    with open(input_prediction) as pred, open(read_names) as names:
         #name2prediction is a list of key value pairs: key is seq_name, value is region prediction for single nucleotide
         #Nucleotide predictions are sorted by position and listed as one position per line in file (per tuple in list).
         #We need to concatenate predictions for each read.
-        name2prediction = [line.rstrip().split('\t')[:2] for line in file]
+        name2prediction = []
+        for i in range(5): # skip header
+            pred.readline()
+
+        regex = re.compile(":(\d+)")
+        for name, val in zip(names, pred):
+            val = regex.findall(val)[1]
+            name2prediction += [(name.rstrip(), val)]
+
         # name2prediction is supposed to be sorted here -> no need to sort in groupby
         for key, group in groupby(name2prediction, lambda x: x[0]):
             if not key:
@@ -39,7 +35,7 @@ def main():
             # key is a seq_name, and prediction is a list of region predictions for each position in sequence
             prediction = [x[1] for x in group]
             # Post processing step: averaging, merging small regions, etc...
-            averaged_prediction = average_prediction(prediction, sliding_window_size) # list
+            averaged_prediction = average_prediction(prediction, avg_window_size) # list
             debug_prediction.write("%s\n" % (key + '\t' + ''.join(prediction)))
             debug_prediction_avg.write("%s\n" % (key + '\t' + ''.join(averaged_prediction)))
             regions = kabat_range(averaged_prediction, merge_threshold)
@@ -50,6 +46,7 @@ def main():
     debug_prediction_avg.close()
     results_kabat.close()
     results_pic.close()
+
 
 def average_prediction(prediction_list, window_size):
     return [str(Counter(window).most_common()[0][0]) for window in slide_window(prediction_list, window_size)]

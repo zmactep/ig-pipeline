@@ -1,6 +1,5 @@
-#!/usr/bin/python
-
 import argparse
+import os
 from itertools import zip_longest
 
 def main():
@@ -10,18 +9,22 @@ def main():
     parser.add_argument('--output', nargs=1, help='output_dir')
     args = parser.parse_args()
 
-    with open(args.ref.pop(0), 'rU') as reference_file:
+    compare(args.ref.pop(0), args.input.pop(0), args.output.pop(0))
+
+
+def compare(ref, input, output):
+    with open(ref, 'rU') as reference_file:
         ref_dict = dict([parse_kabat_line(line) for line in reference_file])
 
-    with open(args.input.pop(0), 'rU') as input_file:
+    with open(input, 'rU') as input_file:
         input_dict = dict([parse_kabat_line(line) for line in input_file])
 
     common_keys = set(ref_dict.keys()) & set(input_dict.keys())
 
-    with open(args.output.pop(0) + 'comparison.kabat', 'w') as comparison_file:
+    with open(os.path.join(output, 'comparison.kabat'), 'w') as comparison_file:
         for key in common_keys:
             comparison_file.write('%s\t%s\n' % (key, '\t'.join([str(i) for i in ref_dict[key]])))
-            comparison_file.write('%s\t%s\n' % (key, '\t'.join([str(i) for i in input_dict[key]]))) 
+            comparison_file.write('%s\t%s\n' % (key, '\t'.join([str(i) for i in input_dict[key]])))
 
     reference_file.close()
     input_file.close()
@@ -30,6 +33,7 @@ def main():
     abs_score = sum([get_abs_score(ref_dict[key], input_dict[key]) for key in common_keys])
     mismatches_per_read = abs_score / len(common_keys) if len(common_keys) != 0 else 1
     print('Absolute score: %s; Mismatches per read: %s' % (abs_score, mismatches_per_read))
+
 
 # return: key = sequence_name, value = list of regions
 def parse_kabat_line(line):

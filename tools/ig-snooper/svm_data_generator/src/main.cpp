@@ -62,7 +62,7 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 	}
 
 	const GenericNomenclature& nomenclature = it->second;
-	const std::string cap(window_size / 2, 'B'); //'B' is not an amino acid nor a nucleotide
+	const std::string cap(window_size / 2, '*'); //'*' is not an amino acid nor a nucleotide
 	const std::string capped_seq = cap + r.getSeq() + cap; //add caps to sequence to deal with sliding window near the edges
 	if (!no_borders) {
 		split_read_by_GenericNomenclature(r, nomenclature, regions);
@@ -96,7 +96,7 @@ void process_read(const Read& r, const std::map<std::string, GenericNomenclature
 
 //for predict data
 void process_read(const Read& r, int window_size, std::ofstream& comments_output, std::ofstream& svm_output) {
-	const std::string cap(window_size / 2, 'B'); //'B' is not an amino acid nor a nucleotide
+	const std::string cap(window_size / 2, '*'); //'*' is not an amino acid nor a nucleotide
 	const std::string capped_seq = cap + r.getSeq() + cap; //add caps to sequence to deal with sliding window near the edges
 
 	if (capped_seq.length() > window_size) {
@@ -114,7 +114,7 @@ void process_read(const Read& r, int window_size, std::ofstream& comments_output
 void generate_train_data(char ** argv) {
 	const int window_size = atoi(argv[4]);
 	const int no_borders = atoi(argv[5]);
-	std::ofstream svm_output(std::string(argv[6]) + "train.libsvm");
+	std::ofstream svm_output(std::string(argv[6]) + (argv[6][strlen(argv[6]) - 1] == '/' ? "" : "/") + "train.libsvm");
 
 	try {
 		std::map<std::string, GenericNomenclature> seq2nomenclature;
@@ -137,8 +137,8 @@ void generate_train_data(char ** argv) {
 }
 
 void generate_predict_data(char ** argv) {
-	std::ofstream comments_output(std::string(argv[4]) + "read_names.txt");
-	std::ofstream svm_output(std::string(argv[4]) + "predict.libsvm");
+	std::ofstream comments_output(std::string(argv[4]) + (argv[4][strlen(argv[4]) - 1] == '/' ? "" : "/") + "read_names.txt");
+	std::ofstream svm_output(std::string(argv[4]) + (argv[4][strlen(argv[4]) - 1] == '/' ? "" : "/") + "predict.libsvm");
 	const int window_size = atoi(argv[3]);
 	try {
 		FastaReader fasta_reader(argv[2]);
