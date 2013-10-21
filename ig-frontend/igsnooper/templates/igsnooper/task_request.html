@@ -12,6 +12,7 @@
             <th>Output dir</th>
             <th>Group</th>
             <th>Comment</th>
+            <th>Response</th>
         </tr>
     </thead>
     <tbody>
@@ -25,6 +26,7 @@
             <td>{{ task.out_dir }}</td>
             <td>{{ task.group }}</td>
             <td>{{ task.comment }}</td>
+            <td>Hover this line to update status</td>
         </tr>
     {% endfor %}
     </tbody>
@@ -32,13 +34,24 @@
 <script type="text/javascript">
     $("tr").mouseover(function(){
         var backend_id = $(this).find("td:first").html()
+        var updateField = $(this).find("td:last")
         event.preventDefault();
+        if (updateField.html().indexOf('Hover') == -1) {
+            return false;
+        }
         $.ajax({
             type: "POST",
             dataType: "json",
             url: "{% url 'igsnooper:ask_backend' %}",
             data: {"id": backend_id},
             success: function (response) {
+                var result = JSON.parse(response)
+                if (result['status'] == 'ok') {
+                    var anchorElem = document.createElement('a');
+                    anchorElem.setAttribute("href", "/listing/?file=" + result['data'][0]['fullpath']);
+                    anchorElem.innerHTML = 'Result file';
+                    updateField.html(anchorElem);
+                }
                 $("#backend_response").html(response);
             }
         });
