@@ -61,7 +61,7 @@ def main():
             compare_kabat.compare(params['kabat'], os.path.join(params['outdir'], 'results.kabat'), params['outdir'])
 
         # final cleanup if necessary
-        if params['clean_up']:
+        if 'clean_up' in params:
             print('Deleting unnecessary files...')
             for f in ['predict.libsvm', 'predict_nominal.arff', 'predict_nominal_fixed.arff', 'read_names.txt',
                       'prediction.txt', 'debug_prediction.txt', 'debug_prediction_avg.txt']:
@@ -75,7 +75,7 @@ def main():
 
 
 def get_params():
-    parser = argparse.ArgumentParser(description='Train model given train dataset')
+    parser = argparse.ArgumentParser(description='Predict data given a model')
     parser.add_argument('--config_path', nargs='?', help='Path to config')
     parser.add_argument('--fasta', help='Predict data in fasta')
     parser.add_argument('--kabat', help='Optional kabat for benchmarking')

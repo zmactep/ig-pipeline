@@ -55,7 +55,7 @@ def main():
             raise FileNotFoundError('Failed to train: %s; %s' % (output, error))
 
         # final cleanup if necessary
-        if params['clean_up']:
+        if 'clean_up' in params:
             print('Deleting unnecessary files...')
             for f in ['train.libsvm', 'train_nominal.arff', 'train_nominal_fixed.arff']:
                 os.remove(os.path.join(params['outdir'], f))
