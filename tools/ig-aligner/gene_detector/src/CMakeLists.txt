@@ -10,25 +10,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CURRENT_BINARY_DIR "../bin")
 set(CMAKE_INSTALL_PREFIX "./")
 
-add_subdirectory(utils)
-add_subdirectory(model)
 add_subdirectory(misc)
 
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(/opt/local/include)
+include_directories(../../../common_lib/include)
+include_directories(../../../common_lib/include/utils)
+include_directories(../../../common_lib/include/model)
 include_directories(../include/misc)
-include_directories(../include/model)
-include_directories(../include/utils)
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${CMAKE_SOURCE_DIR}/misc)
-link_directories(${CMAKE_SOURCE_DIR}/model)
-link_directories(${CMAKE_SOURCE_DIR}/utils)
-
+link_directories(../../../common_lib/lib)
 
 add_executable(gene_detector
-	main.cpp)
+               main.cpp)
 
 target_link_libraries(gene_detector log4cxx misc model utils ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
 
@@ -43,4 +40,3 @@ install(DIRECTORY "./test_data"
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         FILES_MATCHING 
         PATTERN "*.txt")
-        
