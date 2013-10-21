@@ -4,9 +4,10 @@ import sys
 import os
 from subprocess import Popen, PIPE
 import datetime
-import fix_weka_header
+from ig_snooper_utils import fix_weka_header
+import svm_data_generator as sdg
 
-svm_data_generator = 'ig-snooper/svm_data_generator/bin/svm_data_generator'
+svm_data_generator = os.path.join(sdg.__path__[0], 'bin/svm_data_generator')
 weka = 'common_lib/third_party/weka-3.6.10/weka.jar'
 
 
@@ -19,7 +20,8 @@ def main():
         # prepare data: convert .fasta to .libsvm
         print('Generating train data in libsvm format...')
         output, error = Popen([os.path.join(params['tools_root'], svm_data_generator), 'train', params['fasta'],
-            params['kabat'], str(params['ml_window_size']), '1', params['outdir']], stdout=PIPE, stderr=PIPE).communicate()
+                               params['kabat'], str(params['ml_window_size']), '1', params['outdir']],
+                              stdout=PIPE, stderr=PIPE).communicate()
 
         train_libsvm_path = os.path.join(params['outdir'], 'train.libsvm')
         if not (os.path.exists(train_libsvm_path) and os.path.getsize(train_libsvm_path) > 0):
@@ -29,8 +31,9 @@ def main():
         print('Done. Applying NumericToNominal conversion...')
         os.environ["CLASSPATH"] = os.path.join(params['tools_root'], weka)
         output, error = Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
-            os.path.join(params['outdir'], 'train.libsvm'), '-o', os.path.join(params['outdir'], 'train_nominal.arff')],
-            stdout=PIPE, stderr=PIPE).communicate()
+                               os.path.join(params['outdir'], 'train.libsvm'), '-o',
+                               os.path.join(params['outdir'], 'train_nominal.arff')],
+                              stdout=PIPE, stderr=PIPE).communicate()
 
         train_nominal_path = os.path.join(params['outdir'], 'train_nominal.arff')
         if not (os.path.exists(train_nominal_path) and os.path.getsize(train_nominal_path) > 0):
@@ -41,9 +44,11 @@ def main():
 
         # run weka training
         print('Done. Train...')
-        output, error = Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-I', '10', '-K', '0', '-S',
-           '1', '-no-cv', '-p', '0', '-t', os.path.join(params['outdir'], 'train_nominal_fixed.arff'),
-           '-d', os.path.join(params['outdir'], params['model_name'])], stdout=PIPE, stderr=PIPE).communicate()
+        output, error = Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-I', '10',
+                               '-K', '0', '-S', '1', '-no-cv', '-p', '0',
+                               '-t', os.path.join(params['outdir'], 'train_nominal_fixed.arff'),
+                               '-d', os.path.join(params['outdir'], params['model_name'])],
+                              stdout=PIPE, stderr=PIPE).communicate()
 
         model_path = os.path.join(params['outdir'], params['model_name'])
         if not (os.path.exists(model_path) and os.path.getsize(model_path) > 0):
@@ -77,7 +82,7 @@ def get_params():
 
     if 'config_path' in params and not params['config_path'] is None:
         config = json.load(open(params['config_path']))
-        config.update(params) # commandline args has higher priority
+        config.update(params)  # commandline args has higher priority
         params = config
 
     required = ('fasta', 'kabat', 'model_name', 'ml_window_size', 'tools_root', 'outdir')

@@ -4,9 +4,10 @@ import sys
 import os
 from subprocess import Popen, PIPE
 import datetime
-import fix_weka_header, parse_svm_output, compare_kabat
+from ig_snooper_utils import fix_weka_header, parse_svm_output, compare_kabat
+import svm_data_generator as sdg
 
-svm_data_generator = 'ig-snooper/svm_data_generator/bin/svm_data_generator'
+svm_data_generator = os.path.join(sdg.__path__[0], 'bin/svm_data_generator')
 weka = 'common_lib/third_party/weka-3.6.10/weka.jar'
 
 
@@ -19,7 +20,8 @@ def main():
         # prepare data: convert .fasta to .libsvm
         print('Generating predict data in libsvm format...')
         output, error = Popen([os.path.join(params['tools_root'], svm_data_generator), 'predict', params['fasta'],
-            str(params['ml_window_size']), params['outdir']], stdout=PIPE, stderr=PIPE).communicate()
+                               str(params['ml_window_size']), params['outdir']],
+                              stdout=PIPE, stderr=PIPE).communicate()
 
         predict_libsvm_path = os.path.join(params['outdir'], 'predict.libsvm')
         if not (os.path.exists(predict_libsvm_path) and os.path.getsize(predict_libsvm_path) > 0):
@@ -28,24 +30,25 @@ def main():
         # run weka conversion
         print('Done. Applying NumericToNominal conversion...')
         os.environ["CLASSPATH"] = os.path.join(params['tools_root'], weka)
-        output, error = Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
-            os.path.join(params['outdir'], 'predict.libsvm'), '-o', os.path.join(params['outdir'], 'predict_nominal.arff')],
-            stdout=PIPE, stderr=PIPE).communicate()
+        output, error = Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal',
+                               '-i', os.path.join(params['outdir'], 'predict.libsvm'),
+                               '-o', os.path.join(params['outdir'], 'predict_nominal.arff')],
+                              stdout=PIPE, stderr=PIPE).communicate()
 
         predict_nominal_path = os.path.join(params['outdir'], 'predict_nominal.arff')
         if not (os.path.exists(predict_nominal_path) and os.path.getsize(predict_nominal_path) > 0):
             raise FileNotFoundError('Failed to convert Numeric to Nominal: %s; %s' % (output, error))
 
-        fix_weka_header.fix_header(os.path.join(params['outdir'], 'predict_nominal.arff'), 'predict_nominal_fixed.arff',
-                                   params['outdir'])
+        fix_weka_header.fix_header(os.path.join(params['outdir'], 'predict_nominal.arff'),
+                                   'predict_nominal_fixed.arff', params['outdir'])
 
         # run weka training
         print('Done. Predict...')
         prediction_file_name = os.path.join(params['outdir'], 'prediction.txt')
         with open(prediction_file_name, 'w') as out:
-            Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-no-cv', '-p', '0', '-l',
-                params['model_path'], '-T', os.path.join(params['outdir'], 'predict_nominal_fixed.arff')],
-                stdout=out).wait()
+            Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-no-cv', '-p', '0',
+                   '-l', params['model_path'], '-T', os.path.join(params['outdir'], 'predict_nominal_fixed.arff')],
+                  stdout=out).wait()
 
         if not (os.path.exists(prediction_file_name) and os.path.getsize(prediction_file_name) > 0):
             raise FileNotFoundError('Failed to predict.')
@@ -56,7 +59,6 @@ def main():
         if 'kabat' in params and os.path.exists(params['kabat']):
             print('Calculating quality metrics...')
             compare_kabat.compare(params['kabat'], os.path.join(params['outdir'], 'results.kabat'), params['outdir'])
-
 
         # final cleanup if necessary
         if params['clean_up']:
@@ -88,7 +90,7 @@ def get_params():
 
     if 'config_path' in params and not params['config_path'] is None:
         config = json.load(open(params['config_path']))
-        config.update(params) # commandline args has higher priority
+        config.update(params)  # commandline args has higher priority
         params = config
 
     required = ('fasta', 'model_path', 'ml_window_size', 'avg_window_size', 'merge_threshold', 'tools_root', 'outdir')

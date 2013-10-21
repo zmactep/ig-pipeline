@@ -2,8 +2,9 @@ import argparse
 import os
 from itertools import zip_longest
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Calculateprediction score for predicted kabat.')
+    parser = argparse.ArgumentParser(description='Calculate prediction score for predicted kabat.')
     parser.add_argument('--ref', nargs=1, help='reference kabat')
     parser.add_argument('--input', nargs=1, help='test kabat')
     parser.add_argument('--output', nargs=1, help='output_dir')
@@ -35,16 +36,18 @@ def compare(ref, input, output):
     print('Absolute score: %s; Mismatches per read: %s' % (abs_score, mismatches_per_read))
 
 
-# return: key = sequence_name, value = list of regions
 def parse_kabat_line(line):
+    """ return: key = sequence_name, value = list of regions """
     tokens = line.split()
     key = tokens.pop(0).strip()
     return key, tokens
+
 
 def get_abs_score(first, second):
     first_regions = [int(first[i + 1]) - int(first[i]) + 1 for i in range(0, len(first), 2)]
     second_regions = [int(second[i + 1]) - int(second[i]) + 1 for i in range(0, len(second), 2)]
     return sum([abs(fst - snd) for fst, snd in zip_longest(first_regions, second_regions, fillvalue=0)])
 
+
 if __name__ == "__main__":
-   main()
+    main()

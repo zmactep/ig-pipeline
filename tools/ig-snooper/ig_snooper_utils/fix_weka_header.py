@@ -37,5 +37,3 @@ def fix_line(line):
             return line[:line.index('{') + 1] + ','.join([str(ord(x)) for x in nucleo_bases]) + '}'
         else:
             return line[:line.index('{') + 1] + ','.join([str(ord(x)) for x in amino_acids]) + '}'
-
-

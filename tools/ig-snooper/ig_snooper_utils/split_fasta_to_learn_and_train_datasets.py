@@ -20,5 +20,6 @@ def main(argv):
     test.close()
     train.close()
 
+
 if __name__ == "__main__":
-   main(sys.argv)
+    main(sys.argv)

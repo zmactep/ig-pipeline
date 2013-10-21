@@ -20,7 +20,7 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
         #Nucleotide predictions are sorted by position and listed as one position per line in file (per tuple in list).
         #We need to concatenate predictions for each read.
         name2prediction = []
-        for i in range(5): # skip header
+        for i in range(5):  # skip header
             pred.readline()
 
         regex = re.compile(":(\d+)")
@@ -51,9 +51,11 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
 def average_prediction(prediction_list, window_size):
     return [str(Counter(window).most_common()[0][0]) for window in slide_window(prediction_list, window_size)]
 
+
 def slide_window(iterable, window_size):
     shiftedStarts = [islice(iterable, s, None) for s in range(window_size)]
     return zip(*shiftedStarts)
+
 
 def kabat_range(prediction, merge_threshold):
     result = []
@@ -89,9 +91,10 @@ def kabat_range(prediction, merge_threshold):
         merged_ranges.insert(0, (0, 0))
     return merged_ranges
 
+
 def print_regions(seq_record, regions):
     names = ['FR1', 'CDR1', 'FR2', 'CDR2', 'FR3', 'CDR3', 'FR4']
-    min_region_len = 6 # minimal printable region len: <CDR1>
+    min_region_len = 6  # minimal printable region len: <CDR1>
     result = []
     region_num = 0
     unknown_region_num = 0
@@ -108,7 +111,3 @@ def print_regions(seq_record, regions):
             region_num += 1
 
     return seq_record.id + '\n' + seq_record.seq + '\n' + ''.join(result) + '\n'
-
-
-if __name__ == "__main__":
-   main()
