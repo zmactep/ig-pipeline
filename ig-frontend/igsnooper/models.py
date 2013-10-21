@@ -6,6 +6,7 @@ import json
 import logging
 log = logging.getLogger('all')
 
+
 class TaskRequest(models.Model):
     FIND_PATTERNS = 1
     GENERATE_MODEL = 2
@@ -22,6 +23,7 @@ class TaskRequest(models.Model):
     # files and paths
     input_file_fasta = models.CharField(max_length=256, null=True, blank=True)
     input_file_kabat = models.CharField(max_length=256, null=True, blank=True)
+    model_name = models.CharField(max_length=256, null=True, blank=True)
     model_path = models.CharField(max_length=256, null=True, blank=True)
     out_dir = models.CharField(max_length=256, null=True, blank=True)
 
@@ -64,6 +66,7 @@ class TaskRequest(models.Model):
                            "params": {
                                "mlWindowsize": str(self.ml_window_size),
                                "algo": self.algo,
+                               "modelName": self.model_name,
                                "algoParams": self.algo_params
                            },
                            "comment": self.comment,
@@ -85,9 +88,10 @@ class TaskRequestForm(forms.Form):
                              choices=([('1', 'find patterns'), ('2', 'generate model'), ('3', 'model list'), ]),
                              initial='3',
                              required=True)
-    input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/tools/ig-snooper/tmp/train.fasta')
-    input_file_kabat= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_kabat_id', 'style': 'display: none;'}), label='Input KABAT file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/nomenclature/human/VJK_combinations.kabat')
-    model_path      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_path_id', 'style': 'display: none;'}), label='Model file', required=False, initial='task1/model.model')
+    input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta')
+    input_file_kabat= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_kabat_id', 'style': 'display: none;'}), label='Input KABAT file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat')
+    model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_name_id', 'style': 'display: none;'}), label='Model file name', required=False, initial='model.model')
+    model_path      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_path_id', 'style': 'display: none;'}), label='Model file path', required=False, initial='task1/model.model')
     out_dir         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'out_dir_id', 'style': 'display: none;'}), label='Output dir', required=False, initial='task1/')
     group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'group_id'}), initial='currently ignored', label='Group')
     comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'comment_id', 'style': 'display: none;'}), initial='Some useful comment', label='Your comment')
@@ -126,6 +130,8 @@ class TaskRequestForm(forms.Form):
                     raise forms.ValidationError('algo_params parameters missing')
                 if not ('out_dir' in self.cleaned_data and self.cleaned_data['out_dir']):
                     raise forms.ValidationError('out_dir parameters missing')
+                if not ('model_name' in self.cleaned_data and self.cleaned_data['model_name']):
+                    raise forms.ValidationError('model_name parameters missing')
 
         except forms.ValidationError as e:
             log.debug('Error: %s' % e.messages)

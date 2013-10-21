@@ -10,7 +10,8 @@ message RequestCommand {
         required string mlWindowsize = 3;
         optional string avgWidowsize = 4;
         optional string mergeThreshold = 5;
-        optional string modelPath = 6;
+        optional string modelName = 6;
+        optional string modelPath = 7;
     }
 
     message Input {

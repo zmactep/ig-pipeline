@@ -38,7 +38,7 @@ class CommandProtocolTest extends FunSpec with MustMatchers {
               "\"mlWindowsize\":\"10\"," +
               "\"avgWidowsize\":\"8\"," +
               "\"mergeThreshold\":\"5\"," +
-              "\"modelPath\":\"/path/to/model\"" +
+              "\"modelName\":\"/path/to/model\"" +
             "}," +
             "\"comment\":\"I am cool!\"," +
             "\"group\":\"regions\"" +
@@ -65,7 +65,7 @@ class CommandProtocolTest extends FunSpec with MustMatchers {
         'mlWindowsize ("10"),
         'avgWidowsize ("8"),
         'mergeThreshold ("5"),
-        'modelPath ("/path/to/model"),
+        'modelName ("/path/to/model"),
         'algo ("random forest"),
         'algoParams ("-l 10 -S 0")
       )

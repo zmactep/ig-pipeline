@@ -14,15 +14,15 @@ USAGE
 =====
 via HTTP:
 Generate model:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/nomenclature/human/VJK_combinations.kabat", "/Users/Kos/Dropbox/Biocad/ig-pipeline/tools/ig-snooper/tmp2/train.fasta"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
-* curl -H 'Accept: application/json' -X POST -d {"result_for":"0"}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta", "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0", "modelName": "model1"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 List models:
 * curl -H 'Accept: application/json' -X POST -d '{"task" : "model list", "input": {"group": "regions"}}' http://localhost:8080/
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 Predict:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "find patterns", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/nomenclature/human/VJK_combinations.kabat", "/Users/Kos/Dropbox/Biocad/ig-pipeline/tools/ig-snooper/tmp2/test.fasta"], "params": {"mlWindowsize": "13", "avgWidowsize": "1", "mergeThreshold": "7", "modelPath": "task1/model.model"}}, "output": {"outdir": "prediction/"}}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{"task" : "find patterns", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta", "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "avgWidowsize": "1", "mergeThreshold": "7", "modelPath": "task1/model1"}}, "output": {"outdir": "task1/"}}' http://localhost:8080/
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 via browser:
@@ -46,5 +46,4 @@ ig-backend {
     tcp_port = 9999
     tools_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/tools/
     storage_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/storage/
-    working_dir_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/workers/
 }

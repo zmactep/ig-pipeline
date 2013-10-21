@@ -23,11 +23,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
   implicit val ec = context.dispatcher
   val toolsRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.tools_root"))
   val storageRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.storage_root"))
-  val globalWorkdirRoot = FileUtils.fixPath(context.system.settings.config.getString("ig-backend.working_dir_root"))
-  FileUtils.createDirIfNotExists(globalWorkdirRoot)
 
-  val workDirRoot = globalWorkdirRoot + self.path.name.replace("$","") + "/"
-  FileUtils.createDirIfNotExists(workDirRoot)
   FileUtils.createDirIfNotExists(storageRoot)
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
@@ -60,10 +56,14 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
   private def generateModel(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
 
     def buildCommand(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
-      val inputFasta = if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)
-      val inputKabat = if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)
+      val params = Map("--ml_window_size" -> input.getParams.getMlWindowsize,
+                       "--fasta" -> (if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)),
+                       "--kabat" -> (if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)),
+                       "--outdir" -> new File(storageRoot, output.getOutdir).toString,
+                       "--tools_root" -> toolsRoot,
+                       "--model_name" -> input.getParams.getModelName)
 
-      val cmd = toolsRoot + "./ig-snooper/train_model.sh " + inputFasta + " " + inputKabat + " " + input.getParams.getMlWindowsize.toInt + " " + workDirRoot + " " + toolsRoot
+      val cmd = "python " + toolsRoot + "./ig-snooper/train.py " + params.map(p => p._1 + '=' + p._2).mkString(" ")
       log.debug(cmd)
       cmd
     }
@@ -80,20 +80,18 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
 
     def formatOutput(response: String) : String = {
       val responseBuilder = ResponseCommand.newBuilder()
-      if (response.contains("Done. All files in")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
+      if (response.contains("Your model is in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
       val pathBuilder = PathAndDescription.newBuilder()
       pathBuilder.setDescription(response)
-      pathBuilder.setFullpath(storageRoot + output.getOutdir)
+      pathBuilder.setFullpath(new File(new File(storageRoot, output.getOutdir).toString, input.getParams.getModelName).toString)
       responseBuilder.addData(pathBuilder.build())
       JsonFormat.printToString(responseBuilder.build())
     }
 
-    FileUtils.createDirIfNotExists(workDirRoot)
     FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
 
     val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
-    Seq("cp", "-r", workDirRoot, storageRoot + output.getOutdir).!
-    saveDescription(storageRoot + output.getOutdir + "description.txt", execResult)
+    saveDescription(new File(new File(storageRoot, output.getOutdir).toString, "description.txt").toString, execResult)
 
     val response = formatOutput(execResult)
     log.debug("Response: " + response)
@@ -108,8 +106,8 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     if (! models.isEmpty) {
       for (model <- models.split("\n")) {
         val pathBuilder = PathAndDescription.newBuilder()
-        pathBuilder.setFullpath(storageRoot + model.replace("description.txt", ""))
-        pathBuilder.setDescription(io.Source.fromFile(storageRoot + model).mkString)
+        pathBuilder.setFullpath(new File(storageRoot, model.replace("description.txt", "")).toString)
+        pathBuilder.setDescription(io.Source.fromFile(new File(storageRoot, model).toString).mkString)
         responseBuilder.addData(pathBuilder.build())
       }
     }
@@ -118,30 +116,36 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
 
   private def findPattern(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
     def buildCommand(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
-      val inputFasta = if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)
       val inputKabat = if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)
 
-      val params = input.getParams
-      val cmd = toolsRoot + "./ig-snooper/predict.sh " + inputKabat + " " + inputFasta + " " + params.getMlWindowsize.toInt + " " +
-        params.getAvgWidowsize.toInt + " " + params.getMergeThreshold.toInt + " " + workDirRoot + " " + toolsRoot + " " +
-        storageRoot + params.getModelPath
+      val params = scala.collection.mutable.Map("--ml_window_size" -> input.getParams.getMlWindowsize,
+        "--fasta" -> (if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)),
+        "--outdir" -> new File(storageRoot, output.getOutdir).toString,
+        "--tools_root" -> toolsRoot,
+        "--model_path" -> new File(storageRoot, input.getParams.getModelPath).toString,
+        "--ml_window_size" -> input.getParams.getMlWindowsize,
+        "--merge_threshold" -> input.getParams.getMergeThreshold,
+        "--avg_window_size" -> input.getParams.getAvgWidowsize)
+
+      if (new File(inputKabat).exists()) params += ("--kabat" -> inputKabat)
+
+      val cmd = "python " + toolsRoot + "./ig-snooper/predict.py " + params.map(p => p._1 + '=' + p._2).mkString(" ")
       log.debug(cmd)
       cmd
     }
 
     def formatOutput(response: String) : String = {
       val responseBuilder = ResponseCommand.newBuilder()
-      if (response.contains("Done. Result is in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
+      if (response.contains("Done in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
       val pathBuilder = PathAndDescription.newBuilder()
       pathBuilder.setDescription(response)
-      pathBuilder.setFullpath(workDirRoot)
+      pathBuilder.setFullpath(new File(new File(storageRoot, output.getOutdir).toString, "results_pic.txt").toString)
       responseBuilder.addData(pathBuilder.build())
       JsonFormat.printToString(responseBuilder.build())
     }
 
     FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
     val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
-    Seq("cp", "-r", workDirRoot, storageRoot + output.getOutdir).!
 
     val response = formatOutput(execResult)
     log.debug("Response: " + response)

@@ -4,12 +4,16 @@ from igsnooper.models import TaskRequest
 from django.shortcuts import render
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import render_to_response
 
 import urllib.parse
 import urllib.request
+import linecache
 import logging
 import json
 import sys
+import os
 
 log = logging.getLogger('all')
 backend_uri = 'http://127.0.0.1:8080'
@@ -41,7 +45,7 @@ def create(request):
                 task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'],
                                            input_file_kabat=data['input_file_kabat'], algo=data['algo'],
                                            algo_params=data['algo_params'], out_dir=data['out_dir'],
-                                           ml_window_size=data['ml_window_size'])
+                                           ml_window_size=data['ml_window_size'], model_name=data['model_name'])
             if int(data['task']) == int(TaskRequest.MODEL_LIST):
                 task_request = TaskRequest(task=data['task'], group=data['group'])
 
@@ -74,3 +78,42 @@ def ask_server(query):
         _, value, _ = sys.exc_info()
         log.debug('%s', value)
         return {'status': 'fail', 'text': "Server error"}
+
+
+lines_per_page = 24
+
+
+#TODO limit the ability to view any file on filesysten
+def listing(request):
+    data = []
+    params = request.GET
+    filename = params.get('file')
+
+    if os.path.exists(filename):
+        with open(filename, 'r') as data_source:
+            data = [data_source.readline() for i in range(lines_per_page + 1)] # Extra line to create .next in Paginator
+
+    paginator = Paginator(data, lines_per_page)
+
+    return render_to_response('igsnooper/view_results.html', {"data": paginator.page(1), 'file': filename})
+
+
+def next_listing(request):
+    params = request.GET
+    page = params.get('page')
+    filename = params.get('file')
+    data = ['' for i in range((int(page) - 1) * lines_per_page)]
+
+    if os.path.exists(filename):
+        data += [linecache.getline(filename, (int(page) - 1) * lines_per_page + i + 1) for i in range(lines_per_page + 1)]
+
+    paginator = Paginator(data, lines_per_page)
+
+    try:
+        p = paginator.page(page)
+    except PageNotAnInteger:
+        p = paginator.page(1)
+    except EmptyPage:
+        p = paginator.page(paginator.num_pages)
+
+    return render_to_response('igsnooper/view_results_next_page.html', {"data": p, 'file': filename})

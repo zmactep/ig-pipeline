@@ -54,7 +54,7 @@ def main():
             raise FileNotFoundError('Failed to predict.')
 
         parse_svm_output.parse(params['fasta'], prediction_file_name, os.path.join(params['outdir'], 'read_names.txt'),
-                               params['outdir'], params['avg_window_size'], params['merge_threshold'])
+                               params['outdir'], int(params['avg_window_size']), int(params['merge_threshold']))
 
         if 'kabat' in params and os.path.exists(params['kabat']):
             print('Calculating quality metrics...')
