@@ -2,9 +2,9 @@
 #define REGIONS_FINDER_H_
 
 #include <iostream>
-#include "aho_corasick.h"
 #include "database.h"
 #include "settings.h"
+#include "aho_corasick.h"
 
 class RegionsFinder {
 public:

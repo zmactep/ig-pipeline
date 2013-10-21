@@ -13,37 +13,28 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ${OpenMP_CXX_FLAGS} -std=c++11"
 set(CMAKE_CURRENT_BINARY_DIR "../bin")
 set(CMAKE_INSTALL_PREFIX "./")
 
-add_subdirectory(algorithm)
 add_subdirectory(data_structures)
-add_subdirectory(ssw)
-#add_subdirectory(tests)
 add_subdirectory(misc)
-add_subdirectory(io)
-add_subdirectory(utils)
 add_subdirectory(tasks)
-#add_subdirectory(gtest-1.6.0)
 
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(../include)
-include_directories(../include/ssw)
-include_directories(../include/io)
+include_directories(../../../common_lib/include)
+include_directories(../../../common_lib/include/io)
+include_directories(../../../common_lib/include/utils)
+include_directories(../../../common_lib/include/ssw)
+include_directories(../../../common_lib/include/algorithm)
 include_directories(../include/misc)
-include_directories(../include/utils)
-include_directories(../include/algorithm)
 include_directories(../include/data_structures)
 include_directories(../include/tasks)
 
-link_directories(${CMAKE_SOURCE_DIR}/ssw)
-link_directories(${CMAKE_SOURCE_DIR}/io)
+link_directories(../../../common_lib/lib)
 link_directories(${CMAKE_SOURCE_DIR}/misc)
-link_directories(${CMAKE_SOURCE_DIR}/utils)
-link_directories(${CMAKE_SOURCE_DIR}/algorithm)
 link_directories(${CMAKE_SOURCE_DIR}/tasks)
 link_directories(${CMAKE_SOURCE_DIR}/data_structures)
 link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable(gene_aligner
-	main.cpp)
+               main.cpp)
 target_link_libraries(gene_aligner utils io tasks algorithm ssw misc io data_structures tbb z log4cxx ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
 
 install(TARGETS gene_aligner DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -58,4 +49,3 @@ install(DIRECTORY "./test_data"
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         FILES_MATCHING 
         PATTERN "*.fasta")
-        

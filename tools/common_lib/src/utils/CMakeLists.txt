@@ -9,5 +9,6 @@ include_directories(../../include/utils)
 add_library(utils STATIC
             tokenizer.cpp
             kmer_generator.cpp
-            reverse_complement.cpp)
+            reverse_complement.cpp
+            amino_acid_converter.cpp)
 
