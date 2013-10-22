@@ -3,33 +3,58 @@
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 #include "settings.h"
 #include "config_reader.h"
 #include "alignment.h"
 
-void getMapForFile(std::ifstream& input, std::map<std::string, Alignment>& reads, std::set<std::string>& uniq_reads) {
+void getMapForFile(std::ifstream& input, std::map<std::string, std::vector<Alignment> >& reads, std::set<std::string>& uniq_reads) {
 	if (!input.is_open()) {
 		return;
 	}
-	std::map<std::string, Alignment>::iterator it;
+	std::map<std::string, std::vector<Alignment> >::iterator it;
 	std::string line;
 	while(std::getline(input, line)) {
 		try {
 			Alignment a(line);
 			uniq_reads.insert(a.getReadName());
 			if (reads.end() != (it = reads.find(a.getReadName()))) {
-				if (it->second < a) {
-					reads.erase(it);
-					reads.insert(std::make_pair(a.getReadName(), a)); //save alignment with max score
-				}
+				it->second.push_back(a);
 			} else {
-				reads.insert(std::make_pair(a.getReadName(), a));
+				std::vector<Alignment> alignments;
+				alignments.push_back(a);
+				reads.insert(std::make_pair(a.getReadName(), alignments));
 			}
 
 		} catch (std::exception & e) {
 			std::cout << "Alignment error: " << e.what() << std::endl;
 		}
 	}
+
+	for (it = reads.begin(); it != reads.end(); ++it) {
+		std::sort(it->second.begin(), it->second.end());
+		std::reverse(it->second.begin(), it->second.end());
+	}
+}
+
+void fillGeneResults(const std::map<std::string, std::vector<Alignment> >& reads, const std::string& read_name, const std::string gene, std::ofstream& output) {
+	auto iter = reads.find(read_name);
+	output << "\t\t\"" << gene << "\": [";
+
+	if (reads.end() != iter) {
+		for (size_t i = 0; i < iter->second.size(); ++i) {
+			const Alignment& a = iter->second[i];
+			output << "{\"ref_name\": " << a.getRefName() <<
+					", \"score\": " << a.getScore() <<
+					", \"mismatches\": " << a.getMismatches() <<
+					", \"ref_begin\": " << a.getRefBegin() <<
+					", \"ref_end\": " << a.getRefEnd() << "}";
+			if (i != iter->second.size() - 1) {
+				output << ", ";
+			}
+		}
+	}
+	output << "]";
 }
 
 int main() {
@@ -51,7 +76,7 @@ int main() {
 	std::ofstream output(settings.output_file);
 
 	std::set<std::string> uniq_reads;
-	std::map<std::string, Alignment> v_reads, d_reads, j_reads;
+	std::map<std::string, std::vector<Alignment> > v_reads, d_reads, j_reads;
 	std::cout << "Reading V data..." << std::endl;
 	getMapForFile(v_data, v_reads, uniq_reads);
 	std::cout << "Done.\nReading D data..." << std::endl;
@@ -66,35 +91,23 @@ int main() {
 
 	std::cout << "Start processing..." << std::endl;
 	int counter = 0;
+	output << "{" << std::endl;
 	for (auto it = uniq_reads.begin(); it != uniq_reads.end(); ++it) {
-		output << *it << "\t";
-		auto iter = v_reads.find(*it);
-		if (v_reads.end() == iter) {
-			output << "-\t-\t";
-		} else {
-			output << iter->second.getReadBegin() << "\t" << iter->second.getReadEnd() << "\t";
-		}
+		output << "\t\"" << *it << "\": {" << std::endl;
+		fillGeneResults(v_reads, *it, "V", output);
+		output << "," << std::endl;
+		fillGeneResults(d_reads, *it, "D", output);
+		output << "," << std::endl;
+		fillGeneResults(j_reads, *it, "J", output);
+		output << std::endl << "\t}" << std::endl;
 
-		iter = d_reads.find(*it);
-		if (d_reads.end() == iter) {
-			output << "-\t-\t";
-		} else {
-			output << iter->second.getReadBegin() << "\t" << iter->second.getReadEnd() << "\t";
-		}
-
-		iter = j_reads.find(*it);
-		if (j_reads.end() == iter) {
-			output << "-\t-\t";
-		} else {
-			output << iter->second.getReadBegin() << "\t" << iter->second.getReadEnd() << "\t";
-		}
-		output << std::endl;
 		if (++counter % 100) {
 			std::cout << counter << " reads of " << uniq_reads.size() << " processed\r";
 		}
 	}
-
+	output << std::endl << "}" << std::endl;
 	output.close();
+
 	std::cout << std::endl << "Done" << std::endl;
 
 	return 0;
