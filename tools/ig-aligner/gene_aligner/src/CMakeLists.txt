@@ -10,7 +10,7 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ${OpenMP_CXX_FLAGS} -std=c++11")
 
-set(CMAKE_CURRENT_BINARY_DIR "../bin")
+set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_SOURCE_DIR}/../bin")
 set(CMAKE_INSTALL_PREFIX "./")
 
 add_subdirectory(data_structures)
@@ -27,7 +27,7 @@ include_directories(../include/misc)
 include_directories(../include/data_structures)
 include_directories(../include/tasks)
 
-link_directories(../../../common_lib/lib)
+link_directories(${CMAKE_SOURCE_DIR}/../../../common_lib/lib)
 link_directories(${CMAKE_SOURCE_DIR}/misc)
 link_directories(${CMAKE_SOURCE_DIR}/tasks)
 link_directories(${CMAKE_SOURCE_DIR}/data_structures)

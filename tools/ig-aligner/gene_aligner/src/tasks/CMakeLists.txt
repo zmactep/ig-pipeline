@@ -9,7 +9,7 @@ include_directories(../../include/data_structures)
 include_directories(../../include/tasks)
 include_directories(../../include/misc)
 
-link_directories(../../../common_lib/lib)
+link_directories(${CMAKE_SOURCE_DIR}/../../../common_lib/lib)
 link_directories(${CMAKE_SOURCE_DIR}/misc)
 
 add_library(tasks STATIC
