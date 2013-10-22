@@ -22,7 +22,7 @@ include_directories(../include/misc)
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${CMAKE_SOURCE_DIR}/misc)
-link_directories(../../../common_lib/lib)
+link_directories(${CMAKE_SOURCE_DIR}/../../../common_lib/lib)
 
 add_executable(gene_detector
                main.cpp)
