@@ -44,7 +44,7 @@ void fillGeneResults(const std::map<std::string, std::vector<Alignment> >& reads
 	if (reads.end() != iter) {
 		for (size_t i = 0; i < iter->second.size(); ++i) {
 			const Alignment& a = iter->second[i];
-			output << "{\"ref_name\": " << a.getRefName() <<
+			output << "{\"ref_name\": \"" << a.getRefName() << "\"" <<
 					", \"score\": " << a.getScore() <<
 					", \"mismatches\": " << a.getMismatches() <<
 					", \"ref_begin\": " << a.getRefBegin() <<
