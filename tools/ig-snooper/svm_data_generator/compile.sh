@@ -12,5 +12,5 @@ mkdir ./bin
 mkdir ./build
 cd build
 cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-std=c++11 -stdlib=libc++ -lc++" ../src/ 
-make VERBOSE=1
+make 
 make install
