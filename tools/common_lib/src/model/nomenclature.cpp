@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "nomenclature.h"
 #include "generic_exception.h"
 #include "tokenizer.h"

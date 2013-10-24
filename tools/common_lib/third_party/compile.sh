@@ -3,11 +3,11 @@ rm -rf ./lib
 mkdir ./lib
 
 echo "Building gtest..."
-cd ./gtest-1.6.0
+cd ./gtest-1.7.0
 rm -rf ./build
 mkdir ./build
 cd ./build
-cmake -DCMAKE_CXX_FLAGS="-std=c++11" ..
+cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-std=c++11 -stdlib=libc++" .. 
 make
 cp *.a ../../lib 
 cd ..
