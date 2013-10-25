@@ -44,7 +44,6 @@ echo "Done"
 echo "Run aligner for V gene"
 run_aligner
 
-
 echo "Creating config for D genes"
 cat ./$GENE_ALIGNER/bin/config/config.template > ./$GENE_ALIGNER/bin/config/config.ini
 echo "reference_file=$DGENE" >> ./$GENE_ALIGNER/bin/config/config.ini

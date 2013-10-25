@@ -11,7 +11,7 @@ find_package (Threads)
 #gtest
 include_directories(../../include/io)
 include_directories(../../include/utils)
-include_directories(../../include/third_party/gtest-1.6.0/include)
+include_directories(../../third_party/gtest-1.7.0/include)
 
 link_directories(../../lib)
 link_directories(../../third_party/lib)
