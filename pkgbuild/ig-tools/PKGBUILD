@@ -8,7 +8,7 @@ arch=('x86_64')
 url="www.biocad.ru"
 license=('unknown')
 groups=()
-depends=('ig-config')
+depends=()
 makedepends=()
 checkdepends=()
 optdepends=()
@@ -32,6 +32,9 @@ package() {
 	mkdir "$pkgdir/usr/local/ig-tools"
 	mkdir "$pkgdir/usr/local/ig-tools/ig-snooper"
 	mkdir "$pkgdir/usr/local/ig-tools/ig-snooper/svm_data_generator"
-	cp -r "$srcdir/ig-tools/ig-snooper/svm_data_generator/bin/" "$pkgdir/usr/local/ig-tools/ig-snooper/svm_data_generator/"
-	cp -r "$srcdir/ig-tools/ig-snooper/ig_snooper_utils/" "$pkgdir/usr/local/ig-tools/ig-snooper/"
+	mkdir "$pkgdir/usr/local/ig-tools/common_lib"
+	mkdir "$pkgdir/usr/local/ig-tools/common_lib/third_party"
+	mkdir "$pkgdir/usr/local/ig-tools/common_lib/third_party/weka-3.6.10"
+	cp -r "$srcdir/ig-tools/ig-snooper/" "$pkgdir/usr/local/ig-tools/"
+	cp "$srcdir/ig-tools/common_lib/third_party/weka-3.6.10/weka.jar" "$pkgdir/usr/local/ig-tools/common_lib/third_party/weka-3.6.10"
 }
