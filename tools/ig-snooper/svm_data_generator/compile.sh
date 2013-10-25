@@ -11,6 +11,6 @@ cd ../ig-snooper/svm_data_generator
 mkdir ./bin
 mkdir ./build
 cd build
-cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-std=c++11 -stdlib=libc++ -lc++" ../src/ 
+cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-std=c++11 -stdlib=libc++ -lc++abi" ../src/ 
 make 
 make install
