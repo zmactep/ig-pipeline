@@ -1,0 +1,28 @@
+# Maintainer: Konstantin Fedorov <k.a.feodorov@gmail.com>
+pkgname=ig-config
+pkgver=0.1
+pkgrel=1
+epoch=
+pkgdesc=""
+arch=('x86_64')
+url="www.biocad.ru"
+license=('unknown')
+groups=()
+depends=()
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+install=
+changelog=
+source=($pkgname.tar.gz)
+noextract=()
+md5sums=(SKIP)
+package() {
+	cd "$srcdir"
+	mkdir "$pkgdir/etc/"
+	cp -r "$srcdir/ig-config" "$pkgdir/etc"
+}
