@@ -133,11 +133,11 @@ object Main{
   def search_test() = {
     val cont = new Container("ACGT", 'N', Array(), 3)
 
-    cont.push("GCGTGT", "Seq1")
+    cont.push("GCTGGT", "Seq1")
     cont.push("AAAAAA", "SeqA")
-    cont.push("AGCTTGT", "Seq2")
+    cont.push("ACTTGT", "Seq2")
 
-    val result = cont.find("CNTGT")
+    val result = cont.find("NCTNGT")
     println(result.size)
     println(result)
   }

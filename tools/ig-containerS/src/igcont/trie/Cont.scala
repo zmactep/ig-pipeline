@@ -1,8 +1,5 @@
 package igcont.trie
 
-import collection.JavaConverters._
-import java.util
-
 import scala.collection.mutable
 
 /**
@@ -20,9 +17,9 @@ class Cont {
   }
 
   def copyOf(cont : Cont) : Unit = {
-    _cont = mutable.ArrayBuffer.fill[ContData](cont._cont.size)(null)
-    for((e, i) <- cont._cont.zipWithIndex) {
-      _cont(i) = new ContData(e.node())
+    _cont = new mutable.ArrayBuffer[ContData](cont._cont.size)
+    for(e <- cont._cont) {
+      _cont += new ContData(e.node())
     }
   }
 

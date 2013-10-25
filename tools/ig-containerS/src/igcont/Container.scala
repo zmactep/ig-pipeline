@@ -3,8 +3,6 @@ package igcont
 import igcont.trie.Trie
 import igcont.kmer.Counter
 import igcont.anno.{Record, Anno}
-import java.util
-import collection.JavaConverters._
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
@@ -26,24 +24,25 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   def push(seq : String, name : String) : Int = {
     val record = _anno.createRecord(name, seq.size)
     val handle = record.handle()
-    val nodes = new util.Vector[Int](seq.size)
+    val nodes = new mutable.ArrayBuffer[Int](seq.size)
     var key = 0
 
     // Add to trie
     seq.foreach(c => {
       key = _trie.insert(key, c)
-      _trie.setDataOf(key, new util.Vector[(Int, Int)]())
-      nodes.addElement(key)
+      _trie.setDataOf(key, mutable.ArrayBuffer.empty[(Int, Int)])
+      nodes += key
     })
 
     // Set nodes for annotations
-    (0 until nodes.size()).foreach(i => {
-      record.setNode(i, nodes.elementAt(i))
-      _trie.dataOf(nodes.elementAt(i)).asInstanceOf[util.Vector[(Int, Int)]].addElement((handle, i))
+    (0 until nodes.size).foreach(i => {
+      record.setNode(i, nodes(i))
+      val data =_trie.dataOf(nodes(i)).asInstanceOf[mutable.ArrayBuffer[(Int, Int)]]
+      data += ((handle, i))
     })
 
     // Update kmer index
-    _kstat.add(handle, seq, nodes.asScala)
+    _kstat.add(handle, seq, nodes)
 
     handle
   }
@@ -78,11 +77,11 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   }
 
   def data(rec : Record) : Iterable[(Char, HashMap[String, String])] = {
-    val result = new util.Vector[(Char, HashMap[String, String])](rec.size())
+    val result = mutable.ArrayBuffer.fill[(Char, HashMap[String, String])](rec.size())(null)
     (0 until rec.size()).foreach(i => {
-      result.addElement((_trie.symbolOf(rec.nodeOf(i)), rec.annotationOf(i)))
+      result(i) = (_trie.symbolOf(rec.nodeOf(i)), rec.annotationOf(i))
     })
-    result.asScala
+    result
   }
 
   def labels() : Iterable[String] = _anno.keys()
@@ -124,7 +123,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
       }
     })
 
-    val result = new util.Vector[(String, Int)]()
+    val result = mutable.ArrayBuffer.empty[(String, Int)]
     last.foreach(node => {
       var tmp = node
       var counter = 0
@@ -136,16 +135,16 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
       }
 
       if (counter == len) {
-        _trie.dataOf(node).asInstanceOf[util.Vector[(Int, Int)]].asScala.foreach(pair => {
+        _trie.dataOf(node).asInstanceOf[mutable.ArrayBuffer[(Int, Int)]].foreach(pair => {
           // Special guard to choose only right sequences
           // Filter is the set of sequences, each of that has all the kmers of pattern
           if (handles.contains(pair._1)) {
-            result.addElement((_anno.getRecord(pair._1).name(), pair._2 - len + 1))
+            result += ((_anno.getRecord(pair._1).name(), pair._2 - len + 1))
           }
         })
       }
     })
 
-    result.asScala
+    result
   }
 }
