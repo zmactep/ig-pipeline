@@ -41,14 +41,10 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       }
       val requestCommand = builder.build()
       requestCommand.getTask match {
-        case "generate model" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))
-        case "model list" => self ! WorkComplete(listModels(requestCommand.getInput))
-        case "find patterns" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
+        case "find patterns" | "1" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
+        case "generate model" | "2" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))
+        case "model list" | "3" => self ! WorkComplete(listModels(requestCommand.getInput))
         case "test" => self ! WorkComplete("{\"status\": \"ok\"}")
-        //TODO handle this enum from ig-frontend
-        case "1" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
-        case "2" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))
-        case "3" => self ! WorkComplete(listModels(requestCommand.getInput))
       }
     } pipeTo self
   }
