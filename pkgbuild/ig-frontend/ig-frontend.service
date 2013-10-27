@@ -1,0 +1,7 @@
+[Unit]
+Description=ig-frontend server
+
+[Service]
+WorkingDirectory=/usr/local/ig-frontend
+ExecStart=/usr/bin/python manage.py runserver 8000
+Type=simple

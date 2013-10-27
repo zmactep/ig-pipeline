@@ -1,5 +1,5 @@
 # Maintainer: Konstantin Fedorov <k.a.feodorov@gmail.com>
-pkgname=ig-backend
+pkgname=ig-frontend
 pkgver=0.1
 pkgrel=1
 epoch=
@@ -19,19 +19,14 @@ backup=()
 install=
 changelog=
 source=($pkgname.tar.gz
-	ig-backend.service)
+	ig-frontend.service)
 noextract=()
 md5sums=(SKIP
 	SKIP)
-build() {
-	cd "$srcdir/ig-backend/"
-	mvn clean package
-}
 package() {
 	cd "$srcdir"
-	mkdir -p "$pkgdir/usr/local/ig-backend"
+	mkdir -p "$pkgdir/usr/local"
 	mkdir -p "$pkgdir/etc/systemd/system"
-	cp -r "$srcdir/ig-backend/target/lib/" "$pkgdir/usr/local/ig-backend"
-	cp -r "$srcdir/ig-backend/target/ig-backend-1.0-SNAPSHOT.jar" "$pkgdir/usr/local/ig-backend"
-	cp -r "$srcdir/ig-backend.service" "$pkgdir/etc/systemd/system"
+	cp -r "$srcdir/ig-frontend" "$pkgdir/usr/local"
+	cp -r "$srcdir/ig-frontend.service" "$pkgdir/etc/systemd/system"
 }

@@ -27,14 +27,8 @@ build() {
 }
 package() {
 	cd "$srcdir"
-	mkdir "$pkgdir/usr"
-	mkdir "$pkgdir/usr/local"
-	mkdir "$pkgdir/usr/local/ig-tools"
-	mkdir "$pkgdir/usr/local/ig-tools/ig-snooper"
-	mkdir "$pkgdir/usr/local/ig-tools/ig-snooper/svm_data_generator"
-	mkdir "$pkgdir/usr/local/ig-tools/common_lib"
-	mkdir "$pkgdir/usr/local/ig-tools/common_lib/third_party"
-	mkdir "$pkgdir/usr/local/ig-tools/common_lib/third_party/weka-3.6.10"
+	mkdir -p "$pkgdir/usr/local/ig-tools/ig-snooper/svm_data_generator"
+	mkdir -p "$pkgdir/usr/local/ig-tools/common_lib/third_party/weka-3.6.10"
 	cp -r "$srcdir/ig-tools/ig-snooper/" "$pkgdir/usr/local/ig-tools/"
 	cp "$srcdir/ig-tools/common_lib/third_party/weka-3.6.10/weka.jar" "$pkgdir/usr/local/ig-tools/common_lib/third_party/weka-3.6.10"
 }
