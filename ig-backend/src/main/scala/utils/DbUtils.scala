@@ -4,6 +4,7 @@ import java.sql._
 import com.googlecode.protobuf.format.JsonFormat
 import protocol.Command.ResponseCommand
 import scala.collection.JavaConversions._
+import java.io.IOException
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,12 +31,21 @@ object DbUtils {
   }
 
   def updateTask(id: Int, result: Any, prep: PreparedStatement, conn: Connection) = {
-    val builder = ResponseCommand.newBuilder()
-    JsonFormat.merge(result.toString, builder)
-    val responseCommand = builder.build()
 
-    prep.setString(1, responseCommand.getDataList.map(JsonFormat.printToString).mkString(","))
-    prep.setString(2, responseCommand.getStatus)
+    var status: String = null
+    var res : String = null
+    try {
+      val builder = ResponseCommand.newBuilder()
+      JsonFormat.merge(result.toString, builder)
+      val responseCommand = builder.build()
+      res = responseCommand.getDataList.map(JsonFormat.printToString).mkString(",")
+      status = responseCommand.getStatus
+    } catch {
+      case e : IOException => res = result.toString; status = "failed"
+    }
+
+    prep.setString(1, Option(res).getOrElse("failed"))
+    prep.setString(2, Option(status).getOrElse("failed"))
     prep.setString(3, id.toString)
     prep.executeUpdate
   }
