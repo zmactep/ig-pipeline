@@ -1,8 +1,12 @@
 package master
 
-import akka.actor.{Terminated, ActorRef, Actor, ActorLogging}
-import scala.collection.mutable.Set
+import akka.actor._
 import org.json.JSONObject
+import scala.Tuple2
+import akka.actor.Terminated
+import scala.Some
+import utils.DbUtils
+import java.sql.{Connection}
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,19 +16,23 @@ import org.json.JSONObject
  * To change this template use File | Settings | File Templates.
  */
 
+object Master {
+  def props(connection: Connection): Props = Props(new Master(connection))
+}
+
 //https://github.com/derekwyatt/akka-worker-pull
-class Master extends Actor with ActorLogging {
+class Master(conn: Connection) extends Actor with ActorLogging {
   import MasterWorkerProtocol._
   import scala.collection.mutable.{Map, Queue}
 
-  //TODO make atomic
-  var jobId = 0
+  classOf[com.mysql.jdbc.Driver]
+  val prepInsert = conn.prepareStatement("INSERT INTO ig_backend_tasks (params, result, status) VALUES (?, ?, ?)")
+  val prepUpdate = conn.prepareStatement("UPDATE ig_backend_tasks set result = ?, status = ? WHERE id = ?")
+  val prepSelect = conn.prepareStatement("SELECT result, status from  ig_backend_tasks WHERE id = ?")
+
   // Holds known workers and what they may be working on
   //jobId, worksender, work
   val workers = Map.empty[ActorRef, Option[Tuple2[Int, Tuple2[ActorRef, Any]]]]
-
-  val readyJobs = Map.empty[Int, Any]
-  val pendingJobs = Set.empty[Int]
 
   // Holds the incoming list of work to be done as well
   // as the memory of who asked for it
@@ -60,11 +68,10 @@ class Master extends Actor with ActorLogging {
           worker ! NoWorkToBeDone
         else if (workers(worker) == None) {
           val (workSender, work) = workQ.dequeue()
+          val jobId = DbUtils.saveWorkTask(work, prepInsert, conn)
           workers += (worker -> Some(jobId -> (workSender -> work)))
           worker ! WorkToBeDone(work, jobId)
           workSender ! new JSONObject().put("id", jobId).toString
-          pendingJobs += jobId
-          jobId += 1
         }
       }
 
@@ -75,8 +82,7 @@ class Master extends Actor with ActorLogging {
       else {
         val (jobId, _) = workers(worker).get
         workers += (worker -> None)
-        readyJobs += (jobId -> result)
-        pendingJobs -= jobId
+        DbUtils.updateTask(jobId, result, prepUpdate, conn)
         log.debug("Your job result #{} is saved", jobId)
       }
 
@@ -95,19 +101,11 @@ class Master extends Actor with ActorLogging {
     // Anything other than our own protocol is "work to be done"
     case work =>
       val cmd = work.toString.trim
-      log.debug("Ready jobs: " + readyJobs)
       if (cmd.contains("result_for")) {
         try {
           val jobId = new JSONObject(cmd).getString("result_for").toInt
-
           log.info("Requesting result for {}", jobId.toInt)
-          if (readyJobs.contains(jobId.toInt)) {
-            sender ! readyJobs.get(jobId.toInt).getOrElse("")
-          } else if (pendingJobs.contains(jobId.toInt)) {
-            sender ! "Your job is being processed now"
-          } else {
-            sender ! "Your job id not found"
-          }
+          sender ! DbUtils.findTask(jobId, prepSelect, conn)
         } catch {
           case e: Exception => sender ! "Missing job ID in query"
         }
@@ -118,4 +116,6 @@ class Master extends Actor with ActorLogging {
         notifyWorkers()
       }
   }
+
+
 }

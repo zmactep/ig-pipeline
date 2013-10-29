@@ -46,4 +46,9 @@ ig-backend {
     tcp_port = 9999
     tools_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/tools/
     storage_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/storage/
+    db_host = localhost
+    db_port = 3306
+    db_name = ig
+    db_user = root
+    db_password = password
 }
