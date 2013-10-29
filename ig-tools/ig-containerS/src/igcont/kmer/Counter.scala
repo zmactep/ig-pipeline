@@ -36,7 +36,7 @@ class Counter(a : String, s : Char, ksize : Int) {
   def hashs(seq : String) : Iterable[Int] = {
     val a = new Hasher(_ksize, _alpha)
     seq.foreach(c => a.add(c))
-    a.get()
+    a.get
   }
 
   def hash(kseq : String) : Int =
@@ -71,9 +71,9 @@ class Counter(a : String, s : Char, ksize : Int) {
     None
   }
 
-  def k() : Int = {
+  def k : Int = {
     _ksize
   }
 
-  def special() : Char = _special
+  def special : Char = _special
 }

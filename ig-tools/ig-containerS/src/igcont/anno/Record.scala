@@ -51,11 +51,11 @@ class Record(id : Int, n : String, s : Int, anno_types : immutable.HashMap[Strin
     (atype, aval)
   }
 
-  def name() : String = _name
+  def name : String = _name
 
-  def handle() : Int = _id
+  def handle : Int = _id
 
-  def size() : Int = _cont.size
+  def size : Int = _cont.size
 
   def annotationOf(pos : Int) : immutable.HashMap[String, String] = {
     if (_cont(pos) == null) {
@@ -67,7 +67,7 @@ class Record(id : Int, n : String, s : Int, anno_types : immutable.HashMap[Strin
       .toSeq:_*)
   }
 
-  private[igcont] def nodeOf(i : Int) : Int = _cont(i).node()
+  private[igcont] def nodeOf(i : Int) : Int = _cont(i).node
 
   private def atype2idx(s : String) : Option[Int] = {
     if (_atypes.keys.toSeq.contains(s)) {

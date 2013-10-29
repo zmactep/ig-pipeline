@@ -10,13 +10,13 @@ import scala.collection.mutable.ArrayBuffer
  */
 class Annotation(n : Int, l : Int) {
   val _node = n
-  val _vec  = ArrayBuffer.fill(l)(-1)
+  val _vec  = Array.fill(l)(-1)
 
   def set(atype : Int, value : Int) = _vec(atype) = value
 
-  def node() : Int = _node
+  def node : Int = _node
 
-  def data() : ArrayBuffer[Int] = _vec
+  def data : Array[Int] = _vec
 
   def dataOf(atype : Int) : Int = _vec(atype)
 }

@@ -16,19 +16,19 @@ class Node(p: Node, s: Char, i: Int) {
 
   def this() = this(null, 0, 0)
 
-  def parent() : Node = _parent
+  def parent : Node = _parent
 
-  def symbol() : Char = _symbol
+  def symbol : Char = _symbol
 
-  def id() : Int = _id
+  def id : Int = _id
 
-  def keys() : scala.collection.Set[Char] = _children.keySet
+  def keys : scala.collection.Set[Char] = _children.keySet
 
   def get(s : Char) : Option[Node] = _children.get(s)
 
-  def set(n : Node) : Unit = _children.put(n.symbol(), n)
+  def set(n : Node) : Unit = _children.put(n.symbol, n)
 
   def contains(s : Char) : Boolean = _children.contains(s)
 
-  def size() : Int = _children.size
+  def size : Int = _children.size
 }

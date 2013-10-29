@@ -5,6 +5,11 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 
 
+buckets_cache = {}
+
+last_rec_id = None
+
+
 mids = {
     'l-vh': ('TATGATACGC', 'TCACTCATAC'),
     'l-vk': ('TCATCGAGTC', 'TCGAGCTCTC'),
@@ -55,7 +60,7 @@ def split_dataset(recs, mids, ms=12):
                "other": [], "trash": []}
     for i, rec in enumerate(recs):
         if len(rec) > 550 or \
-           len(rec) < 250 or \ok
+           len(rec) < 250 or \
            np.average(rec.letter_annotations["phred_quality"]) < 21:
             buckets["trash"].append(rec)
             continue
@@ -83,4 +88,6 @@ def split_dataset(recs, mids, ms=12):
             buckets['other'].append(rec)
         if i % 1000 == 0:
             print({mid:len(buckets[mid]) for mid in buckets})
+            buckets_cache = buckets
+            last_rec_id = rec.id
     return buckets

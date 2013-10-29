@@ -2,6 +2,9 @@ import igcont.anno.Anno
 import igcont.Container
 import igcont.kmer.Counter
 import igcont.trie.Trie
+
+import alicont.{Scoring, Alicont}
+
 import scala.util.Random
 
 /**
@@ -32,25 +35,28 @@ object Main{
     val m = (rc.totalMemory() - rc.freeMemory()) / 1024 / 1024
     println(m)
 
-    println(t.size())
+    println(t.size)
   }
 
   def trie_iter_test() = {
     val t = new Trie()
-    val sa = Array("ACGG", "GCGT", "ACGT", "GT")
+    val sa = Array("ACGG", "GCGT", "ACGT", "GTC")
 
     sa.foreach(s => {
       var k = 0
-      s.foreach(c =>
+      s.foreach(c => {
         k = t.insert(k, c)
-      )
+        print(k,"")
+      })
+      println()
     })
 
     var i = t.nextOf(0)
     while (i != 0) {
-      println(i)
+      print(i, "")
       i = t.nextOf(i)
     }
+    println()
   }
 
   def kmers_test() = {
@@ -82,10 +88,10 @@ object Main{
 
   def annotation_test() = {
     val anno = new Anno(Array("Regions", "Genes", "Sites"))
-    println(anno.keys())
+    println(anno.keys)
 
     val rec = anno.createRecord("First", 20)
-    println(rec.name())
+    println(rec.name)
 
     val i = rec.setAnnotation(0, "Regions", "FR1")
     rec.setAnnotation(1, i._1, i._2)
@@ -96,6 +102,18 @@ object Main{
     println(rec.annotationOf(1))
     println(rec.annotationOf(2))
     println(rec.annotationOf(3))
+  }
+
+  def alignment_test() = {
+    val a = new Alicont("MEANLY", -5, Scoring.loadMatrix("/home/mactep/Downloads/BLOSUM62.txt"))
+    a.push("PLE")
+    a.push("ASANT")
+    a.push("LY")
+
+    println(a.target)
+
+    val (score, alignment) = a.alignment()
+    printf("%d\n%s\n%s\n", score, alignment._1, alignment._2)
   }
 
   def container_test() = {
@@ -127,6 +145,28 @@ object Main{
       print(c + "  ")
       a.foreach(s => if(s._2.size > 0) print(s + " "))
       println("")
+    })
+  }
+
+  def container_alignment_test() = {
+    val cont = new Container("ACGT", 'N', Array("A1", "A2", "A3"), 7)
+
+    cont.push("ACGTAGCTACGATGCGACGACGACGAGGATGTTGGTTT", "Seq1")
+    cont.push("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "SeqA")
+    cont.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT", "Seq2")
+
+
+    println("Top 2:")
+    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG",
+      -5, Scoring.loadMatrix("/home/mactep/DEV/production/ig-pipeline/data/NUC4.4.txt"), 2).foreach(align => {
+      printf("Name: %s\nScore: %d (%.2f%%)\nQ: %s\nT: %s\n\n", align.name, align.score, align.similarity * 100,
+        align.query, align.target)
+    })
+
+    println("More 57% similarity:")
+    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG",
+      -5, Scoring.loadMatrix("/home/mactep/DEV/production/ig-pipeline/data/NUC4.4.txt"), 0.57).foreach(align => {
+      printf("Name: %s\nScore: %d (%.2f%%)\n\n", align.name, align.score, align.similarity * 100)
     })
   }
 
@@ -174,10 +214,12 @@ object Main{
 //    kmers_test()
 //    kmers_nucleo_test(500)
 //    annotation_test()
+//    alignment_test()
 //    container_test()
 //    container_annotation_test()
+    container_alignment_test()
 //    search_test()
-    warmup()
-    (1 to 7).foreach(i => load_test(i))
+//    warmup()
+//    (1 to 7).foreach(i => load_test(i))
   }
 }

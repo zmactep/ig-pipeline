@@ -29,15 +29,15 @@ class Anno(anno_types : Array[String]) {
 
   def add(atype : String, aval : String) = _atypes(atype) += aval
 
-  def keys() : Iterable[String] = _atypes.keys
+  def keys : Iterable[String] = _atypes.keys
 
   def valuesOf(atype : String) : Iterable[String] = _atypes(atype)
 
-  def size() : Int = _cont.size
+  def size : Int = _cont.size
 
   private def addRecord(rec : Record) : Record = {
     _cont += rec
-    _names.put(rec.name(), rec)
+    _names.put(rec.name, rec)
     rec
   }
 }

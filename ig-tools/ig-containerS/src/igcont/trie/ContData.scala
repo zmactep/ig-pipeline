@@ -10,5 +10,5 @@ class ContData(n : Node) {
   private val _node : Node = n
   var data  : Any  = null
 
-  def node() : Node = _node
+  def node : Node = _node
 }
