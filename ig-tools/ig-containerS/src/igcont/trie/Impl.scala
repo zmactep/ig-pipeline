@@ -18,7 +18,7 @@ class Impl {
     node.get(symbol).get
   }
 
-  def root() : Node = _root
+  def root : Node = _root
 
-  def size() : Int = _size
+  def size : Int = _size
 }

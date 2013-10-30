@@ -31,5 +31,5 @@ class Hasher(k : Int, alpha : TreeMap[Char, Int]) {
     }
   }
 
-  def get() : Iterable[Int] = _buffer
+  def get : Iterable[Int] = _buffer
 }

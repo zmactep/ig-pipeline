@@ -19,17 +19,17 @@ class Cont {
   def copyOf(cont : Cont) : Unit = {
     _cont = new mutable.ArrayBuffer[ContData](cont._cont.size)
     for(e <- cont._cont) {
-      _cont += new ContData(e.node())
+      _cont += new ContData(e.node)
     }
   }
 
   def push(node : Node) : Unit = _cont += new ContData(node)
 
-  def nodeOf(i : Int) : Node = _cont(i).node()
+  def nodeOf(i : Int) : Node = _cont(i).node
 
   def dataOf(i : Int) : Any = _cont(i).data
 
   def setDataOf(i : Int, data : Any) = _cont(i).data = data
 
-  def size() : Int = _cont.size
+  def size : Int = _cont.size
 }

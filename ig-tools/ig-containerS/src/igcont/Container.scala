@@ -5,6 +5,8 @@ import igcont.kmer.Counter
 import igcont.anno.{Record, Anno}
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
+import alicont.{AlignmentResult, Alicont}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created with IntelliJ IDEA.
@@ -23,7 +25,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
   def push(seq : String, name : String) : Int = {
     val record = _anno.createRecord(name, seq.size)
-    val handle = record.handle()
+    val handle = record.handle
     val nodes = new mutable.ArrayBuffer[Int](seq.size)
     var key = 0
 
@@ -61,7 +63,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
   def seq(rec : Record) : String = {
     val s = new StringBuilder()
-    (0 until rec.size()).foreach(i => {
+    (0 until rec.size).foreach(i => {
       s.append(_trie.symbolOf(rec.nodeOf(i)))
     })
 
@@ -77,29 +79,41 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   }
 
   def data(rec : Record) : Iterable[(Char, HashMap[String, String])] = {
-    val result = mutable.ArrayBuffer.fill[(Char, HashMap[String, String])](rec.size())(null)
-    (0 until rec.size()).foreach(i => {
+    val result = mutable.ArrayBuffer.fill[(Char, HashMap[String, String])](rec.size)(null)
+    (0 until rec.size).foreach(i => {
       result(i) = (_trie.symbolOf(rec.nodeOf(i)), rec.annotationOf(i))
     })
     result
   }
 
-  def labels() : Iterable[String] = _anno.keys()
+  def labels : Iterable[String] = _anno.keys
 
-  def size() : Int = _anno.size()
+  def size : Int = _anno.size
 
-  def nodes() : Int = _trie.size()
+  def nodes : Int = _trie.size
+
+  def test() : Unit = {
+    var i = _trie.nextOf(0)
+    while (i != 0) {
+      print(_trie.symbolOf(i))
+      i = _trie.nextOf(i)
+      if (_trie.isLeaf(i)) {
+        println()
+      }
+    }
+    println()
+  }
 
   // Algorithms
 
   def find(pattern : String) : Iterable[(String, Int)] = {
-    val len = pattern.size - _kstat.k() + 1
+    val len = pattern.size - _kstat.k + 1
     val tmp_trie = new Trie()
     tmp_trie.copyOf(_trie)
-    (0 until tmp_trie.size()).foreach(i => tmp_trie.setDataOf(i, false))
+    (0 until tmp_trie.size).foreach(i => tmp_trie.setDataOf(i, false))
 
     // Get all kmers of the string
-    val kmers = (0 until len).map(i => pattern slice(i, i + _kstat.k()))
+    val kmers = (0 until len).map(i => pattern slice(i, i + _kstat.k))
 
     // Nodes of last kmer
     var last : Iterable[Int] = null
@@ -129,9 +143,14 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
       var counter = 0
       var colored = true
       while (counter != len && colored) {
-        counter += 1
-        tmp = tmp_trie.parentOf(tmp)
-        colored = tmp_trie.dataOf(tmp).asInstanceOf[Boolean]
+        tmp_trie.parentOf(tmp) match {
+          case Some(node_id) => {
+            tmp = node_id
+            colored = tmp_trie.dataOf(tmp).asInstanceOf[Boolean]
+            counter += 1
+          }
+          case None => colored = false
+        }
       }
 
       if (counter == len) {
@@ -139,12 +158,94 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
           // Special guard to choose only right sequences
           // Filter is the set of sequences, each of that has all the kmers of pattern
           if (handles.contains(pair._1)) {
-            result += ((_anno.getRecord(pair._1).name(), pair._2 - len + 1))
+            result += ((_anno.getRecord(pair._1).name, pair._2 - len + 1))
           }
         })
       }
     })
 
     result
+  }
+
+  def alignment_template(query : String, gap : Int, score_matrix : Array[Array[Int]],
+                         callback : (AlignmentResult) => Unit) : Unit = {
+    val alicont = new Alicont(query, gap, score_matrix)
+    val target = new mutable.StringBuilder()
+    val fork_stack = new mutable.Stack[Int]()
+    var from_leaf = false
+
+    fork_stack.push(0)
+
+    var node = _trie.nextOf(0)
+    while (node != 0) {
+      // Check if we made a DFS-jump
+      if (from_leaf) {
+        val parent = _trie.parentOf(node).getOrElse(0)
+        while (fork_stack.top != parent) {
+          fork_stack.pop()
+          alicont.pop()
+        }
+      }
+
+      from_leaf = false
+      target.append(_trie.symbolOf(node))
+      if (_trie.isFork(node)) {
+        fork_stack.push(node)
+        alicont.push(target.toString())
+        target.clear()
+      }
+      if (_trie.isLeaf(node)) {
+        from_leaf = true
+        fork_stack.push(node)
+
+        alicont.push(target.toString())
+        target.clear()
+
+        val (score, (q, t)) = alicont.alignment()
+        val node_data = _trie.dataOf(node).asInstanceOf[ArrayBuffer[(Int, Int)]]
+        node_data.foreach(tpl => {
+          val align = new AlignmentResult(score, q, t, record(tpl._1))
+          // Your logic here
+          callback(align)
+        })
+      }
+
+      node = _trie.nextOf(node)
+    }
+  }
+
+  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Iterable[AlignmentResult] = {
+    val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => -a.score))
+
+    def n_callback(align : AlignmentResult) : Unit = {
+      if (result.size == n) {
+        val m = result.head
+        if (align.score > m.score) {
+          result += align
+          result.dequeue()
+        }
+      }
+      else {
+        result += align
+      }
+    }
+
+    alignment_template(query, gap, score_matrix, n_callback)
+
+    result.dequeueAll.reverse.toIterable
+  }
+
+  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]], prct : Double) : Iterable[AlignmentResult] = {
+    val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => a.score))
+
+    def n_callback(align : AlignmentResult) : Unit = {
+      if (align.similarity >= prct) {
+        result += align
+      }
+    }
+
+    alignment_template(query, gap, score_matrix, n_callback)
+
+    result.dequeueAll.reverse.toIterable
   }
 }
