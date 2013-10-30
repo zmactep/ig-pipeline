@@ -25,6 +25,8 @@ urlpatterns = patterns(
     # Tasks dashboard
     url(r'^', include('igsnooper.urls', namespace='igsnooper')),
 
+    url(r'^', include('igstorage.urls', namespace='igstorage')),
+
     # Info page content
     url(r'^info/', include('main.urls', namespace='main')),
 

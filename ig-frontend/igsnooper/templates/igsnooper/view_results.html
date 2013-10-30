@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="scroll">
-    <h1>Your prediction</h1>
-    <style type="text/css">
-        p{font-family:"Courier New", Courier, monospace; white-space: nowrap;}
-    </style>
-    {% include 'igsnooper/view_results_next_page.html' %}
-    <script type="text/javascript">
-        $('.scroll').jscroll();
-    </script>
-</div>
+     {% if user.is_authenticated %}
+
+    <div class="scroll">
+        <h1>Your prediction</h1>
+        <style type="text/css">
+            p{font-family:"Courier New", Courier, monospace; white-space: nowrap;}
+        </style>
+        {% include 'igsnooper/view_results_next_page.html' %}
+        <script type="text/javascript">
+            $('.scroll').jscroll();
+        </script>
+    </div>
+{% else %}
+    {% include 'main/not_auth.html' %}
+{% endif %}
 {% endblock %}

@@ -28,7 +28,7 @@ Resuest:
     "params" : {
       "mlWindowsize" : "10",
       "algo" : "random forest",
-      "algoParams" : "-l 10 -S 0"
+      "algoParams" : "-l 10 -S 0",
       "modelName" : "model1"
     },
     "comment" : "I am cool!",

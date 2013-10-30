@@ -31,7 +31,6 @@ object DbUtils {
   }
 
   def updateTask(id: Int, result: Any, prep: PreparedStatement, conn: Connection) = {
-
     var status: String = null
     var res : String = null
     try {
@@ -56,7 +55,7 @@ object DbUtils {
     if (rs.next()) {
       rs.getString("status") match {
         case m @ "in progress" => m
-        case m @ _ => "{\"status\": \"" + rs.getString("status") + "\", data: [" + rs.getString("result") + "]}"
+        case m @ _ => "{\"status\": \"" + rs.getString("status") + "\", \"data\": [" + rs.getString("result") + "]}"
       }
     } else {
       "Your job id not found"

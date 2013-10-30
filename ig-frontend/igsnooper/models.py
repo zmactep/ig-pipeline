@@ -1,6 +1,7 @@
 from django.db import models
 from django import forms
 from django.forms.models import model_to_dict
+from igstorage.models import StorageItem
 
 import json
 import logging
@@ -88,7 +89,8 @@ class TaskRequestForm(forms.Form):
                              choices=([('1', 'find patterns'), ('2', 'generate model'), ('3', 'model list'), ]),
                              initial='3',
                              required=True)
-    input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta')
+    #input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta')
+    input_file_fasta= forms.ModelChoiceField(queryset=StorageItem.objects.all().order_by('file_id'), label='Input FASTA file', required=False)
     input_file_kabat= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_kabat_id', 'style': 'display: none;'}), label='Input KABAT file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat')
     model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_name_id', 'style': 'display: none;'}), label='Model file name', required=False, initial='model.model')
     model_path      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_path_id', 'style': 'display: none;'}), label='Model file path', required=False, initial='task1/model.model')

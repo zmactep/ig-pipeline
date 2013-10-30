@@ -34,6 +34,8 @@
         </div>
         <script type="text/javascript">
         $(document).ready(function(){
+            $('#id_input_file_fasta').hide();
+            $('#id_input_file_fasta').prev().hide();
             $('#server_id').prev().show()
             $('#port_id').prev().show()
             $('#task_id').prev().show()
@@ -58,8 +60,8 @@
 
         $('#task_id').change(function() {
             if (this.value == '1') { //find patterns
-                $('#input_file_fasta_id').show();
-                $('#input_file_fasta_id').prev().show();//label
+                $('#id_input_file_fasta').show();
+                $('#id_input_file_fasta').prev().show();//label
                 $('#input_file_kabat_id').show();
                 $('#input_file_kabat_id').prev().show();
                 $('#model_path_id').show();
@@ -83,8 +85,8 @@
                 $('#merge_threshold_id').show();
                 $('#merge_threshold_id').prev().show();
             } else if (this.value == '2') { //generate model
-                $('#input_file_fasta_id').show();
-                $('#input_file_fasta_id').prev().show();//label
+                $('#id_input_file_fasta').show();
+                $('#id_input_file_fasta').prev().show();//label
                 $('#input_file_kabat_id').show();
                 $('#input_file_kabat_id').prev().show();
                 $('#model_path_id').hide();
@@ -108,8 +110,8 @@
                 $('#merge_threshold_id').hide();
                 $('#merge_threshold_id').prev().hide();
             } else if (this.value == '3') { //models list
-                $('#input_file_fasta_id').hide();
-                $('#input_file_fasta_id').prev().hide();
+                $('#id_input_file_fasta').hide();
+                $('#id_input_file_fasta').prev().hide();
                 $('#input_file_kabat_id').hide();
                 $('#input_file_kabat_id').prev().hide();
                 $('#model_name_id').hide();

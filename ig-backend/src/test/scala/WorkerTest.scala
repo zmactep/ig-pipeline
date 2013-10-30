@@ -60,7 +60,7 @@ with MustMatchers {
       master ! "{\"result_for\":\"0\"}"
       master ! "{\"result_for\":\"1\"}"
       master ! "{\"result_for\":\"2\"}"
-      expectMsgAllOf("{\"status\": \"ok\", data: [result1]}", "{\"status\": \"ok\", data: [result2]}", "Your job id not found")
+      expectMsgAllOf("{\"status\": \"ok\", \"data\": [result1]}", "{\"status\": \"ok\", \"data\": [result2]}", "Your job id not found")
     }
 
     "work with Futures" in {
@@ -73,7 +73,7 @@ with MustMatchers {
       Thread.sleep(2000)
 
       val fs2 = Future.sequence(List("{\"result_for\":\"2\"}", "{\"result_for\":\"3\"}", "{\"result_for\":\"42\"}").map { s => master ? s })
-      Await.result(fs2, 1 second) must be (List("{\"status\": \"ok\", data: [result3]}", "{\"status\": \"ok\", data: [result4]}", "Your job id not found"))
+      Await.result(fs2, 1 second) must be (List("{\"status\": \"ok\", \"data\": [result3]}", "{\"status\": \"ok\", \"data\": [result4]}", "Your job id not found"))
     }
   }
   private def worker(name: String) = system.actorOf(Props(

@@ -35,14 +35,14 @@ def create(request):
             data = form.cleaned_data
             task_request = None
             if int(data['task']) == int(TaskRequest.FIND_PATTERNS):
-                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'],
+                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'].path,
                                            input_file_kabat=data['input_file_kabat'],
                                            model_path=data['model_path'], ml_window_size=data['ml_window_size'],
                                            avg_window_size=data['avg_window_size'], out_dir=data['out_dir'],
                                            merge_threshold=data['merge_threshold'])
 
             if int(data['task']) == int(TaskRequest.GENERATE_MODEL):
-                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'],
+                task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'].path,
                                            input_file_kabat=data['input_file_kabat'], algo=data['algo'],
                                            algo_params=data['algo_params'], out_dir=data['out_dir'],
                                            ml_window_size=data['ml_window_size'], model_name=data['model_name'])

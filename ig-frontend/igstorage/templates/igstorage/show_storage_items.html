@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID файла</th>
+            <th>Комментарий</th>
+            <th>Расположение</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.file_id }}</td>
+            <td>{{ item.comment }}</td>
+            <td>{{ item.path }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<a href="/storage/modify/">Modification page</a>
+{% endblock %}
