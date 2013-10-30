@@ -1,5 +1,6 @@
-import _root_.scala.util.Random
 import igcont.trie.Trie
+import org.scalatest.FlatSpec
+import org.scalatest.matchers.ShouldMatchers
 
 /**
  * Created with IntelliJ IDEA.
@@ -7,34 +8,9 @@ import igcont.trie.Trie
  * Date: 30.10.13
  * Time: 15:22
  */
-object TrieTests {
-  def trie_test() = {
-    println("*** TRIE TEST ***")
+class TrieTests extends FlatSpec with ShouldMatchers {
 
-    val t = new Trie()
-    val rand = new Random()
-    val rc = Runtime.getRuntime
-
-    val start = System.currentTimeMillis()
-    (1 until 10000).foreach(i => {
-      var key = 0
-      (1 to 100).foreach(j => {
-        key = t.insert(key, (65+rand.nextInt(4)).toChar)
-        t.setDataOf(key, rand.nextInt(100))
-      })
-    })
-
-    println((System.currentTimeMillis() - start) / 1000.0)
-
-    val m = (rc.totalMemory() - rc.freeMemory()) / 1024 / 1024
-    println(m)
-
-    println(t.size)
-  }
-
-  def trie_iter_test() = {
-    println("*** TRIE ITER TEST ***")
-
+  "A Trie" should "keep right order of elements" in {
     val t = new Trie()
     val sa = Array("ACGG", "GCGT", "ACGT", "GTC")
 
@@ -42,16 +18,40 @@ object TrieTests {
       var k = 0
       s.foreach(c => {
         k = t.insert(k, c)
-        print(k,"")
       })
-      println()
     })
 
+    t.symbolOf(1) should be ('A')
+    t.symbolOf(2) should be ('C')
+    t.symbolOf(3) should be ('G')
+    t.symbolOf(4) should be ('G')
+    t.symbolOf(5) should be ('G')
+    t.symbolOf(6) should be ('C')
+    t.symbolOf(7) should be ('G')
+    t.symbolOf(8) should be ('T')
+    t.symbolOf(9) should be ('T')
+    t.symbolOf(10) should be ('T')
+    t.symbolOf(11) should be ('C')
+  }
+
+  it should "has right dfs-order" in {
+    val t = new Trie()
+    val sa = Array("ACGG", "GCGT", "ACGT", "GTC")
+
+    sa.foreach(s => {
+      var k = 0
+      s.foreach(c => {
+        k = t.insert(k, c)
+      })
+    })
+
+    var list_counter = 0
     var i = t.nextOf(0)
     while (i != 0) {
-      print(i, "")
+      if (t.isLeaf(i)) list_counter += 1
       i = t.nextOf(i)
     }
-    println()
+
+    list_counter should be (4)
   }
 }

@@ -46,6 +46,11 @@ class Record(id : Int, n : String, s : Int, anno_types : immutable.HashMap[Strin
 
   def setAnnotation(pos : Int, atype : Int, aval : Int) : (Int, Int) = {
     if (pos != -1) {
+      if (_cont(pos) == null) {
+        println("Warning! Cannot make an annotation without node! Use setNode(i, node) first. Default initialization: 0.")
+        setNode(pos, 0)
+      }
+
       _cont(pos).set(atype, aval)
     }
     (atype, aval)
