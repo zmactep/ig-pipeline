@@ -1,4 +1,5 @@
 create database ig;
+create database django;
 use ig;
 create table ig_backend_tasks (
 	id INT NOT NULL AUTO_INCREMENT,
@@ -6,4 +7,4 @@ create table ig_backend_tasks (
 	result VARCHAR(1024) CHARACTER SET utf8,
 	status ENUM('ok', 'failed', 'in progress'),
 	PRIMARY KEY (id)
-)
+);

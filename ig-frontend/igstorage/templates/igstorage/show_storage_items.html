@@ -7,6 +7,7 @@
             <th>ID файла</th>
             <th>Комментарий</th>
             <th>Расположение</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -14,10 +15,30 @@
         <tr>
             <td>{{ item.file_id }}</td>
             <td>{{ item.comment }}</td>
-            <td>{{ item.path }}</td>
+            <td><a href="/listing/?file={{ item.path }}">{{ item.path }}</a></td>
+            <td>
+                <form action="" id="delete" method="post" >
+                    {% csrf_token %}
+                    <input type="text" name="id" value="{{ item.file_id }}" style="display: none;">
+                    <input type="submit" class="btn btn-default" name="btn_delete" value="Delete"/>
+                </form>
+            </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
-<a href="/storage/modify/">Modification page</a>
+<h1>Create:</h1>
+<form action="" id="request_form" method="post" enctype="multipart/form-data" class="navbar-form navbar-left" role="search">
+    {% csrf_token %}
+        {% for field in form %}
+        <div class="input-group">
+            <span class="input-group-addon">{{ field.label_tag }}</span>
+            {{ field }}
+        </div>
+        <br/>
+        {% endfor %}
+    <input type="submit" class="btn btn-info btn-block" value="Create" name="btn_create" id="create_button"/>
+</form>
+<br/>
+<div id="status_bar">{{ result }}</div>
 {% endblock %}
