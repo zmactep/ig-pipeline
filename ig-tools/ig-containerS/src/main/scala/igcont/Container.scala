@@ -90,18 +90,12 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
   def size : Int = _anno.size
 
+  def fullsize : Int = _anno.fullsize
+
   def nodes : Int = _trie.size
 
-  def test() : Unit = {
-    var i = _trie.nextOf(0)
-    while (i != 0) {
-      print(_trie.symbolOf(i))
-      i = _trie.nextOf(i)
-      if (_trie.isLeaf(i)) {
-        println()
-      }
-    }
-    println()
+  def addAnnotations(atype : String, annotations : Array[String]) : Unit = {
+    annotations.foreach(a => if (!_anno.check(atype, a)) _anno.add(atype, a))
   }
 
   // Algorithms

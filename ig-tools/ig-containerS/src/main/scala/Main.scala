@@ -1,4 +1,4 @@
-import igcont.Container
+import igcont.{ContainerUtils, Container}
 
 import scala.util.Random
 
@@ -24,20 +24,8 @@ object Main{
       (rc.totalMemory() - rc.freeMemory()) / 1024 / 1024)
   }
 
-  def warmup() = {
-    def warmup_fun() = {
-      val cont = new Container("ACGT", 'N')
-      val rand = new Random()
-      for(i <- 0 until 1000) {
-        cont.push((0 until 500).map(_ => "ACGT"(rand.nextInt(4))).foldRight("")((c, s) => s + c), i.toString)
-      }
-    }
-
-    (0 to 100).foreach(_ => warmup_fun())
-  }
-
   def main(args : Array[String]) = {
-    warmup()
+    ContainerUtils.warmup()
     (1 to 7).foreach(i => load_test(i))
   }
 }

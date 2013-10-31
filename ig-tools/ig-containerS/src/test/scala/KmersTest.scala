@@ -18,7 +18,18 @@ class KmersTest extends FlatSpec with ShouldMatchers {
 
     val result = k.get("1-1").get._1
 
-    result.head should be(5)
-    result.last should be(7)
+    result.head should be (5)
+    result.last should be (7)
+  }
+
+  it should "store sequences with special symbols" in {
+    val k = new Counter("ACGTN", 'N', 3)
+    val r = Array(0,1,2,3,4,5,6,7)
+
+    k.add(1, "ACGNGTANCT", r)
+
+    val result = k.get("GNG").get._1
+
+    result.head should be (2)
   }
 }

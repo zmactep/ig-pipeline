@@ -35,6 +35,8 @@ class Anno(anno_types : Array[String]) {
 
   def size : Int = _cont.size
 
+  def fullsize : Int = _cont.foldRight(0)((rec, acc) => acc + rec.size)
+
   private def addRecord(rec : Record) : Record = {
     _cont += rec
     _names.put(rec.name, rec)
