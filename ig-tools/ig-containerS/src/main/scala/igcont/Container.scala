@@ -243,15 +243,19 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     result.dequeueAll.reverse.toIterable
   }
 
-  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Record = {
+  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Iterable[(Char, HashMap[String, String])] = {
+    val result = ArrayBuffer.fill[(Char, HashMap[String, String])](query.size)(null)
     val align_result = alignment(query, gap, score_matrix, n)
-    val preresult = ArrayBuffer.fill[List[HashMap[String, String]]](query.size)(List())
+    val preresult = ArrayBuffer.fill[ArrayBuffer[HashMap[String, String]]](query.size)(ArrayBuffer.empty)
 
-    def annotate_by_one(anno : Iterable[(Char, HashMap[String, String])]) = {
+    def annotate_by_one(anno : AlignmentResult) = {
       var i = 0
-      anno.foreach(tpl => {
-        if (tpl._2 != null) {
-          preresult(i) = tpl._2 :: preresult(i)
+      anno.get.zipWithIndex.foreach(tpl => {
+        val ((_, a), j) = tpl
+        if (anno.query(j) != '-') {
+          if (a != null) {
+            preresult(i) += a
+          }
           i += 1
         }
       })
@@ -259,9 +263,46 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
     // Get preresult
     align_result.foreach(align => {
-      annotate_by_one(align.get)
+      annotate_by_one(align)
     })
 
-    null
+    // Merge
+    val keys = _anno.keys
+    val tmp_hash = mutable.HashMap.empty[String, Int]
+    val anno_builder = mutable.HashMap.empty[String, String]
+
+    // For each letter
+    preresult.zipWithIndex.foreach(tpl => {
+      val (lst, i) = tpl
+
+      anno_builder.clear()
+      // For each annotation type
+      keys.foreach(key => {
+        var max_elem : String = null
+        var max_val  = 0
+        tmp_hash.clear()
+        // For each annotation value in list
+        lst.foreach(elem => {
+          if (elem.contains(key)) {
+            val eval = elem(key)
+            val count = tmp_hash.getOrElse(eval, 0) + 1
+            tmp_hash(elem(key)) = count
+            if (count > max_val && !eval.isEmpty) {
+              max_val = count
+              max_elem = eval
+            }
+          }
+        })
+
+        // We have an annotation value for key
+        if (max_elem != null) {
+          anno_builder(key) = max_elem
+        }
+      })
+
+      result(i) = (query(i), HashMap[String, String](anno_builder.toSeq:_*))
+    })
+
+    result
   }
 }

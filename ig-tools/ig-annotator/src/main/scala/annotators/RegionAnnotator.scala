@@ -1,4 +1,4 @@
-package region
+package annotators
 
 import igcont.{ContainerUtils, Container}
 import common.{FileUtils, SequenceTrait}
@@ -6,6 +6,7 @@ import common.SequenceType.SequenceType
 import alicont.AlignmentResult
 import igcont.anno.Record
 import scala.collection.immutable.HashMap
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,7 +14,7 @@ import scala.collection.immutable.HashMap
  * Date: 31.10.13
  * Time: 12:02
  */
-class Annotator(n : String, t : SequenceType) {
+class RegionAnnotator(n : String, t : SequenceType) {
   private val _regs = Array("FR1", "CDR1", "FR2", "CDR2", "FR3", "CDR3", "FR4")
   private val _name = n
   private val _type = new SequenceTrait(t)
@@ -46,6 +47,18 @@ class Annotator(n : String, t : SequenceType) {
   def find(pattern : String) : Iterable[(String, Int)] = _cont.find(pattern)
 
   def alignment(query : String, n : Int = 10) : Iterable[AlignmentResult] = _cont.alignment(query, -5, _type.score, n)
+
+  def annotate(query : String, n : Int = 3) : Iterable[Int] = {
+    val anno = _cont.annotate(query, -5, _type.score, n)
+    val result = ArrayBuffer.fill[Int](query.size)(0)
+
+    anno.zipWithIndex.foreach(tpl => {
+      val (node, i) = tpl
+      result(i) = _regs.indexOf(node._2("Region"))
+    })
+
+    result
+  }
 
   def name : String = _name
 

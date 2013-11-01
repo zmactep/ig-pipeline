@@ -37,6 +37,8 @@ class Anno(anno_types : Array[String]) {
 
   def fullsize : Int = _cont.foldRight(0)((rec, acc) => acc + rec.size)
 
+  def types : immutable.HashMap[String, mutable.ArrayBuffer[String]] = _atypes
+
   private def addRecord(rec : Record) : Record = {
     _cont += rec
     _names.put(rec.name, rec)

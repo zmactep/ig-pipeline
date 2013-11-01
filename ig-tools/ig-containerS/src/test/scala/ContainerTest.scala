@@ -71,4 +71,30 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
 
     set should be (mutable.TreeSet[String]("Seq1", "Seq2"))
   }
+
+  it should "annotate new sequences" in {
+    val path : String = "../../data/NUC4.4.txt"
+    val cont = new Container("ACGT", 'N', Array("A"), 3)
+    cont.push("GCTGGT", "Seq1")
+    cont.push("GCCGGT", "Seq2")
+    cont.push("GCTGT", "Seq3")
+
+    Array("Seq1", "Seq2", "Seq3").foreach(seq => {
+      val rec  = cont.record(seq)
+      rec.setAnnotation(0, "A", "1")
+      rec.setAnnotation(1, "A", "1")
+      rec.setAnnotation(2, "A", "1")
+      rec.setAnnotation(4, "A", "1")
+      if (rec.handle != 2) {
+        rec.setAnnotation(5, "A", "1")
+      }
+    })
+
+    cont.record(0).setAnnotation(3, "A", "1")
+    cont.record(1).setAnnotation(2, "A", "2")
+
+    val res = cont.annotate("CTGGC", -5, Scoring.loadMatrix(path), 3)
+
+    res.forall(tpl => tpl._2("A") == "1") should be (true)
+  }
 }

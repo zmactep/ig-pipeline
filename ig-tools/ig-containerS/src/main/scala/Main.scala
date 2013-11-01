@@ -1,3 +1,4 @@
+import alicont.Scoring
 import igcont.{ContainerUtils, Container}
 
 import scala.util.Random
@@ -23,7 +24,6 @@ object Main{
     printf("%d) %.2f (%dMB)\n", i, (System.currentTimeMillis() - start) / 1000.0,
       (rc.totalMemory() - rc.freeMemory()) / 1024 / 1024)
   }
-
   def main(args : Array[String]) = {
     ContainerUtils.warmup()
     (1 to 7).foreach(i => load_test(i))
