@@ -242,4 +242,26 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
     result.dequeueAll.reverse.toIterable
   }
+
+  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Record = {
+    val align_result = alignment(query, gap, score_matrix, n)
+    val preresult = ArrayBuffer.fill[List[HashMap[String, String]]](query.size)(List())
+
+    def annotate_by_one(anno : Iterable[(Char, HashMap[String, String])]) = {
+      var i = 0
+      anno.foreach(tpl => {
+        if (tpl._2 != null) {
+          preresult(i) = tpl._2 :: preresult(i)
+          i += 1
+        }
+      })
+    }
+
+    // Get preresult
+    align_result.foreach(align => {
+      annotate_by_one(align.get)
+    })
+
+    null
+  }
 }

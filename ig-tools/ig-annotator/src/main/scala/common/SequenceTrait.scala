@@ -1,5 +1,7 @@
 package common
 
+import alicont.Scoring
+
 /**
  * Created with IntelliJ IDEA.
  * User: mactep
@@ -28,6 +30,13 @@ class SequenceTrait(t : SequenceType.SequenceType) {
     _type match {
       case SequenceType.NUCLEO => 7
       case SequenceType.AMINO  => 3
+    }
+  }
+
+  def score : Array[Array[Int]] = {
+    _type match {
+      case SequenceType.NUCLEO => Scoring.loadMatrix("../../data/NUC4.4.txt")
+      case SequenceType.AMINO => Scoring.loadMatrix("../../data/BLOSUM62.txt")
     }
   }
 }
