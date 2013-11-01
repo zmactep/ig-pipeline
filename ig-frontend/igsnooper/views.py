@@ -25,7 +25,7 @@ class TaskRequestView(generic.ListView):
     context_object_name = 'tasks'
 
     def get_queryset(self):
-        return TaskRequest.objects.all()
+        return TaskRequest.objects.using('ig').all()
 
 
 def create(request):
@@ -36,14 +36,14 @@ def create(request):
             task_request = None
             if int(data['task']) == int(TaskRequest.FIND_PATTERNS):
                 task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'].path,
-                                           input_file_kabat=data['input_file_kabat'],
+                                           input_file_kabat=data['input_file_kabat'].path,
                                            model_path=data['model_path'], ml_window_size=data['ml_window_size'],
                                            avg_window_size=data['avg_window_size'], out_dir=data['out_dir'],
                                            merge_threshold=data['merge_threshold'])
 
             if int(data['task']) == int(TaskRequest.GENERATE_MODEL):
                 task_request = TaskRequest(task=data['task'], input_file_fasta=data['input_file_fasta'].path,
-                                           input_file_kabat=data['input_file_kabat'], algo=data['algo'],
+                                           input_file_kabat=data['input_file_kabat'].path, algo=data['algo'],
                                            algo_params=data['algo_params'], out_dir=data['out_dir'],
                                            ml_window_size=data['ml_window_size'], model_name=data['model_name'])
             if int(data['task']) == int(TaskRequest.MODEL_LIST):
@@ -51,7 +51,7 @@ def create(request):
 
             response = ask_server(task_request.get_backend_request())
             task_request.backend_id = json.loads(response)['id']
-            task_request.save()
+            task_request.save(using='ig')
             return HttpResponse(response, content_type="application/json")
     else:
         form = TaskRequestForm()  # An unbound form

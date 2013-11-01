@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-     {% if user.is_authenticated %}
-
     <div class="scroll">
         <h1>Your prediction</h1>
+        {% with "/static"|add:file as path %}
+        {% load staticfiles %}
+        <a href="{% static path %}">Download link</a>
+        {% endwith %}
         <style type="text/css">
             p{font-family:"Courier New", Courier, monospace; white-space: nowrap;}
         </style>
@@ -13,7 +15,4 @@
             $('.scroll').jscroll();
         </script>
     </div>
-{% else %}
-    {% include 'main/not_auth.html' %}
-{% endif %}
 {% endblock %}

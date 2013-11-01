@@ -12,9 +12,10 @@
                     {% csrf_token %}
                     {% for field in form %}
                         <div class="label label-default" style="display: none;">
-                            {{ field.label_tag }}
+                             {{ field.label_tag }}
                         </div>
                         {{ field }}
+                        <br/>
                     {% endfor %}
                     <input type="submit" class="btn btn-info btn-block" value="Send"  />
                 </form>
@@ -36,6 +37,8 @@
         $(document).ready(function(){
             $('#id_input_file_fasta').hide();
             $('#id_input_file_fasta').prev().hide();
+            $('#id_input_file_kabat').hide();
+            $('#id_input_file_kabat').prev().hide();
             $('#server_id').prev().show()
             $('#port_id').prev().show()
             $('#task_id').prev().show()
@@ -62,8 +65,8 @@
             if (this.value == '1') { //find patterns
                 $('#id_input_file_fasta').show();
                 $('#id_input_file_fasta').prev().show();//label
-                $('#input_file_kabat_id').show();
-                $('#input_file_kabat_id').prev().show();
+                $('#id_input_file_kabat').show();
+                $('#id_input_file_kabat').prev().show();
                 $('#model_path_id').show();
                 $('#model_path_id').prev().show();
                 $('#model_name_id').hide();
@@ -87,8 +90,8 @@
             } else if (this.value == '2') { //generate model
                 $('#id_input_file_fasta').show();
                 $('#id_input_file_fasta').prev().show();//label
-                $('#input_file_kabat_id').show();
-                $('#input_file_kabat_id').prev().show();
+                $('#id_input_file_kabat').show();
+                $('#id_input_file_kabat').prev().show();
                 $('#model_path_id').hide();
                 $('#model_path_id').prev().hide();
                 $('#model_name_id').show();
@@ -112,8 +115,8 @@
             } else if (this.value == '3') { //models list
                 $('#id_input_file_fasta').hide();
                 $('#id_input_file_fasta').prev().hide();
-                $('#input_file_kabat_id').hide();
-                $('#input_file_kabat_id').prev().hide();
+                $('#id_input_file_kabat').hide();
+                $('#id_input_file_kabat').prev().hide();
                 $('#model_name_id').hide();
                 $('#model_name_id').prev().hide();
                 $('#model_path_id').hide();

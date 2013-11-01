@@ -18,6 +18,6 @@ class StorageItem(models.Model):
 
 class StorageItemForm(forms.Form):
     file_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='File ID', required=True)
-    comment = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='comment', required=True)
-    path = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='path', required=True)
+    comment = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='Comment', required=True)
+    path = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='Path', required=True)
 

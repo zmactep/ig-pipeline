@@ -8,6 +8,11 @@ import logging
 log = logging.getLogger('all')
 
 
+class CustomModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.file_id
+
+
 class TaskRequest(models.Model):
     FIND_PATTERNS = 1
     GENERATE_MODEL = 2
@@ -89,9 +94,8 @@ class TaskRequestForm(forms.Form):
                              choices=([('1', 'find patterns'), ('2', 'generate model'), ('3', 'model list'), ]),
                              initial='3',
                              required=True)
-    #input_file_fasta= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_fasta_id', 'style': 'display: none;'}), label='Input FASTA file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta')
-    input_file_fasta= forms.ModelChoiceField(queryset=StorageItem.objects.all().order_by('file_id'), label='Input FASTA file', required=False)
-    input_file_kabat= forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'input_file_kabat_id', 'style': 'display: none;'}), label='Input KABAT file', required=False, initial='/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat')
+    input_file_fasta= CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id'), label='Input FASTA file', required=False)
+    input_file_kabat= CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id'), label='Input KABAT file', required=False)
     model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_name_id', 'style': 'display: none;'}), label='Model file name', required=False, initial='model.model')
     model_path      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'model_path_id', 'style': 'display: none;'}), label='Model file path', required=False, initial='task1/model.model')
     out_dir         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'id': 'out_dir_id', 'style': 'display: none;'}), label='Output dir', required=False, initial='task1/')
