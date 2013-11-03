@@ -17,16 +17,22 @@
             <td>{{ item.comment }}</td>
             <td><a href="/listing/?file={{ item.path }}">{{ item.path }}</a></td>
             <td>
-                <form action="" id="delete" method="post" >
+                <form action="" method="post" >
                     {% csrf_token %}
-                    <input type="text" name="id" value="{{ item.file_id }}" style="display: none;">
+                    {% with modified_id=item.file_id%}
+                        <input type="text" name="file_id" value="{{ item.file_id }}" style="display: none;">
+                        <input type="text" id="modified_id" name="modified_id" style="display: none;">
+                        <input type="text" id="comment" name="comment" style="display: none;">
+                    {% endwith %}
                     <input type="submit" class="btn btn-default" name="btn_delete" value="Delete"/>
+                    <input type="submit" class="btn btn-default" name="btn_update" id="btn_update" value="Save" style="display: none;"/>
                 </form>
             </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
+<p>Нажмите на ID файла или комментарии для изменения</p>
 <h1>Create:</h1>
 <form action="" id="request_form" method="post" enctype="multipart/form-data" class="navbar-form navbar-left" role="search">
     {% csrf_token %}
@@ -40,5 +46,27 @@
     <input type="submit" class="btn btn-info btn-block" value="Create" name="btn_create" id="create_button"/>
 </form>
 <br/>
-<div id="status_bar">{{ result }}</div>
+<div id="status_bar">{{ status }}</div>
+    <script type="text/javascript">
+        $('td').click(
+        function(){
+            if ($(this).index() < 2) { //modify only file_id and comment
+                $('#btn_update').show();
+                var text = $(this).text();
+                $(this).text('');
+                $('<textarea />').appendTo($(this)).val(text).select().blur(
+                    function(){
+                        var newText = $(this).val();
+                        $(this).parent().text(newText).find('textarea').remove();
+                    });
+            }
+        });
+
+        $('#btn_update').click(function(){
+            var modified_id = $(this).parent().parent().parent().children('td').eq(0).html()
+            var comment = $(this).parent().parent().parent().children('td').eq(1).html()
+           $(this).parent().find('#modified_id').val(modified_id)
+           $(this).parent().find('#comment').val(comment)
+        })
+    </script>
 {% endblock %}
