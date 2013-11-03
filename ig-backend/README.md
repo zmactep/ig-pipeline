@@ -14,7 +14,7 @@ USAGE
 =====
 via HTTP:
 Generate model:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta", "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0", "modelName": "model1"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/opt/ig-pipeline/data/train/VDJH_train.fasta", "/opt/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0", "modelName": "model1"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 List models:
@@ -22,7 +22,7 @@ List models:
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 Predict:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "find patterns", "input": {"files": ["/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta", "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "avgWidowsize": "1", "mergeThreshold": "7", "modelPath": "task1/model1"}}, "output": {"outdir": "task1/"}}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{"task" : "find patterns", "input": {"files": ["/opt/ig-pipeline/data/train/VDJH_train.fasta", "/opt/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "avgWidowsize": "1", "mergeThreshold": "7", "modelPath": "task1/model1"}}, "output": {"outdir": "task1/"}}' http://localhost:8080/
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 via browser:
@@ -44,8 +44,8 @@ include "application"
 ig-backend {
     http_port = 8080
     tcp_port = 9999
-    tools_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/tools/
-    storage_root = /Users/Kos/Dropbox/Biocad/ig-pipeline/storage/
+    tools_root = /opt/ig-pipeline/tools/
+    storage_root = /opt/ig-pipeline/storage/
     db_host = localhost
     db_port = 3306
     db_name = ig
