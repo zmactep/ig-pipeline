@@ -1,7 +1,7 @@
 import com.googlecode.protobuf.format.JsonFormat
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.FunSpec
-import protocol.Command.{ResponseCommand, RequestCommand}
+import protocol.Command.{ResponseCommand, BatchCommand}
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,95 +12,166 @@ import protocol.Command.{ResponseCommand, RequestCommand}
  */
 class CommandProtocolTest extends FunSpec with MustMatchers {
   describe("Protocol Command") {
-    it("""should parse "model list" task""") {
-      val builder = RequestCommand.newBuilder()
-      val jsonFormat = "{\"task\":\"model list\",\"input\":{\"group\":\"regions\"}}"
-      JsonFormat.merge(jsonFormat, builder)
-      val requestCommand = builder.build()
-      requestCommand must have (
-        'task ("model list")
-      )
-      requestCommand.getInput() must have (
-        'group ("regions")
-      )
-      jsonFormat.replace(" ", "") must be (JsonFormat.printToString(requestCommand).replace(" ", ""))
+    it("""should parse an empty batch""") {
+      val batchCommandBuilder = BatchCommand.newBuilder()
+      val jsonFormat = """{"commands":[]}"""
+      JsonFormat.merge(jsonFormat, batchCommandBuilder)
+      val batchCommand = batchCommandBuilder.build()
+      val commands = batchCommand.getCommandsList
+      commands.isEmpty must be (true)
     }
 
-    it("""should parse "find pattern" and "generate model" task""") {
-      val builder = RequestCommand.newBuilder()
+    it("""should parse one simple command""") {
+      val batchCommandBuilder = BatchCommand.newBuilder()
       val jsonFormat =
-        "{\"task\":\"find patterns\"," +
-          "\"input\":{" +
-            "\"files\":[\"file1.fasta\",\"file2.fasta\"]," +
-            "\"params\":{" +
-              "\"algo\" : \"random forest\"," +
-              "\"algoParams\" : \"-l 10 -S 0\","+
-              "\"mlWindowsize\":\"10\"," +
-              "\"avgWidowsize\":\"8\"," +
-              "\"mergeThreshold\":\"5\"," +
-              "\"modelName\":\"/path/to/model\"" +
-            "}," +
-            "\"comment\":\"I am cool!\"," +
-            "\"group\":\"regions\"" +
-          "}," +
-          "\"output\":{\"outdir\":\"/some/dir\"}" +
-        "}"
-      JsonFormat.merge(jsonFormat, builder)
-      val requestCommand = builder.build()
-      jsonFormat.replace(" ", "") must be (JsonFormat.printToString(requestCommand).replace(" ", ""))
-
-      requestCommand must have (
-        'task ("find patterns")
+        """{
+             "commands":[
+               {
+                 "executable": "ls",
+                 "input": {
+                     "params": [
+                       {"name": "n1", "value": "v1"}, {"name": "n2", "value": "v2"}
+                     ],
+                     "comment": "ig is cool!",
+                     "group": "all stars"
+                 }
+               }
+             ]
+          }"""
+      JsonFormat.merge(jsonFormat, batchCommandBuilder)
+      val batchCommand = batchCommandBuilder.build()
+      val commands = batchCommand.getCommandsList
+      commands.size() must be (1)
+      val command = commands.get(0)
+      command must have (
+        'executable ("ls")
       )
 
-      val input = requestCommand.getInput
-      input.getFiles(0) must equal ("file1.fasta")
-      input.getFiles(1) must equal ("file2.fasta")
+      val input = command.getInput
       input must have (
-        'comment ("I am cool!"),
-        'group ("regions")
+        'comment ("ig is cool!"),
+        'group ("all stars")
       )
 
-      input.getParams must have (
-        'mlWindowsize ("10"),
-        'avgWidowsize ("8"),
-        'mergeThreshold ("5"),
-        'modelName ("/path/to/model"),
-        'algo ("random forest"),
-        'algoParams ("-l 10 -S 0")
-      )
+      val paramsList = input.getParamsList
+      paramsList.size must be (2)
+      paramsList.get(0).getName must be ("n1")
+      paramsList.get(0).getValue must be ("v1")
+      paramsList.get(1).getName must be ("n2")
+      paramsList.get(1).getValue must be ("v2")
 
-      requestCommand.getOutput must have (
-        'outdir ("/some/dir")
-      )
+      jsonFormat.replace(" ", "").replace("\n", "") must be (JsonFormat.printToString(batchCommand).replace(" ", ""))
     }
 
-    it("""should parse responce message""") {
+    it("""should parse complete batch for train and predict""") {
+      val batchCommandBuilder = BatchCommand.newBuilder()
+      val jsonFormat =
+        """{
+             "commands":[
+               {
+                 "executable": "train.py",
+                 "input": {
+                     "params": [
+                       {"name": "fasta", "value": "file1.fasta"},
+                       {"name": "kabat", "value": "file1.kabat"},
+                       {"name": "outdir", "value": "/tmp"},
+                       {"name": "model_name", "value": "model.mdl"},
+                       {"name": "ml_window_size", "value": "5"}
+                     ],
+                     "comment": "ig is really cool!",
+                     "group": "all stars"
+                 }
+               },
+               {
+                  "executable": "predict.py",
+                  "input": {
+                      "params": [
+                        {"name": "fasta", "value": "file2.fasta"},
+                        {"name": "outdir", "value": "/tmp"},
+                        {"name": "model_path", "value": "/tmp/model.mdl"},
+                        {"name": "merge_threshold", "value": "1"},
+                        {"name": "avg_window_size", "value": "10"},
+                        {"name": "ml_window_size", "value": "5"}
+                      ],
+                      "comment": "ig is cool!",
+                      "group": "all stars"
+                  }
+                }
+             ]
+          }"""
+
+      JsonFormat.merge(jsonFormat, batchCommandBuilder)
+      val batchCommand = batchCommandBuilder.build()
+      val commands = batchCommand.getCommandsList
+      commands.size() must be (2)
+      val trainCommand = commands.get(0)
+      val predictCommand = commands.get(1)
+
+      {
+        trainCommand must have (
+          'executable ("train.py")
+        )
+
+        val input = trainCommand.getInput
+        input must have (
+          'comment ("ig is really cool!"),
+          'group ("all stars")
+        )
+
+        val paramsList = input.getParamsList
+        paramsList.size must be (5)
+        paramsList.get(0).getName must be ("fasta")
+        paramsList.get(0).getValue must be ("file1.fasta")
+        paramsList.get(1).getName must be ("kabat")
+        paramsList.get(1).getValue must be ("file1.kabat")
+        paramsList.get(2).getName must be ("outdir")
+        paramsList.get(2).getValue must be ("/tmp")
+        paramsList.get(3).getName must be ("model_name")
+        paramsList.get(3).getValue must be ("model.mdl")
+        paramsList.get(4).getName must be ("ml_window_size")
+        paramsList.get(4).getValue must be ("5")
+      }
+
+      {
+        predictCommand must have (
+          'executable ("predict.py")
+        )
+
+        val input = predictCommand.getInput
+        input must have (
+          'comment ("ig is cool!"),
+          'group ("all stars")
+        )
+
+        val paramsList = input.getParamsList
+        paramsList.size must be (6)
+        paramsList.get(0).getName must be ("fasta")
+        paramsList.get(0).getValue must be ("file2.fasta")
+        paramsList.get(1).getName must be ("outdir")
+        paramsList.get(1).getValue must be ("/tmp")
+        paramsList.get(2).getName must be ("model_path")
+        paramsList.get(2).getValue must be ("/tmp/model.mdl")
+        paramsList.get(3).getName must be ("merge_threshold")
+        paramsList.get(3).getValue must be ("1")
+        paramsList.get(4).getName must be ("avg_window_size")
+        paramsList.get(4).getValue must be ("10")
+        paramsList.get(5).getName must be ("ml_window_size")
+        paramsList.get(5).getValue must be ("5")
+      }
+      jsonFormat.replace(" ", "").replace("\n", "") must be (JsonFormat.printToString(batchCommand).replace(" ", ""))
+    }
+
+    it("""should parse response message""") {
       val builder = ResponseCommand.newBuilder()
       val jsonFormat =
-        "{\"status\":\"ok\"," +
-          "\"data\":[" +
-            "{\"fullpath\":\"path\",\"description\":\"V.fasta V.kabat ...\"}," +
-            "{\"fullpath\":\"path2\",\"description\" : \"V.fasta V.kabat ...\"}" +
-          "]" +
-        "}"
+        """{"status": "ok", "message": "test"}"""
       JsonFormat.merge(jsonFormat, builder)
       val responseCommand = builder.build()
-      jsonFormat.replace(" ", "") must be (JsonFormat.printToString(responseCommand).replace(" ", ""))
+      jsonFormat.replace(" ", "").replace("\n", "") must be (JsonFormat.printToString(responseCommand).replace(" ", ""))
 
       responseCommand must have (
-        'status ("ok")
-      )
-
-      val paths = responseCommand.getDataList
-
-      paths.get(0) must have (
-        'fullpath ("path"),
-        'description ("V.fasta V.kabat ...")
-      )
-      paths.get(1) must have (
-        'fullpath ("path2"),
-        'description ("V.fasta V.kabat ...")
+        'status ("ok"),
+        'message ("test")
       )
     }
   }

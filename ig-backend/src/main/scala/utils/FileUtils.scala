@@ -1,7 +1,8 @@
 package utils
 
-import java.io.File
-
+import java.io._
+import com.typesafe.config.ConfigFactory
+import scala.sys.process.Process
 /**
  * Created with IntelliJ IDEA.
  * User: Kos
@@ -16,7 +17,48 @@ object FileUtils {
   def createDirIfNotExists(path: String) = {
     val dirExistCheck = new File(path)
     if (!dirExistCheck.exists()) {
-      dirExistCheck.mkdir()
+      dirExistCheck.mkdirs
     }
+  }
+
+  def getLastModifiedDir(path: String): String = {
+    val dir = new File(path)
+    if (! dir.exists()) {
+      throw new FileNotFoundException
+    }
+    
+    val dirs = dir.listFiles().toList.filter(_.isDirectory)
+    if (dirs.length == 0) {
+      throw new FileNotFoundException
+    }
+
+    var lastModifiedDir = dirs(0)
+    dirs.drop(0).foreach { f =>
+      if (lastModifiedDir.lastModified() < f.lastModified()) {
+        lastModifiedDir = f
+      }
+    }
+
+    lastModifiedDir.getName
+  }
+
+  def saveToFile(path: String, data: String) = {
+    try {
+      val out = new BufferedWriter(new FileWriter(new File(path)))
+      out.write(data)
+      out.close()
+    } catch {
+      case e: IOException =>
+    }
+  }
+
+  def scanDir(path: String, toolsRoot: String, group: String, run: String) = {
+    val conf = ConfigFactory.load()
+    val params = s"--host=${conf.getString("ig-backend.db_host")} --port=${conf.getString("ig-backend.db_port")} " +
+      s"--db=${conf.getString("ig-backend.db_name")} --user=${conf.getString("ig-backend.db_user")} " +
+      s"--password=${conf.getString("ig-backend.db_password")} --dir=$path --group=$group --run=$run"
+
+    val cmd = s"python ${new File(toolsRoot, "ig-snooper/ig_snooper_utils/scan_dir.py").toString} $params"
+    Process(cmd, new java.io.File(toolsRoot)).!!
   }
 }

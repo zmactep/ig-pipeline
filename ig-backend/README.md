@@ -14,15 +14,37 @@ USAGE
 =====
 via HTTP:
 Generate model:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "generate model", "input": {"files": ["/opt/ig-pipeline/data/train/VDJH_train.fasta", "/opt/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "algo": "random forest", "algoParams": "-l 10 -S 0", "modelName": "model1"}, "comment": "I am cool!", "group": "regions"}, "output": {"outdir": "task1/"}}' http://localhost:8080/
-* curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
-
-List models:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "model list", "input": {"group": "regions"}}' http://localhost:8080/
-* curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
-
-Predict:
-* curl -H 'Accept: application/json' -X POST -d '{"task" : "find patterns", "input": {"files": ["/opt/ig-pipeline/data/train/VDJH_train.fasta", "/opt/ig-pipeline/data/train/VDJH_train.kabat"], "params": {"mlWindowsize": "13", "avgWidowsize": "1", "mergeThreshold": "7", "modelPath": "task1/model1"}}, "output": {"outdir": "task1/"}}' http://localhost:8080/
+* curl -H 'Accept: application/json' -X POST -d '{
+                                                  "commands":[
+                                                    {
+                                                      "executable": "ig-snooper/train.py",
+                                                      "input": {
+                                                          "params": [
+                                                            {"name": "fasta", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta"},
+                                                            {"name": "kabat", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"},
+                                                            {"name": "model_name", "value": "model.mdl"},
+                                                            {"name": "ml_window_size", "value": "5"}
+                                                          ],
+                                                          "comment": "ig is really cool!",
+                                                          "group": "testrun"
+                                                      }
+                                                    },
+                                                    {
+                                                       "executable": "ig-snooper/predict.py",
+                                                       "input": {
+                                                           "params": [
+                                                             {"name": "fasta", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta"},
+                                                             {"name": "model_path", "value": "/opt/ig-pipeline/storage/testrun/0/model.mdl"},
+                                                             {"name": "merge_threshold", "value": "1"},
+                                                             {"name": "avg_window_size", "value": "10"},
+                                                             {"name": "ml_window_size", "value": "5"}
+                                                           ],
+                                                           "comment": "ig is cool!",
+                                                           "group": "testrun"
+                                                       }
+                                                     }
+                                                  ]
+                                                 }' http://localhost:8080/
 * curl -H 'Accept: application/json' -X POST -d '{"result_for":"0"}' http://localhost:8080/
 
 via browser:
@@ -51,4 +73,5 @@ ig-backend {
     db_name = ig
     db_user = root
     db_password = password
+    workers = 3
 }

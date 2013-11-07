@@ -63,7 +63,7 @@ def main():
         print('Done in %s' % str(datetime.datetime.now() - start_time))
         print('Your model is in %s' % model_path)
 
-    except (KeyError, FileNotFoundError) as detail:
+    except Exception as detail:
         print('%s' % detail)
         sys.exit()
 

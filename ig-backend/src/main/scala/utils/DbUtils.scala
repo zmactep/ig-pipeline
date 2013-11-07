@@ -37,7 +37,7 @@ object DbUtils {
       val builder = ResponseCommand.newBuilder()
       JsonFormat.merge(result.toString, builder)
       val responseCommand = builder.build()
-      res = responseCommand.getDataList.map(JsonFormat.printToString).mkString(",")
+      res = responseCommand.getMessage
       status = responseCommand.getStatus
     } catch {
       case e : IOException => res = result.toString; status = "failed"
