@@ -37,9 +37,11 @@ class RegionAnnotator(n : String, t : SequenceType) {
 
       arr.zipWithIndex.foreach(tpl => {
         val ((start, end), reg) = tpl
-        (start to end).foreach(pos => {
-          record.setAnnotation(pos, 0, reg)
-        })
+        if (start != -1 && end != -1) {
+          (start to end).foreach(pos => {
+            record.setAnnotation(pos, 0, reg)
+          })
+        }
       })
     })
   }
