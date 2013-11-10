@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from igtools.models.predict import PredictForm, Predict
 from igtools.models.train import TrainForm, Train
+from igtools.models.simplecluster import SimpleClusterForm, SimpleCluster
 from django.shortcuts import render
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
@@ -26,42 +27,28 @@ class TaskRequestView(generic.ListView):
     context_object_name = 'tasks'
 
     def get_queryset(self):
-        # TODO refactor me
+        # TODO unhardcode me
         train_list = Train.objects.using('ig').all()
         predict_list = Predict.objects.using('ig').all()
-        return sorted(chain(train_list, predict_list), key=lambda record: record.backend_id)
+        cluster_list = SimpleCluster.objects.using('ig').all()
+        return sorted(chain(train_list, predict_list, cluster_list), key=lambda record: record.backend_id)
 
 
 def create(request):
     if request.method == 'POST':  # If the form has been submitted...
         post = request.POST
         if 'tools_select' in post:
-            # TODO: select from database
-            if post['tools_select'] == 'train':
-                form = TrainForm()
-            elif post['tools_select'] == 'predict':
-                form = PredictForm()
-            else:
-                form = TrainForm()
-
+            form = eval(post['tools_select'])
             return render(request, 'igtools/send_request.html', dictionary={'form': form})
-        else:
-            # TODO: refactor me!
-            if post['name'] == 'Predict':
-                form = PredictForm(post, request.FILES)
-                if form.is_valid():
-                    data = form.cleaned_data
-                    request = Predict(fasta=data['fasta'].path, model_path=data['model_path'].path, merge_threshold=data['merge_threshold'],
-                                     ml_window_size=data['ml_window_size'], avg_window_size=data['avg_window_size'], group=data['group'])
 
-            if post['name'] == 'Train':
-                form = TrainForm(post, request.FILES)
+        else:
+            if post['name']:
+                name = post['name']
+                form = eval(name + 'Form')(post, request.FILES)
                 if form.is_valid():
-                    data = form.cleaned_data
-                    request = Train(fasta=data['fasta'].path, kabat=data['kabat'].path, model_name=data['model_name'],
-                                     ml_window_size=data['ml_window_size'], group=data['group'])
-            if 'comment' in data:
-                request.comment = data['comment']
+                    params_map = form.cleaned_data
+                    request = eval(name)()
+                    request.read_params(params_map)
 
             response = ask_server(request.get_backend_request())
             request.backend_id = json.loads(response)['id']

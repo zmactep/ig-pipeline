@@ -20,8 +20,8 @@ Generate model:
                                                       "executable": "ig-snooper/train.py",
                                                       "input": {
                                                           "params": [
-                                                            {"name": "fasta", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta"},
-                                                            {"name": "kabat", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.kabat"},
+                                                            {"name": "fasta", "value": "/opt/ig-pipeline/data/train/VDJH_train.fasta"},
+                                                            {"name": "kabat", "value": "/opt/ig-pipeline/data/train/VDJH_train.kabat"},
                                                             {"name": "model_name", "value": "model.mdl"},
                                                             {"name": "ml_window_size", "value": "5"}
                                                           ],
@@ -33,7 +33,7 @@ Generate model:
                                                        "executable": "ig-snooper/predict.py",
                                                        "input": {
                                                            "params": [
-                                                             {"name": "fasta", "value": "/Users/Kos/Dropbox/Biocad/ig-pipeline/data/train/VDJH_train.fasta"},
+                                                             {"name": "fasta", "value": "/opt/ig-pipeline/data/train/VDJH_train.fasta"},
                                                              {"name": "model_path", "value": "/opt/ig-pipeline/storage/testrun/0/model.mdl"},
                                                              {"name": "merge_threshold", "value": "1"},
                                                              {"name": "avg_window_size", "value": "10"},

@@ -27,6 +27,28 @@ class Predict(models.Model):
     group = models.CharField(max_length=256)
     comment = models.CharField(max_length=256)
 
+    def read_params(self, params_map):
+        if 'fasta' in params_map:
+            self.fasta = params_map['fasta'].path
+
+        if 'model_path' in params_map:
+            self.model_path = params_map['model_path'].path
+
+        if 'merge_threshold' in params_map:
+            self.merge_threshold = params_map['merge_threshold']
+
+        if 'avg_window_size' in params_map:
+            self.avg_window_size = params_map['avg_window_size']
+
+        if 'ml_window_size' in params_map:
+            self.ml_window_size = params_map['ml_window_size']
+
+        if 'group' in params_map:
+            self.group = params_map['group']
+
+        if 'comment' in params_map:
+            self.comment = params_map['comment']
+
     def __str__(self):
         return json.dumps(model_to_dict(self, fields=[], exclude=[]))
 

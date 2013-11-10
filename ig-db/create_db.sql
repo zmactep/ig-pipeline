@@ -14,6 +14,7 @@ create table igbackend_tasks (
 
 drop table django.igtools_train;
 drop table django.igtools_predict;
+drop table django.igtools_simplecluster;
 drop table django.igstorage_storageitem;
 drop table ig.auth_user_groups;
 drop table ig.auth_group_permissions;

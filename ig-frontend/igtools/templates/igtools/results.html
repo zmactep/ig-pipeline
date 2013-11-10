@@ -6,9 +6,6 @@
             <thead>
                 <tr>
                     <th>Backend ID</th>
-                    <th>Input FASTA</th>
-                    <th>Input KABAT</th>
-                    <th>Model path</th>
                     <th>Group</th>
                     <th>Comment</th>
                     <th>Response</th>
@@ -18,9 +15,6 @@
             {% for task in tasks %}
                 <tr>
                     <td>{{ task.backend_id }}</td>
-                    <td>{{ task.fasta }}</td>
-                    <td>{{ task.kabat }}</td>
-                    <td>{{ task.model_path }}</td>
                     <td>{{ task.group }}</td>
                     <td>{{ task.comment }}</td>
                     <td>Hover this line to update status</td>

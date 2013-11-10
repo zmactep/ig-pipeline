@@ -10,10 +10,12 @@
             <div class="col-md-4 col-md-offset-4 well">
                 <form action="" method="POST">
                     {% csrf_token %}
+{#                    TODO unhardcode list#}
                     <select id="tools_select" name="tools_select" onchange="this.form.submit()">
-                        <option value="none">Choose tool</option>
-                        <option value="train">Train</option>
-                        <option value="predict">Predict</option>
+                        <option value="TrainForm">Choose tool</option>
+                        <option value="TrainForm">Train</option>
+                        <option value="PredictForm">Predict</option>
+                        <option value="SimpleClusterForm">Cluster</option>
                     </select>
                 </form>
                 <form action="" id="request_form" method="post" enctype="multipart/form-data">
