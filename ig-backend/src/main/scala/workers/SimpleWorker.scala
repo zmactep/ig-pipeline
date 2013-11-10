@@ -7,9 +7,11 @@ import akka.pattern.pipe
 import com.googlecode.protobuf.format.JsonFormat
 import java.io._
 import utils.FileUtils
-import protocol.Command.{ResponseCommand, BatchCommand}
-import scala.collection.JavaConverters._
+import protocol.Command.{ResponseBatch, BatchCommand}
 import protocol.Command.BatchCommand.RequestCommand
+import scala.collection.JavaConverters._
+import protocol.Command.ResponseBatch.ResponseCommand
+import protocol.Command.ResponseBatch.ResponseCommand.{Builder, Files}
 
 
 /**
@@ -34,8 +36,9 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
         msg match {
           case (m, _) => {
             JsonFormat.merge(m.toString, batchBuilder)
-            val results = batchBuilder.build.getCommandsList.asScala.map(executeCommand).mkString("\n")
-            self ! WorkComplete(results)
+            val responseBatch = ResponseBatch.newBuilder()
+            batchBuilder.build.getCommandsList.asScala.map(executeCommand).foreach { result => responseBatch.addResult(result)}
+            self ! WorkComplete(JsonFormat.printToString(responseBatch.build()))
           }
         }
       } catch {
@@ -47,7 +50,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     } pipeTo self
   }
 
-  private def executeCommand(command: RequestCommand): String = {
+  private def executeCommand(command: RequestCommand): Builder = {
     def buildCommand(outDir: String): String = {
       val executable = new File(toolsRoot, command.getExecutable).toString
       val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName}=${p.getValue}").mkString(" ")
@@ -57,12 +60,19 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
       cmd
     }
 
-    def formatOutput(response: String) : String = {
+    def formatOutput(response: String, outDir: String) : Builder = {
       val responseBuilder = ResponseCommand.newBuilder()
-      //TODO use better way to check if everything is OK
-      if (response.contains("Done in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
+      if (response.contains("errors: none")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
       responseBuilder.setMessage(response)
-      JsonFormat.printToString(responseBuilder.build())
+
+      for (file <- new File(outDir).listFiles()) {
+        val filesBuilder = Files.newBuilder()
+        filesBuilder.setName(file.getName)
+        filesBuilder.setPath(file.getPath)
+        responseBuilder.addFiles(filesBuilder)
+      }
+
+      responseBuilder
     }
 
     val group = command.getInput.getGroup
@@ -78,12 +88,19 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
 
     val outDir = new File(storageRoot, new File(group, runNumber.toString).toString).toString
     FileUtils.createDirIfNotExists(outDir)
-    val execResult = Process(buildCommand(outDir), new java.io.File(toolsRoot)).!!
+
+    val outputSb = new StringBuilder
+    val errorSb = new StringBuilder
+
+    val logger = ProcessLogger((o: String) => outputSb.append(o), (e: String) => errorSb.append(e))
+
+    Process(buildCommand(outDir), new java.io.File(toolsRoot)) ! logger
     FileUtils.scanDir(outDir, toolsRoot, group, runNumber.toString)
 
+    val execResult = s"Result: ${outputSb.toString}, errors: ${if (errorSb.length > 0) errorSb.toString() else "none"}"
     FileUtils.saveToFile(new File(outDir, "description.txt").toString, execResult)
-    val response = formatOutput(execResult)
-    log.debug("Response: " + response)
+    val response = formatOutput(execResult, outDir)
+    log.debug("Response: " + JsonFormat.printToString(response.build()))
     response
   }
 }

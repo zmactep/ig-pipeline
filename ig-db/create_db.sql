@@ -1,7 +1,7 @@
 create database ig;
 create database django;
 use ig;
-create table ig_backend_tasks (
+create table igbackend_tasks (
 	id INT NOT NULL AUTO_INCREMENT,
 	params VARCHAR(4096) CHARACTER SET utf8,
 	result VARCHAR(4096) CHARACTER SET utf8,
@@ -12,7 +12,8 @@ create table ig_backend_tasks (
 
 #### after syncdb:
 
-drop table django.igsnooper_taskrequest;
+drop table django.igtools_train;
+drop table django.igtools_predict;
 drop table django.igstorage_storageitem;
 drop table ig.auth_user_groups;
 drop table ig.auth_group_permissions;

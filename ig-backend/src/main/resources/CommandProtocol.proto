@@ -24,7 +24,18 @@ message BatchCommand {
 }
 
 
-message ResponseCommand {
-    required string status = 1;
-    required string message = 2;
+message ResponseBatch {
+    message ResponseCommand {
+        required string status = 1;
+        required string message = 2;
+        repeated Files files = 3;
+
+        message Files {
+            required string name = 1;
+            required string path = 2;
+        }
+    }
+
+    repeated ResponseCommand result = 1;
 }
+

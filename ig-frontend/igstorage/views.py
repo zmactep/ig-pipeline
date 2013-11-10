@@ -1,5 +1,3 @@
-from django.http import HttpResponse
-from django.views import generic
 from django.shortcuts import render
 
 import logging
@@ -38,7 +36,7 @@ def view(request):
                         StorageItem.objects.using('ig').get(file_id=data['file_id'])
                         return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'status': 'Already exists'})
                     except StorageItem.DoesNotExist:
-                        item = StorageItem(file_id=data['file_id'], comment=data['comment'], path=data['path'])
+                        item = StorageItem(file_id=data['file_id'], comment=data['comment'], path=data['path'], group=data['group'], run=data['run'])
                         item.save(using='ig')
 
                     items = StorageItem.objects.using('ig').all()

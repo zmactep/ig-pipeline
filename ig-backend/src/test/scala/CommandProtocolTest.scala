@@ -1,7 +1,8 @@
 import com.googlecode.protobuf.format.JsonFormat
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.FunSpec
-import protocol.Command.{ResponseCommand, BatchCommand}
+import protocol.Command.BatchCommand
+import protocol.Command.ResponseBatch.ResponseCommand
 
 /**
  * Created with IntelliJ IDEA.
@@ -164,7 +165,14 @@ class CommandProtocolTest extends FunSpec with MustMatchers {
     it("""should parse response message""") {
       val builder = ResponseCommand.newBuilder()
       val jsonFormat =
-        """{"status": "ok", "message": "test"}"""
+        """{
+              "status": "ok",
+              "message": "test",
+              "files": [
+                  {"name": "file1.txt", "path": "./file1.txt"},
+                  {"name": "file2.txt", "path": "./file2.txt"}
+              ]
+            }"""
       JsonFormat.merge(jsonFormat, builder)
       val responseCommand = builder.build()
       jsonFormat.replace(" ", "").replace("\n", "") must be (JsonFormat.printToString(responseCommand).replace(" ", ""))
@@ -173,6 +181,13 @@ class CommandProtocolTest extends FunSpec with MustMatchers {
         'status ("ok"),
         'message ("test")
       )
+
+      val files = responseCommand.getFilesList
+      files.size == 2
+      files.get(0).getName == "file1.txt"
+      files.get(0).getPath == "./file1.txt"
+      files.get(1).getName == "file2txt"
+      files.get(1).getPath == "./file2.txt"
     }
   }
 }

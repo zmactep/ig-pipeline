@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="scroll">
-        <h1>Your prediction</h1>
+        <h1>File content</h1>
         {% with "/static"|add:file as path %}
         {% load staticfiles %}
         <a href="{% static path %}">Download link</a>
@@ -10,7 +10,7 @@
         <style type="text/css">
             p{font-family:"Courier New", Courier, monospace; white-space: nowrap;}
         </style>
-        {% include 'igsnooper/view_results_next_page.html' %}
+        {% include 'igtools/file_viewer_next_page.html' %}
         <script type="text/javascript">
             $('.scroll').jscroll();
         </script>

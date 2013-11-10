@@ -12,7 +12,6 @@ class StorageItem(models.Model):
     comment = models.CharField(max_length=256, null=True, blank=True)
     group = models.CharField(max_length=256, null=True, blank=True)
     run = models.CharField(max_length=256, null=True, blank=True)
-    comment = models.CharField(max_length=256, null=True, blank=True)
     path = models.CharField(max_length=256, null=True, blank=True)
 
     def __str__(self):

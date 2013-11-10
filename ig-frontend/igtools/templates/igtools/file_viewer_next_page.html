@@ -1,0 +1,10 @@
+
+{% for line in data %}
+    <p>
+    {{ line }}
+    </p>
+{% endfor %}
+{% if data.has_next %}
+    <a href="/listing/next/?file={{ file }}&page={{ data.next_page_number }}">next</a>
+{% endif %}
+
