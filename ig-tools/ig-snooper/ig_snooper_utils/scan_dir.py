@@ -11,13 +11,16 @@ def main():
     parser.add_argument('--db', nargs=1, help='db name')
     parser.add_argument('--user', nargs=1, help='db user')
     parser.add_argument('--password', nargs=1, help='db password')
+    parser.add_argument('--run', nargs=1, help='run number to put to table')
+    parser.add_argument('--group', nargs=1, help='filegroup')
     parser.add_argument('--dir', nargs=1, help='directory to scan')
     args = parser.parse_args()
 
-    scan(args.host.pop(0), int(args.port.pop(0)), args.db.pop(0), args.user.pop(0), args.password.pop(0), args.dir.pop(0))
+    scan(args.host.pop(0), int(args.port.pop(0)), args.db.pop(0), args.user.pop(0), args.password.pop(0),
+         args.group.pop(0), args.run.pop(0), args.dir.pop(0))
 
 
-def scan(host, port, db, user, password, dir):
+def scan(host, port, db, user, password, group, run, dir):
     if not isdir(dir):
         print('%s is not a dir. Abort.' % dir)
         exit(1)
@@ -32,11 +35,14 @@ def scan(host, port, db, user, password, dir):
     sql = """SELECT file_id, comment, path FROM igstorage_storageitem"""
     cursor.execute(sql)
     already_in_db = {path for (file_id, comment, path) in cursor.fetchall()}
-    add_files(cursor, dir, already_in_db)
+    try:
+        add_files(cursor, dir, group, run, already_in_db)
+    except Exception as e:
+        print('Error: %s' % e)
     db.close()
 
 
-def add_files(cursor, dir, already_in_db):
+def add_files(cursor, dir, group, run, already_in_db):
     print('Scanning dir %s' % dir)
     if isfile(dir):
         print('%s is a file, not a dir. Stop scanning dir' % dir)
@@ -45,14 +51,14 @@ def add_files(cursor, dir, already_in_db):
     for path in listdir(dir):
         full_path = join(dir, path)
         if isdir(full_path):
-            add_files(cursor, full_path, already_in_db)
+            add_files(cursor, full_path, group, run, already_in_db)
         else:
             if path not in already_in_db:
                 print('Adding file %s to db' % path)
                 already_in_db.add(path)
                 try:
-                    cursor.execute("insert into ig.igstorage_storageitem(file_id, path) values('%s', '%s')"
-                               % (basename(path), full_path))
+                    cursor.execute("insert into ig.igstorage_storageitem(file_id, `group`, run, path) "
+                                   "values('%s', '%s','%s', '%s')" % (basename(path), group, run, full_path))
                 except Exception as e:
                     print('Error adding file %s: $s' % (path, e))
             else:

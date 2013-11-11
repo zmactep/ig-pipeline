@@ -1,3 +1,4 @@
+import os
 import argparse
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -8,18 +9,18 @@ def main():
     parser = argparse.ArgumentParser(description='Cuts the region from FASTA based on KABAT and region number')
     parser.add_argument('--input', nargs=1, help='input fasta')
     parser.add_argument('--kabat', nargs=1, help='input kabat')
-    parser.add_argument('--output', nargs=1, help='output filename')
+    parser.add_argument('--outdir', nargs=1, help='output dir')
     parser.add_argument('--reg_num', nargs=1, help='0-based region number')
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
-    cut(args.input.pop(0), args.output.pop(0), args.kabat.pop(0), int(args.reg_num.pop(0)))
+    cut(args.input.pop(0), args.outdir.pop(0), args.kabat.pop(0), int(args.reg_num.pop(0)))
 
 
-def cut(input, output, kabat, reg_num):
+def cut(input, outdir, kabat, reg_num):
     with open(kabat, 'rU') as kabat_file:
         ref_dict = dict([parse_kabat_line(line) for line in kabat_file])
 
-    out = open(output, 'w')
+    out = open(os.path.join(outdir, 'output.fasta'), 'w')
     for record in SeqIO.parse(input, "fasta"):
         if record.id in ref_dict:
             regions_list = ref_dict[record.id]

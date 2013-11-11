@@ -26,9 +26,9 @@ class Master(conn: Connection) extends Actor with ActorLogging {
   import scala.collection.mutable.{Map, Queue}
 
   classOf[com.mysql.jdbc.Driver]
-  val prepInsert = conn.prepareStatement("INSERT INTO ig_backend_tasks (params, result, status) VALUES (?, ?, ?)")
-  val prepUpdate = conn.prepareStatement("UPDATE ig_backend_tasks set result = ?, status = ? WHERE id = ?")
-  val prepSelect = conn.prepareStatement("SELECT result, status from  ig_backend_tasks WHERE id = ?")
+  val prepInsert = conn.prepareStatement("INSERT INTO igbackend_tasks (params, result, status) VALUES (?, ?, ?)")
+  val prepUpdate = conn.prepareStatement("UPDATE igbackend_tasks set result = ?, status = ? WHERE id = ?")
+  val prepSelect = conn.prepareStatement("SELECT result, status from  igbackend_tasks WHERE id = ?")
 
   // Holds known workers and what they may be working on
   //jobId, worksender, work

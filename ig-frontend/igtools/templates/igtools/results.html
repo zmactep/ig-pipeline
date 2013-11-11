@@ -6,11 +6,6 @@
             <thead>
                 <tr>
                     <th>Backend ID</th>
-                    <th>Тип запроса</th>
-                    <th>Input FASTA</th>
-                    <th>Input KABAT</th>
-                    <th>Model path</th>
-                    <th>Output dir</th>
                     <th>Group</th>
                     <th>Comment</th>
                     <th>Response</th>
@@ -20,11 +15,6 @@
             {% for task in tasks %}
                 <tr>
                     <td>{{ task.backend_id }}</td>
-                    <td>{{ task.task }}</td>
-                    <td>{{ task.input_file_fasta }}</td>
-                    <td>{{ task.input_file_kabat }}</td>
-                    <td>{{ task.model_path }}</td>
-                    <td>{{ task.out_dir }}</td>
                     <td>{{ task.group }}</td>
                     <td>{{ task.comment }}</td>
                     <td>Hover this line to update status</td>
@@ -43,17 +33,30 @@
                 $.ajax({
                     type: "POST",
                     dataType: "json",
-                    url: "{% url 'igsnooper:ask_backend' %}",
+                    url: "{% url 'igtools:ask_backend' %}",
                     data: {"id": backend_id},
                     success: function (response) {
                         $("#backend_response").html(response);
-                        var result = JSON.parse(response)
-                        if (result['status'] == 'ok') {
-                            var anchorElem = document.createElement('a');
-                            anchorElem.setAttribute("href", "/listing/?file=" + result['data'][0]['fullpath']);
-                            anchorElem.innerHTML = 'Result file';
-                            updateField.html(anchorElem);
+                        var messages = JSON.parse(response)['result'];
+                        var elemsToAppend=$()
+                        for (var i = 0; i < messages.length; i++) {
+                            var result = messages[i];
+                            if (result['status'] == 'ok') {
+                                var files = result['files'];
+                                for (var j = 0; j < files.length; j ++) {
+                                    var anchorElem = document.createElement('a');
+                                    anchorElem.setAttribute("href", "/listing/?file=" + files[j]['path']);
+                                    anchorElem.innerHTML = files[j]['name'];
+                                    var p = document.createElement('p');
+                                    p.appendChild(anchorElem);
+                                    elemsToAppend = elemsToAppend.add(p)
+                                }
+                            }
                         }
+
+
+                        updateField.empty();
+                        updateField.append(elemsToAppend);
                     }
                 });
                 return false;

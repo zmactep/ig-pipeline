@@ -137,7 +137,7 @@ INSTALLED_APPS = (
     'userprofile',
     'messages',
     'main',
-    'igsnooper',
+    'igtools',
     'igstorage',
 )
 

@@ -23,7 +23,7 @@ urlpatterns = patterns(
     url(r'', include('registration.backends.default.urls')),
 
     # Tasks dashboard
-    url(r'^', include('igsnooper.urls', namespace='igsnooper')),
+    url(r'^', include('igtools.urls', namespace='igtools')),
 
     url(r'^', include('igstorage.urls', namespace='igstorage')),
 

@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-from igsnooper import views
+from igtools import views
 
 urlpatterns = patterns('',
     url(r'^$', views.create, name='create_view'),

@@ -35,9 +35,7 @@ object Main extends App {
   val tcpListener = system.actorOf(TcpListener.props(new InetSocketAddress("localhost", conf.getInt("ig-backend.tcp_port"))), "tcp-listener")
   val m = system.actorOf(Master.props(conn), "master")
 
-  val w1 = worker("master")
-  val w2 = worker("master")
-  val w3 = worker("master")
+  val workers = for (i <- 0 until conf.getInt("ig-backend.workers")) yield worker("master")
 
   system.awaitTermination()
   Console.println("Bye!")

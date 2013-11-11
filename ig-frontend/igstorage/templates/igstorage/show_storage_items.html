@@ -6,6 +6,8 @@
         <tr>
             <th>ID файла</th>
             <th>Комментарий</th>
+            <th>Группа</th>
+            <th>№ Запуска</th>
             <th>Расположение</th>
             <th></th>
         </tr>
@@ -15,6 +17,8 @@
         <tr>
             <td>{{ item.file_id }}</td>
             <td>{{ item.comment }}</td>
+            <td>{{ item.group }}</td>
+            <td>{{ item.run }}</td>
             <td><a href="/listing/?file={{ item.path }}">{{ item.path }}</a></td>
             <td>
                 <form action="" method="post" >
@@ -23,6 +27,8 @@
                         <input type="text" name="file_id" value="{{ item.file_id }}" style="display: none;">
                         <input type="text" id="modified_id" name="modified_id" style="display: none;">
                         <input type="text" id="comment" name="comment" style="display: none;">
+                        <input type="text" id="group" name="group" style="display: none;">
+                        <input type="text" id="run" name="run" style="display: none;">
                     {% endwith %}
                     <input type="submit" class="btn btn-default" name="btn_delete" value="Delete"/>
                     <input type="submit" class="btn btn-default" name="btn_update" id="btn_update" value="Save" style="display: none;"/>
@@ -51,7 +57,7 @@
         $('td').click(
         function(){
             if ($(this).index() < 2) { //modify only file_id and comment
-                $('#btn_update').show();
+                $(this).parent().find('#btn_update').show();
                 var text = $(this).text();
                 $(this).text('');
                 $('<textarea />').appendTo($(this)).val(text).select().blur(
@@ -60,13 +66,16 @@
                         $(this).parent().text(newText).find('textarea').remove();
                     });
             }
+            if ($(this).index() == 5) {
+                var modified_id = $(this).parent().children('td').eq(0).html()
+                var comment = $(this).parent().children('td').eq(1).html()
+                var group = $(this).parent().children('td').eq(2).html()
+                var run = $(this).parent().children('td').eq(3).html()
+               $(this).parent().find('#modified_id').val(modified_id)
+               $(this).parent().find('#comment').val(comment)
+               $(this).parent().find('#group').val(group)
+               $(this).parent().find('#run').val(run)
+            }
         });
-
-        $('#btn_update').click(function(){
-            var modified_id = $(this).parent().parent().parent().children('td').eq(0).html()
-            var comment = $(this).parent().parent().parent().children('td').eq(1).html()
-           $(this).parent().find('#modified_id').val(modified_id)
-           $(this).parent().find('#comment').val(comment)
-        })
     </script>
 {% endblock %}

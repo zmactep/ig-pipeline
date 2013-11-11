@@ -4,11 +4,15 @@ import sys.process._
 import scala.concurrent.Future
 import akka.actor.{ActorPath, ActorRef, ActorLogging}
 import akka.pattern.pipe
-import protocol.Command.{ResponseCommand, RequestCommand}
 import com.googlecode.protobuf.format.JsonFormat
-import java.io.{IOException, FileWriter, BufferedWriter, File}
-import protocol.Command.ResponseCommand.PathAndDescription
+import java.io._
 import utils.FileUtils
+import protocol.Command.{ResponseBatch, BatchCommand}
+import protocol.Command.BatchCommand.RequestCommand
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
+import protocol.Command.ResponseBatch.ResponseCommand
+import protocol.Command.ResponseBatch.ResponseCommand.{Builder, Files}
 
 
 /**
@@ -28,123 +32,90 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
 
   def doWork(workSender: ActorRef, msg: Any): Unit = {
     Future {
-      val builder = RequestCommand.newBuilder()
+      val batchBuilder = BatchCommand.newBuilder()
       try {
         msg match {
-          case (m, _) => JsonFormat.merge(m.toString, builder)
+          case (m, _) => {
+            JsonFormat.merge(m.toString, batchBuilder)
+            val responseBatch = ResponseBatch.newBuilder()
+            val outputDirs = ListBuffer[String]()
+            batchBuilder.build.getCommandsList.asScala.map(executeCommand(_, outputDirs)).foreach {result => responseBatch.addResult(result)}
+            self ! WorkComplete(JsonFormat.printToString(responseBatch.build()))
+          }
         }
       } catch {
         case e: Exception => {
-          log.debug(e.toString)
+          log.debug(s"Error for task ${msg}: ${e.toString}")
           self ! akka.actor.Status.Failure(e)
         }
-      }
-      val requestCommand = builder.build()
-      requestCommand.getTask match {
-        case "find patterns" | "1" => self ! WorkComplete(findPattern(requestCommand.getInput, requestCommand.getOutput))
-        case "generate model" | "2" => self ! WorkComplete(generateModel(requestCommand.getInput, requestCommand.getOutput))
-        case "model list" | "3" => self ! WorkComplete(listModels(requestCommand.getInput))
-        case "test" => self ! WorkComplete("{\"status\": \"ok\"}")
       }
     } pipeTo self
   }
 
-  private def generateModel(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
+  private def executeCommand(command: RequestCommand, outputDirs: ListBuffer[String]): Builder = {
+    def substitutePaths(path: String): String = {
+      if (path.contains("{")) {
+        val start = path.indexOf("{")
+        val stop = path.indexOf("}", start)
+        val index = path.substring(start + 1, stop).toInt
+        if (index < outputDirs.size) {
+          return new File(outputDirs(index), path.substring(stop + 1)).toString
+        }
+      }
+      path
+    }
 
-    def buildCommand(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
-      val params = Map("--ml_window_size" -> input.getParams.getMlWindowsize,
-                       "--fasta" -> (if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)),
-                       "--kabat" -> (if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)),
-                       "--outdir" -> new File(storageRoot, output.getOutdir).toString,
-                       "--tools_root" -> toolsRoot,
-                       "--model_name" -> input.getParams.getModelName)
+    def buildCommand(outDir: String): String = {
+      val executable = new File(toolsRoot, command.getExecutable).toString
+      val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName}=${substitutePaths(p.getValue)}").mkString(" ")
 
-      val cmd = "python " + toolsRoot + "./ig-snooper/train.py " + params.map(p => p._1 + '=' + p._2).mkString(" ")
+      val cmd = s"python $executable $params --tools_root=${toolsRoot} --outdir=$outDir"
       log.debug(cmd)
       cmd
     }
 
-    def saveDescription(path: String, data: String) = {
-      try {
-        val out = new BufferedWriter(new FileWriter(new File(path)))
-        out.write(data)
-        out.close()
-      } catch {
-        case e: IOException =>
-      }
-    }
-
-    def formatOutput(response: String) : String = {
+    def formatOutput(response: String, outDir: String) : Builder = {
       val responseBuilder = ResponseCommand.newBuilder()
-      if (response.contains("Your model is in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
-      val pathBuilder = PathAndDescription.newBuilder()
-      pathBuilder.setDescription(response)
-      pathBuilder.setFullpath(new File(new File(storageRoot, output.getOutdir).toString, input.getParams.getModelName).toString)
-      responseBuilder.addData(pathBuilder.build())
-      JsonFormat.printToString(responseBuilder.build())
-    }
+      if (response.contains("errors: none")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
+      responseBuilder.setMessage(response)
 
-    FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
-
-    val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
-    saveDescription(new File(new File(storageRoot, output.getOutdir).toString, "description.txt").toString, execResult)
-
-    val response = formatOutput(execResult)
-    log.debug("Response: " + response)
-    response
-  }
-
-  private def listModels(input: RequestCommand.Input) : String = {
-    val models = Process("find . -name description.txt", new java.io.File(storageRoot)).!!
-    val responseBuilder = ResponseCommand.newBuilder()
-    responseBuilder.setStatus("ok")
-
-    if (! models.isEmpty) {
-      for (model <- models.split("\n")) {
-        val pathBuilder = PathAndDescription.newBuilder()
-        pathBuilder.setFullpath(new File(storageRoot, model.replace("description.txt", "")).toString)
-        pathBuilder.setDescription(io.Source.fromFile(new File(storageRoot, model).toString).mkString)
-        responseBuilder.addData(pathBuilder.build())
+      for (file <- new File(outDir).listFiles()) {
+        val filesBuilder = Files.newBuilder()
+        filesBuilder.setName(file.getName)
+        filesBuilder.setPath(file.getPath)
+        responseBuilder.addFiles(filesBuilder)
       }
-    }
-    JsonFormat.printToString(responseBuilder.build())
-  }
 
-  private def findPattern(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
-    def buildCommand(input: RequestCommand.Input, output: RequestCommand.Output) : String = {
-      val inputKabat = if (input.getFiles(0).endsWith("kabat")) input.getFiles(0) else input.getFiles(1)
-
-      val params = scala.collection.mutable.Map("--ml_window_size" -> input.getParams.getMlWindowsize,
-        "--fasta" -> (if (input.getFiles(0).endsWith("fasta")) input.getFiles(0) else input.getFiles(1)),
-        "--outdir" -> new File(storageRoot, output.getOutdir).toString,
-        "--tools_root" -> toolsRoot,
-        "--model_path" -> new File(storageRoot, input.getParams.getModelPath).toString,
-        "--ml_window_size" -> input.getParams.getMlWindowsize,
-        "--merge_threshold" -> input.getParams.getMergeThreshold,
-        "--avg_window_size" -> input.getParams.getAvgWidowsize)
-
-      if (new File(inputKabat).exists()) params += ("--kabat" -> inputKabat)
-
-      val cmd = "python " + toolsRoot + "./ig-snooper/predict.py " + params.map(p => p._1 + '=' + p._2).mkString(" ")
-      log.debug(cmd)
-      cmd
+      responseBuilder
     }
 
-    def formatOutput(response: String) : String = {
-      val responseBuilder = ResponseCommand.newBuilder()
-      if (response.contains("Done in ")) responseBuilder.setStatus("ok") else responseBuilder.setStatus("failed")
-      val pathBuilder = PathAndDescription.newBuilder()
-      pathBuilder.setDescription(response)
-      pathBuilder.setFullpath(new File(new File(storageRoot, output.getOutdir).toString, "results_pic.txt").toString)
-      responseBuilder.addData(pathBuilder.build())
-      JsonFormat.printToString(responseBuilder.build())
+    val group = command.getInput.getGroup
+    //runNumber == subdir name in group. Name is just  an increasing number. So, latestModified dir == dir with largest name
+    var runNumber = 0
+
+    try {
+      runNumber = FileUtils.getBiggestNameDir(new File(storageRoot, group).toString).toInt + 1
+    } catch {
+      case _: NumberFormatException => log.debug("No numeric folders in " + new File(storageRoot, group).toString)
+      case _: FileNotFoundException => log.debug("No last modified folder in " + new File(storageRoot, group).toString)
     }
 
-    FileUtils.createDirIfNotExists(storageRoot + output.getOutdir)
-    val execResult = Process(buildCommand(input, output), new java.io.File(context.system.settings.config.getString("ig-backend.tools_root"))).!!
+    val outDir = new File(storageRoot, new File(group, runNumber.toString).toString).toString
+    outputDirs += outDir
+    FileUtils.createDirIfNotExists(outDir)
 
-    val response = formatOutput(execResult)
-    log.debug("Response: " + response)
+    val outputSb = new StringBuilder
+    val errorSb = new StringBuilder
+
+    val logger = ProcessLogger((o: String) => outputSb.append(o), (e: String) => errorSb.append(e))
+
+    Process(buildCommand(outDir), new java.io.File(toolsRoot)) ! logger
+    FileUtils.scanDir(outDir, toolsRoot, group, runNumber.toString)
+
+    val execResult = s"Result: ${outputSb.toString}, errors: ${if (errorSb.length > 0) errorSb.toString() else "none"}"
+    FileUtils.saveToFile(new File(outDir, "description.txt").toString, execResult)
+    val response = formatOutput(execResult, outDir)
+    log.debug("Response: " + JsonFormat.printToString(response.build()))
     response
   }
 }
