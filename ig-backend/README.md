@@ -34,7 +34,7 @@ Generate model:
                                                        "input": {
                                                            "params": [
                                                              {"name": "fasta", "value": "/opt/ig-pipeline/data/train/VDJH_train.fasta"},
-                                                             {"name": "model_path", "value": "/opt/ig-pipeline/storage/testrun/0/model.mdl"},
+                                                             {"name": "model_path", "value": "{0}/model.mdl"},
                                                              {"name": "merge_threshold", "value": "1"},
                                                              {"name": "avg_window_size", "value": "10"},
                                                              {"name": "ml_window_size", "value": "5"}

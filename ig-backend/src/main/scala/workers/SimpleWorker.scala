@@ -10,6 +10,7 @@ import utils.FileUtils
 import protocol.Command.{ResponseBatch, BatchCommand}
 import protocol.Command.BatchCommand.RequestCommand
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 import protocol.Command.ResponseBatch.ResponseCommand
 import protocol.Command.ResponseBatch.ResponseCommand.{Builder, Files}
 
@@ -37,7 +38,8 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
           case (m, _) => {
             JsonFormat.merge(m.toString, batchBuilder)
             val responseBatch = ResponseBatch.newBuilder()
-            batchBuilder.build.getCommandsList.asScala.map(executeCommand).foreach { result => responseBatch.addResult(result)}
+            val outputDirs = ListBuffer[String]()
+            batchBuilder.build.getCommandsList.asScala.map(executeCommand(_, outputDirs)).foreach {result => responseBatch.addResult(result)}
             self ! WorkComplete(JsonFormat.printToString(responseBatch.build()))
           }
         }
@@ -50,10 +52,22 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     } pipeTo self
   }
 
-  private def executeCommand(command: RequestCommand): Builder = {
+  private def executeCommand(command: RequestCommand, outputDirs: ListBuffer[String]): Builder = {
+    def substitutePaths(path: String): String = {
+      if (path.contains("{")) {
+        val start = path.indexOf("{")
+        val stop = path.indexOf("}", start)
+        val index = path.substring(start + 1, stop).toInt
+        if (index < outputDirs.size) {
+          return new File(outputDirs(index), path.substring(stop + 1)).toString
+        }
+      }
+      path
+    }
+
     def buildCommand(outDir: String): String = {
       val executable = new File(toolsRoot, command.getExecutable).toString
-      val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName}=${p.getValue}").mkString(" ")
+      val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName}=${substitutePaths(p.getValue)}").mkString(" ")
 
       val cmd = s"python $executable $params --tools_root=${toolsRoot} --outdir=$outDir"
       log.debug(cmd)
@@ -87,6 +101,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     }
 
     val outDir = new File(storageRoot, new File(group, runNumber.toString).toString).toString
+    outputDirs += outDir
     FileUtils.createDirIfNotExists(outDir)
 
     val outputSb = new StringBuilder
