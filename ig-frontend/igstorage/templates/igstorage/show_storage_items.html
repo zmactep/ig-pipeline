@@ -69,8 +69,12 @@
             if ($(this).index() == 5) {
                 var modified_id = $(this).parent().children('td').eq(0).html()
                 var comment = $(this).parent().children('td').eq(1).html()
+                var group = $(this).parent().children('td').eq(2).html()
+                var run = $(this).parent().children('td').eq(3).html()
                $(this).parent().find('#modified_id').val(modified_id)
                $(this).parent().find('#comment').val(comment)
+               $(this).parent().find('#group').val(group)
+               $(this).parent().find('#run').val(run)
             }
         });
     </script>

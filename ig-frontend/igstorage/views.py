@@ -17,12 +17,16 @@ def view(request):
             file_id = request.POST.get('file_id', 'NA')
             new_file_id = request.POST.get('modified_id', 'NA')
             comment = request.POST.get('comment', 'NA')
+            group = request.POST.get('group', 'NA')
+            run = request.POST.get('run', 'NA')
 
-            item = StorageItem.objects.using('ig').get(file_id=file_id)
+            item = StorageItem.objects.using('ig').get(file_id=file_id, group=group, run=run)
             path = item.path
+            group = item.group
+            run = item.run
             item.delete(using='ig')
 
-            new_item = StorageItem(file_id=new_file_id, comment=comment, path=path)
+            new_item = StorageItem(file_id=new_file_id, comment=comment, path=path, run=run, group=group)
             new_item.save(using='ig')
 
             form = StorageItemForm()

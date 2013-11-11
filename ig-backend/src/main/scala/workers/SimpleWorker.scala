@@ -80,7 +80,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
     var runNumber = 0
 
     try {
-      runNumber = FileUtils.getLastModifiedDir(new File(storageRoot, group).toString).toInt + 1
+      runNumber = FileUtils.getBiggestNameDir(new File(storageRoot, group).toString).toInt + 1
     } catch {
       case _: NumberFormatException => log.debug("No numeric folders in " + new File(storageRoot, group).toString)
       case _: FileNotFoundException => log.debug("No last modified folder in " + new File(storageRoot, group).toString)

@@ -1,7 +1,9 @@
 from django.http import HttpResponse
 from igtools.models.predict import PredictForm, Predict
 from igtools.models.train import TrainForm, Train
-from igtools.models.simplecluster import SimpleClusterForm, SimpleCluster
+from igtools.models.cut_region import CutRegionForm, CutRegion
+from igtools.models.make_report import ReportForm, Report
+from igtools.models.simple_cluster import SimpleClusterForm, SimpleCluster
 from django.shortcuts import render
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
@@ -31,7 +33,9 @@ class TaskRequestView(generic.ListView):
         train_list = Train.objects.using('ig').all()
         predict_list = Predict.objects.using('ig').all()
         cluster_list = SimpleCluster.objects.using('ig').all()
-        return sorted(chain(train_list, predict_list, cluster_list), key=lambda record: record.backend_id)
+        cut_region_list = CutRegion.objects.using('ig').all()
+        report_list = Report.objects.using('ig').all()
+        return sorted(chain(train_list, predict_list, cluster_list, cut_region_list, report_list), key=lambda record: record.backend_id)
 
 
 def create(request):

@@ -21,20 +21,27 @@ object FileUtils {
     }
   }
 
-  def getLastModifiedDir(path: String): String = {
+  def getBiggestNameDir(path: String): String = {
     val dir = new File(path)
     if (! dir.exists()) {
       throw new FileNotFoundException
     }
     
-    val dirs = dir.listFiles().toList.filter(_.isDirectory)
+    val dirs = dir.listFiles(
+      new FilenameFilter() {
+        @Override
+        override def accept(dir: File, name: java.lang.String): Boolean = {
+          name.matches("\\d+")
+        }
+      }
+    ).toList.filter(_.isDirectory)
     if (dirs.length == 0) {
       throw new FileNotFoundException
     }
 
     var lastModifiedDir = dirs(0)
     dirs.drop(0).foreach { f =>
-      if (lastModifiedDir.lastModified() < f.lastModified()) {
+      if (lastModifiedDir.getName.toInt < f.getName.toInt) {
         lastModifiedDir = f
       }
     }
