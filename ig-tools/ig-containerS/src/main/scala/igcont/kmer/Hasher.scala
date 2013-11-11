@@ -12,21 +12,20 @@ import scala.collection.mutable.ArrayBuffer
 class Hasher(k : Int, alpha : TreeMap[Char, Int]) {
   private val _ksize = k
   private val _alpha = alpha
-  private val _asize = alpha.size
   private val _buffer = ArrayBuffer.empty[Int]
   private val _sbuffer = ArrayBuffer.empty[Char]
+
+  private val _didgitSize = math.ceil(math.log(_alpha.maxBy(_._2)._2)).toInt
+  private val _indexMask = (1 to _ksize*_didgitSize).foldLeft(0)((acc,_) => acc << 1 | 1)
 
   def add(c : Char) : Unit = {
     _sbuffer += c
     if (_sbuffer.size >= _ksize) {
       if (_buffer.size == 0) {
-        _buffer += _sbuffer.zipWithIndex.foldRight(0)((cc, prev) =>
-          prev + _alpha.get(cc._1).get * math.pow(_asize, cc._2).toInt)
+        _buffer += _sbuffer.foldLeft(0)((prev, cc) =>
+          prev << _didgitSize | _alpha.get(cc).get)
       } else {
-        val elem = _alpha.get(_sbuffer(_sbuffer.size - _ksize - 1)).get
-        val last = _buffer.last
-        val prenew  = (last - elem) / _asize
-        _buffer += (prenew + _alpha.get(c).get * math.pow(_asize, _ksize - 1).toInt)
+        _buffer += (_buffer.last << _didgitSize | _alpha.get(c).get) & _indexMask
       }
     }
   }
