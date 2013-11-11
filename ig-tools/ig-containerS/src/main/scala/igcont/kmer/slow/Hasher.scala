@@ -1,4 +1,4 @@
-package igcont.kmer
+package igcont.kmer.slow
 
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable.ArrayBuffer

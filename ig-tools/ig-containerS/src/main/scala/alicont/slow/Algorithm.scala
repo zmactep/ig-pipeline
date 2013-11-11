@@ -1,4 +1,5 @@
-package alicont
+package alicont.slow
+
 
 /**
  * Created with IntelliJ IDEA.

@@ -1,12 +1,13 @@
 package igcont
 
 import igcont.trie.Trie
-import igcont.kmer.Counter
 import igcont.anno.{Record, Anno}
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
-import alicont.{AlignmentResult, Alicont}
+import alicont.AlignmentResult
 import scala.collection.mutable.ArrayBuffer
+import igcont.kmer.bit.Counter
+import alicont.slow.Alicont
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,6 +19,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   private val _trie  = new Trie()
   private val _kstat = new Counter(alphabet, special, k)
   private val _anno  = new Anno(anno_types)
+  private var _depth = 0
 
   def this(alphabet : String, special : Char)= {
     this(alphabet, special, Array.empty, 7)
@@ -45,6 +47,11 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
     // Update kmer index
     _kstat.add(handle, seq, nodes)
+
+    // Update max depth
+    if (_depth < seq.size) {
+      _depth = seq.size
+    }
 
     handle
   }

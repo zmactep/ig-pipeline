@@ -1,6 +1,7 @@
 import alicont.Scoring
 import igcont.{ContainerUtils, Container}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 /**
@@ -11,21 +12,35 @@ import scala.util.Random
  */
 
 object Main{
-  def load_test(i : Int) = {
-    val cont = new Container("ACGT", 'N')
-    val rand = new Random()
+  private val strings = ArrayBuffer.empty[String]
 
+  def generate() = {
+    val rand = new Random()
+    for(i <- 0 until 10000) {
+      strings += (0 until 400).map(_ => "ACGT"(rand.nextInt(4))).foldRight("")((c, s) => s + c)
+    }
+  }
+
+  def load_test(cont : Container, i : Int) = {
     val rc = Runtime.getRuntime
     val start = System.currentTimeMillis()
 
-    for(i <- 0 until i*1000) {
-      cont.push((0 until 400).map(_ => "ACGT"(rand.nextInt(4))).foldRight("")((c, s) => s + c), i.toString)
-    }
-    printf("%d) %.2f (%dMB)\n", i, (System.currentTimeMillis() - start) / 1000.0,
+    (i * 1000 until (i+1) * 1000).foreach(j => cont.push(strings(j), j.toString))
+
+    printf("%d) %.2f (%dMB)\n", i + 1, (System.currentTimeMillis() - start) / 1000.0,
       (rc.totalMemory() - rc.freeMemory()) / 1024 / 1024)
   }
+
+
   def main(args : Array[String]) = {
+    println("Warmup")
     ContainerUtils.warmup()
-    (1 to 7).foreach(i => load_test(i))
+
+    println("Generate")
+    generate()
+
+    println("Test")
+    val cont = new Container("ACGT", 'N')
+    (0 until 9).foreach(i => load_test(cont, i))
   }
 }

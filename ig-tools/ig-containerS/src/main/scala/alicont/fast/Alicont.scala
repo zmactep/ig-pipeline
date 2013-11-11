@@ -1,33 +1,28 @@
-package alicont
+package alicont.fast
 
 import scala.collection.mutable
 
 /**
  * Created with IntelliJ IDEA.
  * User: mactep
- * Date: 28.10.13
- * Time: 15:03
+ * Date: 11.11.13
+ * Time: 16:47
  */
-class Alicont(query : String, gap : Int, score_matrix : Array[Array[Int]]) {
+class Alicont(maxheight : Int, query : String, gap : Int, score_matrix : Array[Array[Int]]) {
   private val _query   = query
   private val _gap     = gap
   private val _score   = score_matrix
-  private val _matrix  = new Matrix(query.size)
+  private val _matrix  = new Matrix(query.size, maxheight)
   private val _strings = new mutable.Stack[String]()
 
   def push(s : String) : Unit = {
     _strings.push(s)
-    if (_strings.size == 1) {
-      _matrix.push(Algorithm.needleman_wunsch(s, _query, _gap, _score))
-    }
-    else {
-      _matrix.push(Algorithm.needleman_wunsch(s, _query, _gap, _score, _matrix.last))
-    }
+    Algorithm.needleman_wunsch(s, _query, _gap, _score, _matrix)
   }
 
   def pop() : Unit = {
-    _strings.pop()
-    _matrix.pop()
+    val ls = _strings.pop()
+    _matrix.move(-ls.size)
   }
 
   def target : String = _strings.reverse.mkString("")

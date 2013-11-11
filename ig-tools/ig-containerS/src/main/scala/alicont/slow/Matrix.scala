@@ -1,4 +1,4 @@
-package alicont
+package alicont.slow
 
 import scala.Array
 import scala.collection.mutable.ArrayBuffer

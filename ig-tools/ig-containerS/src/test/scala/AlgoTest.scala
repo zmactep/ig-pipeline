@@ -1,4 +1,5 @@
-import alicont.{Scoring, Alicont}
+import alicont.slow.Alicont
+import alicont.{Scoring}
 import igcont.anno.Anno
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers

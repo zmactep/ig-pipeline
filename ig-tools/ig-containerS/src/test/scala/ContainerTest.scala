@@ -14,7 +14,18 @@ import scala.collection.mutable
  */
 class ContainerTest extends FlatSpec with ShouldMatchers {
 
-  "Container" should "have both name and handle addresation" in {
+  "Container" should "add sequences easy" in {
+    val cont = new Container("ACGT", 'N')
+
+    cont.push("ACGTAGCTACGATGCGACGACGACGAGGATGTTGGTTT", "Seq1")
+    cont.push("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "SeqA")
+    cont.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT", "Seq2")
+
+    cont.size should be (3)
+  }
+
+
+  it should "have both name and handle addresation" in {
     val cont = new Container("ACGT", 'N')
 
     cont.push("ACGTAGCTACGATGCGACGACGACGAGGATGTTGGTTT", "Seq1")
@@ -67,7 +78,7 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
     cont.push("ACTTGT", "Seq2")
 
     val set = new mutable.TreeSet[String]()
-    cont.find("NCTNGT").foreach(tpl => set += tpl._1)
+    cont.find("CTNGT").foreach(tpl => set += tpl._1)
 
     set should be (mutable.TreeSet[String]("Seq1", "Seq2"))
   }

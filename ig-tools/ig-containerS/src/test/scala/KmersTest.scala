@@ -1,4 +1,4 @@
-import igcont.kmer.Counter
+import igcont.kmer.bit.Counter
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
