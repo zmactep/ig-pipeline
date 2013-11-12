@@ -1,5 +1,5 @@
-import alicont.slow.Alicont
-import alicont.{Scoring}
+import alicont.fast.Alicont
+import alicont.Scoring
 import igcont.anno.Anno
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
@@ -30,7 +30,7 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
 
   "Alignment" should "count right score" in {
     val path : String = "../../data/BLOSUM62.txt"
-    val a = new Alicont("MEANLY", -5, Scoring.loadMatrix(path))
+    val a = new Alicont(11, "MEANLY", -5, Scoring.loadMatrix(path))
     a.push("PLE")
     a.push("ASANT")
     a.push("LY")

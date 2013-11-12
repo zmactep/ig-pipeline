@@ -19,7 +19,7 @@ object Algorithm {
       matrix.last(0) = matrix.pred(0) + gap
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
-        matrix.last(j) = (matrix(i - 1)(j - 1) + score :: matrix(i - 1)(j) + gap :: matrix(i)(j - 1) + gap :: Nil).max
+        matrix.last(j) = (matrix.pred(j - 1) + score :: matrix.pred(j) + gap :: matrix.last(j - 1) + gap :: Nil).max
       })
     })
   }
