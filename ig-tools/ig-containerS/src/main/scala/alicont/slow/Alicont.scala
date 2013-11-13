@@ -15,6 +15,11 @@ class Alicont(query : String, gap : Int, score_matrix : Array[Array[Int]]) {
   private val _matrix  = new Matrix(query.size)
   private val _strings = new mutable.Stack[String]()
 
+  // Just for capability with fast version
+  def this(maxsize : Int, query : String, gap : Int, score_matrix : Array[Array[Int]]) = {
+    this(query, gap, score_matrix)
+  }
+
   def push(s : String) : Unit = {
     _strings.push(s)
     if (_strings.size == 1) {

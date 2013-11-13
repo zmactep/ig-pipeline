@@ -1,4 +1,3 @@
-import alicont.Scoring
 import igcont.{ContainerUtils, Container}
 
 import scala.collection.mutable.ArrayBuffer
