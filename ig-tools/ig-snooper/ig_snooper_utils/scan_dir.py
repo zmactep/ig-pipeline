@@ -39,6 +39,8 @@ def scan(host, port, db, user, password, group, run, dir):
         add_files(cursor, dir, group, run, already_in_db)
     except Exception as e:
         print('Error: %s' % e)
+    cursor.close()
+    db.commit()
     db.close()
 
 
@@ -53,18 +55,17 @@ def add_files(cursor, dir, group, run, already_in_db):
         if isdir(full_path):
             add_files(cursor, full_path, group, run, already_in_db)
         else:
-            if path not in already_in_db:
-                print('Adding file %s to db' % path)
-                already_in_db.add(path)
+            if full_path not in already_in_db:
+                print('Adding file %s to db' % full_path)
+                already_in_db.add(full_path)
                 try:
                     cursor.execute("insert into ig.igstorage_storageitem(file_id, `group`, run, path) "
-                                   "values('%s', '%s','%s', '%s')" % (basename(path), group, run, full_path))
+                                   "values('%s', '%s','%s', '%s')" % (basename(full_path), group, run, full_path))
                 except Exception as e:
-                    print('Error adding file %s: $s' % (path, e))
+                    print('Error adding file %s: $s' % (full_path, e))
             else:
-                print('File %s already in db.' % path)
+                print('File %s already in db.' % full_path)
 
 
 if __name__ == "__main__":
     main()
-
