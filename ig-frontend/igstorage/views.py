@@ -47,12 +47,12 @@ def view(request):
                         item = StorageItem(file_id=data['file_id'], comment=data['comment'], path=data['path'], group=data['group'], run=data['run'])
                         item.save(using='ig')
 
-                    items = StorageItem.objects.using('ig').all().order_by('group').order_by('run')
+                    items = StorageItem.objects.using('ig').all().order_by('group', 'run')
                     return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'status': 'OK', 'items': items, 'storage_root': settings.STORAGE_ROOT})
     else:
         form = StorageItemForm()  # An unbound form
 
-    items = StorageItem.objects.using('ig').all().order_by('group').order_by('run')
+    items = StorageItem.objects.using('ig').all().order_by('group', 'run')
     return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'items': items, 'storage_root': settings.STORAGE_ROOT})
 
 
