@@ -206,3 +206,5 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'info@igcad.yakovlev.me'
+
+STORAGE_ROOT = '/opt/ig-pipeline/'

@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
-<table class="table table-striped">
+<button class="btn btn-default" id="expand_all">Развернуть все</button>
+<button class="btn btn-default" id="collapse_all">Свернуть все</button>
+<h4>Нажмите на ID файла или комментарии для изменения</h4>
+
+<table class="table table-striped table-hover" id="table-expandable">
     <thead>
         <tr>
             <th>ID файла</th>
             <th>Комментарий</th>
-            <th>Группа</th>
-            <th>№ Запуска</th>
             <th>Расположение</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
     {% for item in items %}
-        <tr>
+        {% ifchanged item.group %}
+            <tr class="success" data-tt-id="{{ item.group }}-node">
+                <td>Группа: {{ item.group }}</td><td/><td/><td/>
+            </tr>
+        {% endifchanged %}
+        {% ifchanged item.group item.run %}
+            <tr class="warning" data-tt-id="{{ item.group }}-{{ item.run }}-node" data-tt-parent-id="{{ item.group }}-node">
+                <td>№ Запуска: {{ item.run }}</td><td/><td/><td/>
+            </tr>
+        {% endifchanged %}
+        <tr data-tt-id="{{ item.group }}-{{ item.run }}-data" data-tt-parent-id="{{ item.group }}-{{ item.run }}-node" group="{{ item.group }}" run="{{ item.run }}">
             <td>{{ item.file_id }}</td>
             <td>{{ item.comment }}</td>
-            <td>{{ item.group }}</td>
-            <td>{{ item.run }}</td>
             <td><a href="/listing/?file={{ item.path }}">{{ item.path }}</a></td>
             <td>
-                <form action="" method="post" >
+                <form action="" method="post">
                     {% csrf_token %}
                     {% with modified_id=item.file_id%}
                         <input type="text" name="file_id" value="{{ item.file_id }}" style="display: none;">
@@ -30,7 +40,7 @@
                         <input type="text" id="group" name="group" style="display: none;">
                         <input type="text" id="run" name="run" style="display: none;">
                     {% endwith %}
-                    <input type="submit" class="btn btn-default" name="btn_delete" value="Delete"/>
+                    <input type="submit" class="btn btn-warning" name="btn_delete" value="Delete"/>
                     <input type="submit" class="btn btn-default" name="btn_update" id="btn_update" value="Save" style="display: none;"/>
                 </form>
             </td>
@@ -38,44 +48,93 @@
     {% endfor %}
     </tbody>
 </table>
-<p>Нажмите на ID файла или комментарии для изменения</p>
-<h1>Create:</h1>
-<form action="" id="request_form" method="post" enctype="multipart/form-data" class="navbar-form navbar-left" role="search">
+<button class="btn btn-default" id="add_file">Добавить файл</button>
+
+<form action="" id="request_form" method="post" enctype="multipart/form-data" class="form-horizontal jumbotron" role="form" style="display: none;">
     {% csrf_token %}
-        {% for field in form %}
-        <div class="input-group">
-            <span class="input-group-addon">{{ field.label_tag }}</span>
-            {{ field }}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">ID файла</label>
+            <div class="col-sm-10">
+                <input class="form-control" id="name_id" type="text" name="file_id" data-validation="length" data-validation-length="min5" data-validation-error-msg="Введите, пожалуйста, произвольный ID файла">
+            </div>
         </div>
-        <br/>
-        {% endfor %}
-    <input type="submit" class="btn btn-info btn-block" value="Create" name="btn_create" id="create_button"/>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Комментарий</label>
+            <div class="col-sm-10">
+                <input class="form-control" id="comment_id" type="text" name="comment" data-validation="length" data-validation-length="min5" data-validation-error-msg="Введите, пожалуйста, комментарий не короче 5 символов">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Группа</label>
+            <div class="col-sm-10">
+                <input class="form-control" id="group_id" type="text" name="group" data-validation="length" data-validation-length="min5" data-validation-error-msg="Введите, пожалуйста, название группы не короче 5 символов">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">№ Запуска</label>
+            <div class="col-sm-10">
+                <input class="form-control" id="run_id" type="text" name="run" data-validation="number" data-validation-error-msg="Введите, пожалуйста, номер запуска">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Расположение:</label>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" name="path" id="path_id" placeholder="Выберите файл в панели внизу, или скопируйте сюда путь" data-validation="length" data-validation-length="min5" data-validation-error-msg="Слишком короткий путь. Вы уверены, что выбрали файл?">
+            </div>
+        </div>
+        <div id="explorer" > </div>
+    <input type="submit" class="btn btn-default" value="Добавить файл в список" name="btn_create" id="create_button"/>
 </form>
 <br/>
 <div id="status_bar">{{ status }}</div>
     <script type="text/javascript">
+        $(document).ready( function() {
+            $('#explorer').fileTree({ root: '{{ storage_root }}', script: "{% url 'igstorage:dir_list' %}" }, function(file) {
+                $("#path_id").val(file);
+                $("#name_id").val(file.split('/').reverse()[0])
+            });
+        });
+
         $('td').click(
         function(){
-            if ($(this).index() < 2) { //modify only file_id and comment
+            if ($(this).index() < 2 && $(this).parent().attr("data-tt-id").indexOf("-data") > -1) { //modify only file_id and comment
                 $(this).parent().find('#btn_update').show();
                 var text = $(this).text();
                 $(this).text('');
+                //insert left indent for tree view
+                var span = document.createElement('span');
+                span.setAttribute("class", "indenter");
+                span.setAttribute("style", "padding-left: 38px;");
+                $(this).append(span);
                 $('<textarea />').appendTo($(this)).val(text).select().blur(
                     function(){
                         var newText = $(this).val();
+                        var parent_td = $(this).parent()
                         $(this).parent().text(newText).find('textarea').remove();
+                        parent_td.prepend(span);
                     });
             }
-            if ($(this).index() == 5) {
-                var modified_id = $(this).parent().children('td').eq(0).html()
-                var comment = $(this).parent().children('td').eq(1).html()
-                var group = $(this).parent().children('td').eq(2).html()
-                var run = $(this).parent().children('td').eq(3).html()
+            if ($(this).index() == 3) {
+                var modified_id = $(this).parent().children('td').eq(0).text()
+                var comment = $(this).parent().children('td').eq(1).text()
+                var group = $(this).parent().attr("group")
+                var run = $(this).parent().attr("run")
                $(this).parent().find('#modified_id').val(modified_id)
                $(this).parent().find('#comment').val(comment)
                $(this).parent().find('#group').val(group)
                $(this).parent().find('#run').val(run)
             }
         });
+        $("#table-expandable").treetable({ expandable: true });
+         $("#expand_all").click(function(){
+            $("#table-expandable").treetable("expandAll")
+         })
+         $("#collapse_all").click(function(){
+            $("#table-expandable").treetable("collapseAll")
+         })
+        $("#add_file").click(function(){
+            $("#request_form").show()
+         })
+         $.validate();
     </script>
 {% endblock %}
