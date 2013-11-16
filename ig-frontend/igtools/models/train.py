@@ -73,12 +73,28 @@ class Train(models.Model):
 
 class TrainForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'style': 'display: none;'}), initial='Train', label='Train')
-    fasta           = CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id'), label='Input FASTA file', required=False)
-    kabat           = CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id'), label='Input KABAT file', required=False)
-    model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='Model file name', required=False, initial='model.model')
-    group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial='testrun', label='Group')
-    comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial='Some useful comment', label='Your comment')
-    ml_window_size  = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial=13, label='Machine learning window size')
+    fasta           = CustomModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                    queryset=StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id'),
+                    label='Входной FASTA файл', empty_label=None, required=True)
+    kabat           = CustomModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                    queryset=StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id'),
+                    label='Входной KABAT файл', empty_label=None, required=True)
+    model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'length', 'data-validation-length': 'min7',
+                    'data-validation-error-msg': 'Введите, пожалуйста, имя модели. Оно должно оканчиваться на .model'}),
+                    label='Имя файла модели', required=True, initial='model.model')
+    group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'length', 'data-validation-length': 'min5',
+                    'data-validation-error-msg': 'Введите, пожалуйста, название группы не короче 5 символов'}),
+                    initial='testrun', label='Группа')
+    comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'length', 'data-validation-length': 'min5',
+                    'data-validation-error-msg': 'Введите, пожалуйста, комментарий не короче 5 символов'}),
+                    initial='comment', label='Комментарий')
+    ml_window_size  = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'number',
+                    'data-validation-error-msg': 'Введите, пожалуйста, размер, на который будут разделены риды'}),
+                    initial=13, label='Размер окна для ML')
 
     def clean(self):
         try:
