@@ -87,14 +87,14 @@ class TrainForm(forms.Form):
 
     def set_additional_files(self, fasta, kabat, model):
         new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
-        total_fasta = self.fields['fasta'].objects
-        total_fasta.update(new_fasta)
-        self.fields['fasta'].objects = total_fasta
+        fasta_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')}
+        fasta_in_db.update(new_fasta)
+        self.fields['fasta'].objects = fasta_in_db
 
         new_kabat = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in kabat}
-        total_kabat = self.fields['kabat'].objects
-        total_kabat.update(new_kabat)
-        self.fields['kabat'].objects = total_kabat
+        kabat_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id')}
+        kabat_in_db.update(new_kabat)
+        self.fields['kabat'].objects = kabat_in_db
 
     def clean(self):
         try:

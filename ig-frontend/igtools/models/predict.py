@@ -106,14 +106,14 @@ class PredictForm(forms.Form):
 
     def set_additional_files(self, fasta, kabat, model):
         new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
-        total_fasta = self.fields['fasta'].objects
-        total_fasta.update(new_fasta)
-        self.fields['fasta'].objects = total_fasta
+        fasta_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')}
+        fasta_in_db.update(new_fasta)
+        self.fields['fasta'].objects = fasta_in_db
 
         new_model = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in model}
-        total_model = self.fields['model_path'].objects
-        total_model.update(new_model)
-        self.fields['model_path'].objects = total_model
+        model_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='model').order_by('file_id')}
+        model_in_db.update(new_model)
+        self.fields['model_path'].objects = model_in_db
 
     def clean(self):
         try:
