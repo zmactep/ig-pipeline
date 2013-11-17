@@ -73,18 +73,15 @@ class SimpleCluster(models.Model):
         if self.shortest_cons:
             params += [{"name": "shortest-cons", "value": str(self.shortest_cons)}]
 
-        request = {
-                  "commands":[
-                      {"executable": "ig-simplecluster/clusterize.py",
+        request = {"executable": "ig-simplecluster/clusterize.py",
                         "input": {
                            "params": params,
                            "comment": self.comment,
                            "group": self.group
                        }
                     }
-                  ]}
 
-        return json.dumps(request)
+        return request
 
     class Meta:
         app_label = 'igtools'

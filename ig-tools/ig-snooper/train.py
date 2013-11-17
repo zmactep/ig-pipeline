@@ -47,10 +47,10 @@ def main():
         output, error = Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-I', '10',
                                '-K', '0', '-S', '1', '-no-cv', '-p', '0',
                                '-t', os.path.join(params['outdir'], 'train_nominal_fixed.arff'),
-                               '-d', os.path.join(params['outdir'], params['model_name'])],
+                               '-d', os.path.join(params['outdir'], 'model.model')],
                               stdout=PIPE, stderr=PIPE).communicate()
 
-        model_path = os.path.join(params['outdir'], params['model_name'])
+        model_path = os.path.join(params['outdir'], 'model.model')
         if not (os.path.exists(model_path) and os.path.getsize(model_path) > 0):
             raise FileNotFoundError('Failed to train: %s; %s' % (output, error))
 
@@ -73,7 +73,6 @@ def get_params():
     parser.add_argument('--config_path', nargs='?', help='Path to config')
     parser.add_argument('--fasta', help='Train data in fasta')
     parser.add_argument('--kabat', help='Train data in kabat')
-    parser.add_argument('--model_name', help='Output model name')
     parser.add_argument('--ml_window_size', nargs='?', help='ML windows size')
     parser.add_argument('--tools_root', nargs='?', help='Tools dir')
     parser.add_argument('--outdir', nargs='?', help='Output directory')
@@ -85,7 +84,7 @@ def get_params():
         config.update(params)  # commandline args has higher priority
         params = config
 
-    required = ('fasta', 'kabat', 'model_name', 'ml_window_size', 'tools_root', 'outdir')
+    required = ('fasta', 'kabat', 'ml_window_size', 'tools_root', 'outdir')
     if not all(key in params and params[key] is not None for key in required):
         raise KeyError('Missing required params. Make sure that you have all of these: %s' % ' '.join(required))
 

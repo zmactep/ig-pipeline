@@ -8,68 +8,37 @@
         </div>
         <div class="container">
             <div class="col-md-4 col-md-offset-4 well">
-                <form action="" method="POST">
-                    {% csrf_token %}
-{#                    TODO unhardcode list#}
-                    <select id="tools_select" name="tools_select" onchange="this.form.submit()">
-                        <option value="TrainForm">Choose tool</option>
-                        <option value="TrainForm">Train</option>
-                        <option value="PredictForm">Predict</option>
-                        <option value="SimpleClusterForm">Cluster</option>
-                        <option value="CutRegionForm">CutRegion</option>
-                        <option value="ReportForm">Report</option>
-                        <option value="ClusterPipelineForm">ClusterPipeline</option>
-                    </select>
-                </form>
                 <form action="" id="request_form" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {% for field in form %}
-                        <div class="label label-default">
-                             {{ field.label_tag }}
-                        </div>
-                        {{ field }}
-                        <br/>
+                    {% for form in forms %}
+                        <h2>{{ form.name.label_tag }}</h2>
+                        {{ form }}
                     {% endfor %}
-                    <input type="submit" class="btn btn-info btn-block" value="Send"  />
+                    <select id="tools_select" name="tools_select">
+                        {% for tool in tools %}
+                            <option value="{{ tool.tool_name }}">{{ tool.tool_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <input type="submit" class="btn btn-warning" name="btn_add" value="Add Selected"/>
+                    <input type="submit" class="btn btn-danger" name="btn_delete" value="Delete Last"/>
+                    <input type="submit" class="btn btn-info btn-block" name="btn_start" value="Start"/>
                 </form>
             </div>
         </div>
 
         <br>
         <div class="page-header">
-              <h1>Response</h1>
+            <h1>Response</h1>
+            {{ response }}
         </div>
-        <div name="div_response" id="div_response">
-            No answer.
-        </div>
+
         <div class="page-header">
             <h1>Your tasks</h1>
             <a href="/tasks/">are here</a> or in Manage -> Results
         </div>
         <script type="text/javascript">
-        $(document).ready(function(){
-            $('#server_id').prev().show()
-            $('#port_id').prev().show()
-            $('#task_id').prev().show()
-            $('#group_id').prev().show()
-            var form = $("#request_form");
-            form.submit(function(event) {
-                event.preventDefault();
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'igtools:create_view' %}",
-                    data: form.serialize(),
-                    success: function (response) {
-                        var response_json = JSON.stringify(response)
-                        console.log(response_json)
-                        $("#div_response").html(response_json);
-                    }
-                });
-
-                return false;
-            });
-        });
-         $.validate();
+            $.validate();
         </script>
     {% else %}
         {% include 'main/not_auth.html' %}

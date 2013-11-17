@@ -4,7 +4,7 @@ from igtools.models.train import TrainForm, Train
 from igtools.models.cut_region import CutRegionForm, CutRegion
 from igtools.models.make_report import ReportForm, Report
 from igtools.models.simple_cluster import SimpleClusterForm, SimpleCluster
-from igtools.models.cluster_pipeline import ClusterPipelineForm, ClusterPipeline
+from igtools.models.manifest import Manifest
 from django.shortcuts import render
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
@@ -36,34 +36,66 @@ class TaskRequestView(generic.ListView):
         cluster_list = SimpleCluster.objects.using('ig').all()
         cut_region_list = CutRegion.objects.using('ig').all()
         report_list = Report.objects.using('ig').all()
-        pipeline_list = ClusterPipeline.objects.using('ig').all()
-        return sorted(chain(train_list, predict_list, cluster_list, cut_region_list, report_list, pipeline_list), key=lambda record: record.backend_id)
+        return sorted(chain(train_list, predict_list, cluster_list, cut_region_list, report_list), key=lambda record: record.backend_id)
+
+
+# collect all possible output files from previous forms (by manifest data)
+def add_previous_steps_files(forms_in_pipe):
+    pipelined_files_map = {'fasta': [], 'kabat': [], 'model': []}
+    for counter, form in zip(range(10), forms_in_pipe):
+        tool_name = form.data[str(counter) + '-name']
+        tool = Manifest.objects.using('ig').get(tool_name=tool_name)
+        for file_info in json.loads(tool.manifest)['output']:
+            if file_info['pipelined'] and file_info['type'] in pipelined_files_map:
+                pipelined_files_map[file_info['type']] += [('{' + str(counter) + '}/' + file_info['name'], str(counter))]
+    return pipelined_files_map
 
 
 def create(request):
+    forms_in_pipe = []
+    response = 'Nothing happened yet'
     if request.method == 'POST':  # If the form has been submitted...
         post = request.POST
-        if 'tools_select' in post:
-            form = eval(post['tools_select'])
-            return render(request, 'igtools/send_request.html', dictionary={'form': form})
+        #restore all forms from pipeline
+        for i in range(10):
+            form_name_tag = str(i) + '-name'
+            if form_name_tag in post:
+                pipelined_files_map = add_previous_steps_files(forms_in_pipe)
+                last_form = eval(post[form_name_tag] + 'Form')(post, request.FILES, prefix=str(i))
+                last_form.set_additional_files(pipelined_files_map['fasta'], pipelined_files_map['kabat'], pipelined_files_map['model'])
+                forms_in_pipe += [last_form]
 
-        else:
-            if post['name']:
-                name = post['name']
-                form = eval(name + 'Form')(post, request.FILES)
+        if 'btn_delete' in request.POST:
+            if len(forms_in_pipe) > 0:
+                forms_in_pipe.pop(len(forms_in_pipe) - 1)
+
+        if 'btn_add' in request.POST:
+            if len(forms_in_pipe) < 10:
+                pipelined_files_map = add_previous_steps_files(forms_in_pipe)
+                # manually add files to input lists:
+                new_form = eval(post['tools_select'] + 'Form')(prefix=str(len(forms_in_pipe)))
+                new_form.set_additional_files(pipelined_files_map['fasta'], pipelined_files_map['kabat'], pipelined_files_map['model'])
+                forms_in_pipe += [new_form]
+
+        if 'btn_start' in request.POST:
+            list_of_requests = []
+            for form, index in zip(forms_in_pipe, range(len(forms_in_pipe))):
                 if form.is_valid():
                     params_map = form.cleaned_data
-                    request = eval(name)()
-                    request.read_params(params_map)
+                    req = eval(params_map['name'])()
+                    req.read_params(form, index)
+                    list_of_requests += [req.get_backend_request()]
 
-            response = ask_server(request.get_backend_request())
-            request.backend_id = json.loads(response)['id']
-            request.save(using='ig')
-            return HttpResponse(response, content_type="application/json")
-    else:
-        form = TrainForm()  # An unbound form
+            result = ask_server(json.dumps({"commands": list_of_requests}))
+            try:
+                req.backend_id = json.loads(result)['id']
+                req.save(using='ig')
+                response = result
+            except:
+                response = 'Bad response from server: %s. Probably, backend is shut down' % result
 
-    return render(request, 'igtools/send_request.html', dictionary={'form': form})
+    tools = Manifest.objects.using('ig').all()
+    return render(request, 'igtools/send_request.html', dictionary={'forms': forms_in_pipe, 'tools': tools, 'response': response})
 
 
 @csrf_exempt

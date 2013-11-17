@@ -45,9 +45,7 @@ class Report(models.Model):
 
     def get_backend_request(self):
 
-        request = {
-                  "commands":[
-                      {"executable": "ig-simplecluster/make_report.py",
+        request = {"executable": "ig-simplecluster/make_report.py",
                         "input": {
                            "params": [
                                 {"name": "ldir", "value": self.ldir},
@@ -57,9 +55,8 @@ class Report(models.Model):
                            "group": self.group
                        }
                     }
-                  ]}
 
-        return json.dumps(request)
+        return request
 
     class Meta:
         app_label = 'igtools'

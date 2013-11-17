@@ -1,9 +1,10 @@
 from django.db import models
 from django import forms
 from django.forms.models import model_to_dict
-from igtools.models.general import CustomModelChoiceField
 from igstorage.models import StorageItem
+from igtools.forms import CachedModelChoiceField
 import json
+import os
 
 
 import logging
@@ -27,35 +28,34 @@ class Predict(models.Model):
     group = models.CharField(max_length=256)
     comment = models.CharField(max_length=256)
 
-    def read_params(self, params_map):
-        if 'fasta' in params_map:
-            self.fasta = params_map['fasta'].path
+    def read_params(self, form, index):
+        params_map = form.data
+        if str(index) + '-fasta' in params_map:
+            self.fasta = params_map[str(index) + '-fasta']
 
-        if 'model_path' in params_map:
-            self.model_path = params_map['model_path'].path
+        if str(index) + '-model_path' in params_map:
+            self.model_path = params_map[str(index) + '-model_path']
 
-        if 'merge_threshold' in params_map:
-            self.merge_threshold = params_map['merge_threshold']
+        if str(index) + '-merge_threshold' in params_map:
+            self.merge_threshold = params_map[str(index) + '-merge_threshold']
 
-        if 'avg_window_size' in params_map:
-            self.avg_window_size = params_map['avg_window_size']
+        if str(index) + '-avg_window_size' in params_map:
+            self.avg_window_size = params_map[str(index) + '-avg_window_size']
 
-        if 'ml_window_size' in params_map:
-            self.ml_window_size = params_map['ml_window_size']
+        if str(index) + '-ml_window_size' in params_map:
+            self.ml_window_size = params_map[str(index) + '-ml_window_size']
 
-        if 'group' in params_map:
-            self.group = params_map['group']
+        if str(index) + '-group' in params_map:
+            self.group = params_map[str(index) + '-group']
 
-        if 'comment' in params_map:
-            self.comment = params_map['comment']
+        if str(index) + '-comment' in params_map:
+            self.comment = params_map[str(index) + '-comment']
 
     def __str__(self):
         return json.dumps(model_to_dict(self, fields=[], exclude=[]))
 
     def get_backend_request(self):
-        request = {
-                  "commands":[
-                      {"executable": "ig-snooper/predict.py",
+        request = {"executable": "ig-snooper/predict.py",
                         "input": {
                            "params": [
                                 {"name": "fasta", "value": self.fasta},
@@ -68,9 +68,8 @@ class Predict(models.Model):
                            "group": self.group
                        }
                     }
-                  ]}
 
-        return json.dumps(request)
+        return request
 
     class Meta:
         app_label = 'igtools'
@@ -78,13 +77,43 @@ class Predict(models.Model):
 
 class PredictForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'label', 'type': 'text', 'style': 'display: none;'}), initial='Predict', label='Predict')
-    fasta           = CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id'), label='Input FASTA file', required=False)
-    model_path      = CustomModelChoiceField(queryset=StorageItem.objects.using('ig').filter(path__endswith='model').order_by('file_id'), label='Model file', required=False)
-    group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial='testrun', label='Group')
-    comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial='Some useful comment', label='Your comment')
-    ml_window_size  = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial=13, label='Machine learning window size')
-    merge_threshold = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial=10, label='Merge threshold window size')
-    avg_window_size = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), initial=10, label='Average window size')
+    fasta           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                        objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')},
+                        label='Входной FASTA файл', empty_label=None, required=True)
+    model_path      = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                        objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='model').order_by('file_id')},
+                        label='Файл с моделью', empty_label=None, required=True)
+    group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                        'data-validation': 'length', 'data-validation-length': 'min5',
+                        'data-validation-error-msg': 'Введите, пожалуйста, название группы не короче 5 символов'}),
+                        initial='testrun', label='Группа')
+    comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                        'data-validation': 'length', 'data-validation-length': 'min5',
+                        'data-validation-error-msg': 'Введите, пожалуйста, комментарий не короче 5 символов'}),
+                        initial='comment', label='Комментарий')
+    ml_window_size  = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'number',
+                    'data-validation-error-msg': 'Введите, пожалуйста, размер, на который будут разделены риды'}),
+                    initial=13, label='Размер окна для ML')
+    merge_threshold = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'number',
+                    'data-validation-error-msg': 'Введите, пожалуйста, порог скленивания коротких участков'}),
+                    initial=10, label='Порог скленивания коротких участков')
+    avg_window_size = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
+                    'data-validation': 'number',
+                    'data-validation-error-msg': 'Введите, пожалуйста, размер усредняющего окна'}),
+                    initial=10, label='Размер усредняющего окна')
+
+    def set_additional_files(self, fasta, kabat, model):
+        new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
+        total_fasta = self.fields['fasta'].objects
+        total_fasta.update(new_fasta)
+        self.fields['fasta'].objects = total_fasta
+
+        new_model = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in model}
+        total_model = self.fields['model_path'].objects
+        total_model.update(new_model)
+        self.fields['model_path'].objects = total_model
 
     def clean(self):
         try:
@@ -102,6 +131,6 @@ class PredictForm(forms.Form):
                 raise forms.ValidationError('group parameters missing')
 
         except forms.ValidationError as e:
-            log.debug('Error: %s' % e.messages)
+            log.debug('Error in Predict: %s' % e.messages)
             raise
         return self.cleaned_data

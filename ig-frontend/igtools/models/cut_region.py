@@ -48,9 +48,7 @@ class CutRegion(models.Model):
 
     def get_backend_request(self):
 
-        request = {
-                  "commands":[
-                      {"executable": "ig-snooper/ig_snooper_utils/cut_region.py",
+        request = {"executable": "ig-snooper/ig_snooper_utils/cut_region.py",
                         "input": {
                            "params": [
                                 {"name": "input", "value": self.input},
@@ -61,9 +59,8 @@ class CutRegion(models.Model):
                            "group": self.group
                        }
                     }
-                  ]}
 
-        return json.dumps(request)
+        return request
 
     class Meta:
         app_label = 'igtools'

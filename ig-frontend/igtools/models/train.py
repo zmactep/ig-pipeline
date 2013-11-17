@@ -1,10 +1,10 @@
 from django.db import models
 from django import forms
 from django.forms.models import model_to_dict
-from igtools.models.general import CustomModelChoiceField
+from igtools.forms import CachedModelChoiceField
 from igstorage.models import StorageItem
 import json
-
+import os
 
 import logging
 log = logging.getLogger('all')
@@ -17,7 +17,6 @@ class Train(models.Model):
     # files and paths
     fasta = models.CharField(max_length=256, null=True, blank=True)
     kabat = models.CharField(max_length=256, null=True, blank=True)
-    model_name = models.CharField(max_length=256, null=True, blank=True)
 
     # algo params
     ml_window_size = models.IntegerField(null=True, blank=True)
@@ -26,46 +25,40 @@ class Train(models.Model):
     group = models.CharField(max_length=256)
     comment = models.CharField(max_length=256)
 
-    def read_params(self, params_map):
-        if 'fasta' in params_map:
-            self.fasta = params_map['fasta'].path
+    def read_params(self, form, index):
+        params_map = form.data
+        if str(index) + '-fasta' in params_map:
+            self.fasta = params_map[str(index) + '-fasta']
 
-        if 'kabat' in params_map:
-            self.kabat = params_map['kabat'].path
+        if str(index) + '-kabat' in params_map:
+            self.kabat = params_map[str(index) + '-kabat']
 
-        if 'model_name' in params_map:
-            self.model_name = params_map['model_name']
+        if str(index) + '-ml_window_size' in params_map:
+            self.ml_window_size = params_map[str(index) + '-ml_window_size']
 
-        if 'ml_window_size' in params_map:
-            self.ml_window_size = params_map['ml_window_size']
+        if str(index) + '-group' in params_map:
+            self.group = params_map[str(index) + '-group']
 
-        if 'group' in params_map:
-            self.group = params_map['group']
-
-        if 'comment' in params_map:
-            self.comment = params_map['comment']
+        if str(index) + '-comment' in params_map:
+            self.comment = params_map[str(index) + '-comment']
 
     def __str__(self):
         return json.dumps(model_to_dict(self, fields=[], exclude=[]))
 
     def get_backend_request(self):
-        request = {
-                  "commands":[
-                      {"executable": "ig-snooper/train.py",
+        request = {"executable": "ig-snooper/train.py",
                         "input": {
                            "params": [
                                 {"name": "fasta", "value": self.fasta},
                                 {"name": "kabat", "value": self.kabat},
-                                {"name": "model_name", "value": self.model_name},
                                 {"name": "ml_window_size", "value": str(self.ml_window_size)}
                            ],
                            "comment": self.comment,
                            "group": self.group
                        }
                     }
-                  ]}
 
-        return json.dumps(request)
+        return request
 
     class Meta:
         app_label = 'igtools'
@@ -73,16 +66,12 @@ class Train(models.Model):
 
 class TrainForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text', 'style': 'display: none;'}), initial='Train', label='Train')
-    fasta           = CustomModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                    queryset=StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id'),
+    fasta           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                    objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')},
                     label='Входной FASTA файл', empty_label=None, required=True)
-    kabat           = CustomModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                    queryset=StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id'),
+    kabat           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
+                    objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id')},
                     label='Входной KABAT файл', empty_label=None, required=True)
-    model_name      = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
-                    'data-validation': 'length', 'data-validation-length': 'min7',
-                    'data-validation-error-msg': 'Введите, пожалуйста, имя модели. Оно должно оканчиваться на .model'}),
-                    label='Имя файла модели', required=True, initial='model.model')
     group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'length', 'data-validation-length': 'min5',
                     'data-validation-error-msg': 'Введите, пожалуйста, название группы не короче 5 символов'}),
@@ -96,20 +85,29 @@ class TrainForm(forms.Form):
                     'data-validation-error-msg': 'Введите, пожалуйста, размер, на который будут разделены риды'}),
                     initial=13, label='Размер окна для ML')
 
+    def set_additional_files(self, fasta, kabat, model):
+        new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
+        total_fasta = self.fields['fasta'].objects
+        total_fasta.update(new_fasta)
+        self.fields['fasta'].objects = total_fasta
+
+        new_kabat = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in kabat}
+        total_kabat = self.fields['kabat'].objects
+        total_kabat.update(new_kabat)
+        self.fields['kabat'].objects = total_kabat
+
     def clean(self):
         try:
             if not ('fasta' in self.cleaned_data and self.cleaned_data['fasta']):
                 raise forms.ValidationError('fasta parameters missing')
             if not ('kabat' in self.cleaned_data and self.cleaned_data['kabat']):
                 raise forms.ValidationError('kabat parameters missing')
-            if not ('model_name' in self.cleaned_data and self.cleaned_data['model_name']):
-                raise forms.ValidationError('model_name parameters missing')
             if not ('ml_window_size' in self.cleaned_data):
                 raise forms.ValidationError('ml_window_size parameters missing')
             if not ('group' in self.cleaned_data):
                 raise forms.ValidationError('group parameters missing')
 
         except forms.ValidationError as e:
-            log.debug('Error: %s' % e.messages)
+            log.debug('Error in Train: %s' % e.messages)
             raise
         return self.cleaned_data
