@@ -14,7 +14,9 @@ def view(request):
     if request.method == 'POST':  # If the form has been submitted...
         if 'btn_delete' in request.POST:
             file_id = request.POST.get('file_id', 'NA')
-            item = StorageItem.objects.using('ig').get(file_id=file_id)
+            group = request.POST.get('group', 'NA')
+            run = request.POST.get('run', 'NA')
+            item = StorageItem.objects.using('ig').get(file_id=file_id, group=group, run=run)
             item.delete(using='ig')
             form = StorageItemForm()
         elif 'btn_update' in request.POST:
@@ -41,7 +43,7 @@ def view(request):
                 data = form.cleaned_data
                 if 'btn_create' in request.POST:
                     try:
-                        StorageItem.objects.using('ig').get(file_id=data['file_id'])
+                        StorageItem.objects.using('ig').get(file_id=data['file_id'], group=data['group'], run=data['run'])
                         return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'status': 'Already exists', 'storage_root': settings.STORAGE_ROOT})
                     except StorageItem.DoesNotExist:
                         item = StorageItem(file_id=data['file_id'], comment=data['comment'], path=data['path'], group=data['group'], run=data['run'])
