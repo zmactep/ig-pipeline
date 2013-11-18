@@ -91,3 +91,14 @@ insert into ig.igtools_manifest(`tool_name`, `manifest`) values('Predict', '{
 		}
 	]
 }'); 
+
+
+insert into ig.igtools_manifest(`tool_name`, `manifest`) values('CutRegion', '{
+	"output": [
+		{
+			"name": "output.fasta",
+			"type": "fasta",
+			"pipelined": true 
+		}
+	]
+}'); 
