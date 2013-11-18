@@ -72,30 +72,30 @@ class CutRegion(models.Model):
 class CutRegionForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'label', 'type': 'text', 'style': 'display: none;'}), initial='CutRegion', label='CutRegion')
     input           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                    objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')},
                     label='Входной FASTA файл', empty_label=None, required=True)
     kabat           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                    objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id')},
                     label='Входной KABAT файл', empty_label=None, required=True)
     reg_num         = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'number', 'data-validation-allowing': 'range[0;6]',
                     'data-validation-error-msg': 'Введите, пожалуйста, размер, индекс региона (0-6), который необходимо вырезать. Нумерация с нуля'}),
-                    initial=6, label='Номер региона (с нуля)')
+                    initial=6, label='Номер региона (с нуля)', required=True)
     group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'length', 'data-validation-length': 'min5',
                     'data-validation-error-msg': 'Введите, пожалуйста, название группы не короче 5 символов'}),
-                    initial='testrun', label='Группа')
+                    initial='testrun', label='Группа', required=True)
     comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'length', 'data-validation-length': 'min5',
                     'data-validation-error-msg': 'Введите, пожалуйста, комментарий не короче 5 символов'}),
-                    initial='comment', label='Комментарий')
+                    initial='comment', label='Комментарий', required=True)
 
-    def set_additional_files(self, fasta, kabat, model):
+    def set_additional_files(self, pipelined_files_map):
+        fasta = pipelined_files_map['fasta']
         new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
         fasta_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')}
         fasta_in_db.update(new_fasta)
         self.fields['input'].objects = fasta_in_db
 
+        kabat = pipelined_files_map['kabat']
         new_kabat = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in kabat}
         kabat_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='kabat').order_by('file_id')}
         kabat_in_db.update(new_kabat)
@@ -111,6 +111,8 @@ class CutRegionForm(forms.Form):
                 raise forms.ValidationError('reg_num parameters missing')
             if not ('group' in self.cleaned_data):
                 raise forms.ValidationError('group parameters missing')
+            if not ('comment' in self.cleaned_data):
+                raise forms.ValidationError('comment parameters missing')
 
         except forms.ValidationError as e:
             log.debug('Error: %s' % e.messages)

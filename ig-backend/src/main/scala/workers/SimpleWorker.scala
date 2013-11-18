@@ -67,7 +67,7 @@ class SimpleWorker(masterLocation: ActorPath) extends Worker(masterLocation) wit
 
     def buildCommand(outDir: String): String = {
       val executable = new File(toolsRoot, command.getExecutable).toString
-      val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName}=${substitutePaths(p.getValue)}").mkString(" ")
+      val params = command.getInput.getParamsList.asScala.map(p => s"--${p.getName} ${substitutePaths(p.getValue)}").mkString(" ")
 
       val cmd = s"python $executable $params --tools_root=${toolsRoot} --outdir=$outDir"
       log.debug(cmd)

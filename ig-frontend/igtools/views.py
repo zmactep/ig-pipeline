@@ -41,7 +41,7 @@ class TaskRequestView(generic.ListView):
 
 # collect all possible output files from previous forms (by manifest data)
 def add_previous_steps_files(forms_in_pipe):
-    pipelined_files_map = {'fasta': [], 'kabat': [], 'model': []}
+    pipelined_files_map = {'fasta': [], 'kabat': [], 'model': [], 'dir': []}
     for counter, form in zip(range(10), forms_in_pipe):
         tool_name = form.data[str(counter) + '-name']
         tool = Manifest.objects.using('ig').get(tool_name=tool_name)
@@ -60,9 +60,8 @@ def create(request):
         for i in range(10):
             form_name_tag = str(i) + '-name'
             if form_name_tag in post:
-                pipelined_files_map = add_previous_steps_files(forms_in_pipe)
                 last_form = eval(post[form_name_tag] + 'Form')(post, request.FILES, prefix=str(i))
-                last_form.set_additional_files(pipelined_files_map['fasta'], pipelined_files_map['kabat'], pipelined_files_map['model'])
+                last_form.set_additional_files(add_previous_steps_files(forms_in_pipe))
                 forms_in_pipe += [last_form]
 
         if 'btn_delete' in request.POST:
@@ -71,10 +70,9 @@ def create(request):
 
         if 'btn_add' in request.POST:
             if len(forms_in_pipe) < 10:
-                pipelined_files_map = add_previous_steps_files(forms_in_pipe)
                 # manually add files to input lists:
                 new_form = eval(post['tools_select'] + 'Form')(prefix=str(len(forms_in_pipe)))
-                new_form.set_additional_files(pipelined_files_map['fasta'], pipelined_files_map['kabat'], pipelined_files_map['model'])
+                new_form.set_additional_files(add_previous_steps_files(forms_in_pipe))
                 forms_in_pipe += [new_form]
 
         if 'btn_start' in request.POST:
@@ -91,8 +89,8 @@ def create(request):
                 req.backend_id = json.loads(result)['id']
                 req.save(using='ig')
                 response = result
-            except:
-                response = 'Bad response from server: %s. Probably, backend is shut down' % result
+            except Exception as e:
+                response = 'Bad response from server: %s. Probably, backend is shut down' % e
 
     tools = Manifest.objects.using('ig').all()
     return render(request, 'igtools/send_request.html', dictionary={'forms': forms_in_pipe, 'tools': tools, 'response': response})

@@ -78,38 +78,38 @@ class Predict(models.Model):
 class PredictForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'label', 'type': 'text', 'style': 'display: none;'}), initial='Predict', label='Predict')
     fasta           = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                        objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')},
                         label='Входной FASTA файл', empty_label=None, required=True)
     model_path      = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
-                        objects=lambda: {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='model').order_by('file_id')},
                         label='Файл с моделью', empty_label=None, required=True)
     group           = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                         'data-validation': 'length', 'data-validation-length': 'min5',
                         'data-validation-error-msg': 'Введите, пожалуйста, название группы не короче 5 символов'}),
-                        initial='testrun', label='Группа')
+                        initial='testrun', label='Группа', required=True)
     comment         = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                         'data-validation': 'length', 'data-validation-length': 'min5',
                         'data-validation-error-msg': 'Введите, пожалуйста, комментарий не короче 5 символов'}),
-                        initial='comment', label='Комментарий')
+                        initial='comment', label='Комментарий', required=True)
     ml_window_size  = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'number',
                     'data-validation-error-msg': 'Введите, пожалуйста, размер, на который будут разделены риды'}),
-                    initial=13, label='Размер окна для ML')
+                    initial=13, label='Размер окна для ML', required=True)
     merge_threshold = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'number',
                     'data-validation-error-msg': 'Введите, пожалуйста, порог скленивания коротких участков'}),
-                    initial=10, label='Порог скленивания коротких участков')
+                    initial=10, label='Порог скленивания коротких участков', required=True)
     avg_window_size = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'number',
                     'data-validation-error-msg': 'Введите, пожалуйста, размер усредняющего окна'}),
-                    initial=10, label='Размер усредняющего окна')
+                    initial=10, label='Размер усредняющего окна', required=True)
 
-    def set_additional_files(self, fasta, kabat, model):
+    def set_additional_files(self, pipelined_files_map):
+        fasta = pipelined_files_map['fasta']
         new_fasta = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in fasta}
         fasta_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='fasta').order_by('file_id')}
         fasta_in_db.update(new_fasta)
         self.fields['fasta'].objects = fasta_in_db
 
+        model = pipelined_files_map['model']
         new_model = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in model}
         model_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='model').order_by('file_id')}
         model_in_db.update(new_model)
@@ -128,6 +128,8 @@ class PredictForm(forms.Form):
             if not ('avg_window_size' in self.cleaned_data):
                 raise forms.ValidationError('avg_window_size parameters missing')
             if not ('group' in self.cleaned_data):
+                raise forms.ValidationError('group parameters missing')
+            if not ('comment' in self.cleaned_data):
                 raise forms.ValidationError('group parameters missing')
 
         except forms.ValidationError as e:
