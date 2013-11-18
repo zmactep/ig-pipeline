@@ -124,7 +124,7 @@ insert into ig.igtools_manifest(`tool_name`, `manifest`) values('SimpleCluster',
 			"name": "./",
 			"type": "dir",
 			"pipelined": true 
-		}, 
+		} 
 	]
 }'); 
 
