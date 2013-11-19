@@ -94,8 +94,8 @@ class SimpleClusterForm(forms.Form):
     name            = forms.CharField(widget=forms.TextInput(attrs={'class': 'label', 'type': 'text', 'style': 'display: none;'}), initial='SimpleCluster', label='SimpleCluster')
     src             = CachedModelChoiceField(widget=forms.Select(attrs={'class': 'form-control', 'type': 'text'}),
                     label='Входной FASTA файл', empty_label=None, required=True)
-    sim             = forms.BooleanField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'checkbox'}), label='Поиск дубликатов вместо кластеризации (sim)', required=False)
-    shortest_cons   = forms.BooleanField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'checkbox'}), label='Shortest Cons', required=False) # нужно если sim = true
+    sim             = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class': 'form-control', 'type': 'checkbox'}), label='Поиск дубликатов вместо кластеризации (sim)', required=False)
+    shortest_cons   = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class': 'form-control', 'type': 'checkbox'}), label='Shortest Cons', required=False) # нужно если sim = true
     skip_first      = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}), label='Skip First', required=False) # нужно если sim = true
     min_len         = forms.IntegerField(widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'text',
                     'data-validation': 'number', 'data-validation-allowing': 'range[0;500]',

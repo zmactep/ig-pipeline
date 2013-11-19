@@ -84,7 +84,7 @@ class ReportForm(forms.Form):
         dir = pipelined_files_map['dir']
         new_dir = {file: str(os.path.basename(file) + ' - pipeline from stage ' + stage + ' - 0') for file, stage in dir}
         dir_in_db = {item.path: str(item.file_id + ' - ' + item.group + ' - ' + item.run) for item in StorageItem.objects.using('ig').filter(path__endswith='/').order_by('file_id')}
-        dir_in_db.update(new_dir)
+        new_dir.update(dir_in_db)
         self.fields['ldir'].objects = new_dir
         self.fields['hdir'].objects = new_dir
 
