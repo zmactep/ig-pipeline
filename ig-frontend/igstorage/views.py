@@ -42,12 +42,12 @@ def view(request):
             if form.is_valid():
                 data = form.cleaned_data
                 if 'btn_create' in request.POST:
-                    try:
-                        StorageItem.objects.using('ig').get(file_id=data['file_id'], group=data['group'], run=data['run'])
-                        return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'status': 'Already exists', 'storage_root': settings.STORAGE_ROOT})
-                    except StorageItem.DoesNotExist:
-                        item = StorageItem(file_id=data['file_id'], comment=data['comment'], path=data['path'], group=data['group'], run=data['run'])
-                        item.save(using='ig')
+                    for file in scan_dir(data['path']):
+                        try:
+                            StorageItem.objects.using('ig').get(file_id=get_basename(file), group=data['group'], run=data['run'])
+                        except StorageItem.DoesNotExist:
+                            item = StorageItem(file_id=get_basename(file), comment=data['comment'], path=get_basename(file), group=data['group'], run=data['run'])
+                            item.save(using='ig')
 
                     items = StorageItem.objects.using('ig').all().order_by('group', 'run')
                     return render(request, 'igstorage/show_storage_items.html', dictionary={'form': form, 'status': 'OK', 'items': items, 'storage_root': settings.STORAGE_ROOT})
@@ -76,3 +76,19 @@ def dir_list(request):
         r.append('Could not load directory: %s' % str(e))
     r.append('</ul>')
     return HttpResponse(''.join(r))
+
+
+def get_basename(name):
+    if name.endswith('/'):
+        return os.path.basename(name[:-1])
+    else:
+        return os.path.basename(name)
+
+
+# TODO rewrite for remote storage
+def scan_dir(directory):
+    result = [directory]
+    if os.path.isdir(directory):
+        for path in os.listdir(directory):
+            result += [os.path.join(directory, path)]
+    return result
