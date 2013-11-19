@@ -3,8 +3,8 @@ from contextlib import ExitStack
 import os
 from Bio import SeqIO
 import itertools
-import parsers.kabat as kabat
-import utils.kmer_generator as kmer_generator
+from parsers import kabat
+from utils import kmer_generator
 
 CAP_CHAR = '*'
 TRAIN_OUTPUT = "train.libsvm"
@@ -65,7 +65,7 @@ def get_kmers(sequence, k, padded):
     """ Generates k-mers taking care of padding the sequence if requested """
     if padded:
         sequence = '%(cap)s%(seq)s%(cap)s' % {'cap': CAP_CHAR*int(k/2), 'seq': sequence}
-    return kmer_generator.get_kmers(sequence, k)
+    return kmer_generator.get_string_kmers(sequence, k)
 
 
 def get_dataset(sequence, region_bounds, k, padded):
