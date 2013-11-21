@@ -75,8 +75,11 @@ def get_dataset(sequence, region_bounds, k, padded):
 
 def write_dataset(dataset, libsvm_file):
     """ Writes the output of get_dataset to file """
+    count = 0
     for label, kmer in dataset:
-        libsvm_file.write('\t'.join([str(label)] + ["%d:%c" % (index + 1, char) for index, char in enumerate(kmer)]) + '\n')
+        libsvm_file.write(' '.join([str(label)] + ["%d:%d" % (index + 1, ord(char)) for index, char in enumerate(kmer)]) + '\n')
+        count += 1
+    return count
 
 
 def process(k, padded, working_dir, libsvm_filename, fasta_filename, kabat_filename=None, comment_filename=None):
@@ -85,34 +88,36 @@ def process(k, padded, working_dir, libsvm_filename, fasta_filename, kabat_filen
     fasta file, and labels are taken from the kabat. If kabat is missing, zeros are used for labels. "Padded" specifies
     how k-mers are generated: from the sequence as it is, or from the sequence first padded with k/2 "empty space"
     characters on both ends.
+
+    Throws: ValueError, RuntimeError
     """
     if k % 2 == 0 or k < 1:
         raise ValueError("k must be an odd positive")
 
     with ExitStack() as stack:
-        fasta_file = stack.enter_context(open(os.path.join(working_dir, fasta_filename), 'rU'))
-        libsvm_file = stack.enter_context(open(os.path.join(working_dir, libsvm_filename), 'w'))
-        comment_file = stack.enter_context(open(os.path.join(working_dir, COMMENTS_OUTPUT), 'w')) \
-            if comment_filename else None
-        kabat_file = stack.enter_context(open(os.path.join(working_dir, kabat_filename), 'rU')) \
-            if kabat_filename else None
+        try:
+            fasta_file = stack.enter_context(open(fasta_filename, 'rU'))
+            libsvm_file = stack.enter_context(open(os.path.join(working_dir, libsvm_filename), 'w'))
+            comment_file = stack.enter_context(open(os.path.join(working_dir, COMMENTS_OUTPUT), 'w')) \
+                if comment_filename else None
+            kabat_file = stack.enter_context(open(kabat_filename, 'rU')) \
+                if kabat_filename else None
 
-        region_maps = {}
-        if kabat_file:
-            try:
+            region_maps = {}
+            if kabat_file:
                 region_maps = kabat.parse(kabat_file)
-            except kabat.ParseException as e:
-                raise RuntimeError from e
 
-        for record in SeqIO.parse(fasta_file, "fasta"):
-            if len(record.seq) < k:
-                print("Sequence %s shorter than k=%d, skipped\n" % (record.id, k))
-                continue
-            region_bounds = region_maps[record.id] if record.id in region_maps else []
-            dataset = get_dataset(record.seq, region_bounds, k, padded)
-            write_dataset(dataset, libsvm_file)
-            if comment_file:
-                comment_file.write(record.id + '\n')
+            for record in SeqIO.parse(fasta_file, "fasta"):
+                if len(record.seq) < k:
+                    print("Sequence %s shorter than k=%d, skipped\n" % (record.id, k))
+                    continue
+                region_bounds = region_maps[record.id] if record.id in region_maps else []
+                dataset = get_dataset(record.seq, region_bounds, k, padded)
+                count = write_dataset(dataset, libsvm_file)
+                if comment_file:
+                    comment_file.write((record.id + '\n') * count)
+        except (OSError, IOError, kabat.ParseException) as e:
+            raise RuntimeError from e
 
 
 def main():
