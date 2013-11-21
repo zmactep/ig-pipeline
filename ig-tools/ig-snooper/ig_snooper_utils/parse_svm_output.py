@@ -2,10 +2,11 @@
 
 import os
 import re
-from itertools import groupby, islice
+from itertools import groupby
 from collections import Counter
 from Bio import SeqIO
 from math import floor
+from utils import kmer_generator
 
 
 def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size, merge_threshold):
@@ -32,10 +33,10 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
         for key, group in groupby(name2prediction, lambda x: x[0]):
             if not key:
                 continue
-            # key is a seq_name, and prediction is a list of region predictions for each position in sequence
+                # key is a seq_name, and prediction is a list of region predictions for each position in sequence
             prediction = [x[1] for x in group]
             # Post processing step: averaging, merging small regions, etc...
-            averaged_prediction = average_prediction(prediction, avg_window_size) # list
+            averaged_prediction = average_prediction(prediction, avg_window_size)  # list
             debug_prediction.write("%s\n" % (key + '\t' + ''.join(prediction)))
             debug_prediction_avg.write("%s\n" % (key + '\t' + ''.join(averaged_prediction)))
             regions = kabat_range(averaged_prediction, merge_threshold)
@@ -49,12 +50,8 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
 
 
 def average_prediction(prediction_list, window_size):
-    return [str(Counter(window).most_common()[0][0]) for window in slide_window(prediction_list, window_size)]
-
-
-def slide_window(iterable, window_size):
-    shiftedStarts = [islice(iterable, s, None) for s in range(window_size)]
-    return zip(*shiftedStarts)
+    return [str(Counter(window).most_common()[0][0]) for window in
+            kmer_generator.get_sequence_kmers(prediction_list, window_size)]
 
 
 def kabat_range(prediction, merge_threshold):
@@ -62,9 +59,9 @@ def kabat_range(prediction, merge_threshold):
     previous_stop = 0
     first_region_number = prediction[0]
     for key, group in groupby(prediction):
-        sum_range = sum([1 for x in group])
+        group_size = sum([1 for _ in group])
         start = previous_stop + 1
-        stop = start + sum_range - 1
+        stop = start + group_size - 1
         result += start, stop
         previous_stop = stop
 
