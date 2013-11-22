@@ -56,7 +56,12 @@ class RegionAnnotator(n : String, t : SequenceType) {
 
     anno.zipWithIndex.foreach(tpl => {
       val (node, i) = tpl
-      result(i) = _regs.indexOf(node._2("Region"))
+      if (node._2.contains("Region")) {
+        result(i) = _regs.indexOf(node._2("Region"))
+      }
+      else {
+        result(i) = 7
+      }
     })
 
     result
