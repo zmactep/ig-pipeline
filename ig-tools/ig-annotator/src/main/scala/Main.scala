@@ -9,20 +9,17 @@ import igcont.ContainerUtils
  * Time: 9:59
  */
 object Main {
-  def main(s : Array[String]) = {
+  def main(args : Array[String]) = {
     ContainerUtils.warmup()
 
     val r = new RegionAnnotator("VDJH", SequenceType.NUCLEO, "../../data/train/VDJH_train")
     r.stats()
 
-    val query = "CAGGTGCAGCTGGTGCAGTCTGGGGCTGAGGTGAAGAAGCCTGGGGCCTCAGTGAAGGTCTCCTGCAAGGCTTCTGGATACACCTTCACCGGCTACTATATGCACTGGGTGCGACAGGCCCCTGGACAAGGGCTTGAGTGGATGGGACGGATCAACCCTAACAGTGGTGGCACAAACTATGCACAGAAGTTTCAGGGCAGGGTCACCAGTACCAGGGACACGTCCATCAGCACAGCCTACATGGAGCTGAGCAGGCTGAGATCTGACGACACGGTCGTGTATTACTGTGCGAGAGATAGTAGCTCCCACTATACCCTGAATACTTCCAGCACTGGGGCCAGGGCACCCTGGTCACCGTCTCCTCAG"
+    val query = args(0)
     var time = System.currentTimeMillis()
     var res : String = null
-    (1 to 100).foreach(i => {
-      res = r.annotate(query).foldLeft("")((s, i) => s + i)
-    })
-    time = System.currentTimeMillis() - time
-    printf("Time: %.2f\n", time / 1000.0)
-    printf("Avg time: %.2f\n", time / 1000.0 / 100)
+    res = r.annotate(query).foldLeft("")((s, i) => s + i)
+    println(query)
+    println(res)
   }
 }
