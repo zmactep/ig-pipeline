@@ -10,16 +10,9 @@ import igcont.ContainerUtils
  */
 object Main {
   def main(args : Array[String]) = {
-    ContainerUtils.warmup()
-
-    val r = new RegionAnnotator("VDJH", SequenceType.NUCLEO, "../../data/train/VDJH_train")
-    r.stats()
-
-    val query = args(0)
-    var time = System.currentTimeMillis()
-    var res : String = null
-    res = r.annotate(query).foldLeft("")((s, i) => s + i)
-    println(query)
+    val r = new RegionAnnotator("VDJH", if (args(1) == "amino") SequenceType.AMINO else SequenceType.NUCLEO, args(0))
+    val query = args(2)
+    var res : String = r.annotate(query).foldLeft("")((s, i) => s + i)
     println(res)
   }
 }
