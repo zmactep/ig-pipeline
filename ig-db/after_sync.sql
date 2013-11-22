@@ -91,3 +91,44 @@ insert into ig.igtools_manifest(`tool_name`, `manifest`) values('Predict', '{
 		}
 	]
 }'); 
+
+
+insert into ig.igtools_manifest(`tool_name`, `manifest`) values('CutRegion', '{
+	"output": [
+		{
+			"name": "output.fasta",
+			"type": "fasta",
+			"pipelined": true 
+		}
+	]
+}'); 
+
+insert into ig.igtools_manifest(`tool_name`, `manifest`) values('SimpleCluster', '{
+	"output": [
+		{
+			"name": "alignment.fasta",
+			"type": "fasta",
+			"pipelined": true 
+		},
+		{
+			"name": "consensus.fasta",
+			"type": "fasta",
+			"pipelined": true 
+		},
+		{
+			"name": "cluster_tree.dnd",
+			"type": "dnd",
+			"pipelined": true 
+		}, 
+		{
+			"name": "./",
+			"type": "dir",
+			"pipelined": true 
+		} 
+	]
+}'); 
+
+insert into ig.igtools_manifest(`tool_name`, `manifest`) values('Report', '{
+	"output": [
+	]
+}'); 

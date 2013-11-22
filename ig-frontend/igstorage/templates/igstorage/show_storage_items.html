@@ -55,7 +55,7 @@
         <div class="form-group">
             <label class="col-sm-2 control-label">ID файла</label>
             <div class="col-sm-10">
-                <input class="form-control" id="name_id" type="text" name="file_id" data-validation="length" data-validation-length="min5" data-validation-error-msg="Введите, пожалуйста, произвольный ID файла">
+                <input class="form-control" id="name_id" type="text" name="file_id" data-validation="length" data-validation-length="min5" data-validation-error-msg="Введите, пожалуйста, произвольный ID файла не короче 5 символов">
             </div>
         </div>
         <div class="form-group">
@@ -79,20 +79,25 @@
         <div class="form-group">
             <label class="col-sm-2 control-label">Расположение:</label>
             <div class="col-sm-10">
-                <input class="form-control" type="text" name="path" id="path_id" placeholder="Выберите файл в панели внизу, или скопируйте сюда путь" data-validation="length" data-validation-length="min5" data-validation-error-msg="Слишком короткий путь. Вы уверены, что выбрали файл?">
+                <input class="form-control" type="text" name="path" id="path_id" placeholder="Выберите файл в панели внизу, или скопируйте сюда путь. При выборе папки будет добавлено все ее содержимое (нерекурсивно)" data-validation="length" data-validation-length="min5" data-validation-error-msg="Слишком короткий путь. Вы уверены, что выбрали файл?">
             </div>
         </div>
         <div id="explorer" > </div>
     <input type="submit" class="btn btn-default" value="Добавить файл в список" name="btn_create" id="create_button"/>
 </form>
 <br/>
-<div id="status_bar">{{ status }}</div>
+<div id="status_bar" class="alert alert-success">{{ status }}</div>
     <script type="text/javascript">
         $(document).ready( function() {
             $('#explorer').fileTree({ root: '{{ storage_root }}', script: "{% url 'igstorage:dir_list' %}" }, function(file) {
                 $("#path_id").val(file);
-                $("#name_id").val(file.split('/').reverse()[0])
+                var path_components = file.split('/').reverse()
+                if (path_components[0] != '')
+                    $("#name_id").val(path_components[0])
+                else
+                    $("#name_id").val(path_components[1])
             });
+            $("#status_bar:empty").remove();
         });
 
         $('td').click(
@@ -102,10 +107,12 @@
                 var text = $(this).text();
                 $(this).text('');
                 //insert left indent for tree view
-                var span = document.createElement('span');
-                span.setAttribute("class", "indenter");
-                span.setAttribute("style", "padding-left: 38px;");
-                $(this).append(span);
+                if(0 == $(this).index()) {
+                    var span = document.createElement('span');
+                    span.setAttribute("class", "indenter");
+                    span.setAttribute("style", "padding-left: 38px;");
+                    $(this).append(span);
+                }
                 $('<textarea />').appendTo($(this)).val(text).select().blur(
                     function(){
                         var newText = $(this).val();

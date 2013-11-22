@@ -1,7 +1,7 @@
 import argparse
 import MySQLdb
 from os import listdir
-from os.path import isdir, isfile, basename, join
+from os.path import isdir, isfile, basename, join, sep
 
 
 def main():
@@ -52,19 +52,23 @@ def add_files(cursor, dir, group, run, already_in_db):
 
     for path in listdir(dir):
         full_path = join(dir, path)
-        if isdir(full_path):
-            add_files(cursor, full_path, group, run, already_in_db)
+        base_name = basename(full_path)
+        # add a trailing slash to recognize it as a dir in ig-frontend
+        full_path = (full_path + sep) if isdir(full_path) else full_path
+        if full_path not in already_in_db:
+            print('Adding file %s to db' % full_path)
+            already_in_db.add(full_path)
+            try:
+                cursor.execute("insert into ig.igstorage_storageitem(file_id, `group`, run, path) "
+                               "values('%s', '%s','%s', '%s')" % (base_name, group, run, full_path))
+            except Exception as e:
+                print('Error adding file %s: $s' % (full_path, e))
+
+            if isdir(full_path):
+                add_files(cursor, full_path, group, run, already_in_db)
         else:
-            if full_path not in already_in_db:
-                print('Adding file %s to db' % full_path)
-                already_in_db.add(full_path)
-                try:
-                    cursor.execute("insert into ig.igstorage_storageitem(file_id, `group`, run, path) "
-                                   "values('%s', '%s','%s', '%s')" % (basename(full_path), group, run, full_path))
-                except Exception as e:
-                    print('Error adding file %s: $s' % (full_path, e))
-            else:
-                print('File %s already in db.' % full_path)
+            print('File %s already in db.' % full_path)
+
 
 
 if __name__ == "__main__":
