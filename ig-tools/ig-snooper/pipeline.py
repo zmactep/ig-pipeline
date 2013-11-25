@@ -75,6 +75,7 @@ def _get_weka_train_action(args):
                               stdout=PIPE, stderr=PIPE).communicate()
 
         model_path = os.path.join(args['outdir'], 'model.model')
+
         if not (os.path.exists(model_path) and os.path.getsize(model_path) > 0):
             return False, 'Failed to train: %s; %s' % (output, error)
 
