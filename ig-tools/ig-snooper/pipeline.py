@@ -49,7 +49,7 @@ def _get_convert_to_libsvm_action(args, generate_comments=False):
 def _get_weka_conversion_action(args):
     def action():
         os.environ["CLASSPATH"] = os.path.join(args['tools_root'], WEKA_PATH)
-        output, error = Popen(['java', '-Xmx1024M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
+        output, error = Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
                                os.path.join(args['outdir'], 'dataset.libsvm'), '-o',
                                os.path.join(args['outdir'], 'dataset_nominal.arff')],
                               stdout=PIPE, stderr=PIPE).communicate()
@@ -68,7 +68,7 @@ def _get_weka_conversion_action(args):
 
 def _get_weka_train_action(args):
     def action():
-        output, error = Popen(['java', '-Xmx1024M', 'weka.classifiers.trees.RandomForest', '-I', '10',
+        output, error = Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-I', '10',
                                '-K', '0', '-S', '1', '-no-cv', '-p', '0',
                                '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
                                '-d', os.path.join(args['outdir'], 'model.model')],
@@ -87,7 +87,7 @@ def _get_weka_predict_action(args):
     def action():
         prediction_file_name = os.path.join(args['outdir'], 'prediction.txt')
         with open(prediction_file_name, 'w') as out:
-            Popen(['java', '-Xmx1024M', 'weka.classifiers.trees.RandomForest', '-no-cv', '-p', '0',
+            Popen(['java', '-Xmx4096M', 'weka.classifiers.trees.RandomForest', '-no-cv', '-p', '0',
                    '-l', args['model_path'], '-T', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')],
                   stdout=out).wait()
 

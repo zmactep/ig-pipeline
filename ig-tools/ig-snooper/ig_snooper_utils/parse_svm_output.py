@@ -2,7 +2,7 @@
 
 import os
 import re
-from itertools import groupby
+from itertools import groupby, dropwhile
 from collections import Counter
 from Bio import SeqIO
 from math import floor
@@ -50,8 +50,10 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
 
 
 def average_prediction(prediction_list, window_size):
-    return [str(Counter(window).most_common()[0][0]) for window in
-            kmer_generator.get_sequence_kmers(prediction_list, window_size)]
+    cap = ['*' for _ in range(window_size // 2)]
+    capped_predictions = cap + prediction_list + cap
+    return [Counter(filter(lambda x: x != '*', w)).most_common()[0][0]
+            for w in kmer_generator.get_sequence_kmers(capped_predictions, window_size)]
 
 
 def kabat_range(prediction, merge_threshold):
