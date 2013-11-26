@@ -73,3 +73,15 @@ class AlicontLocal(maxheight : Int, query : String, gap : Int, score_matrix : Ar
   def alignment() : (Int, (String, String)) =
     Algorithm.SmithWaterman.traceback(target, _query, _gap, _score, _scoreMatrix)
 }
+
+class AlicontSemiGlobal(maxheight : Int, query : String, gap : Int, score_matrix : Array[Array[Int]])
+  extends Alicont(maxheight, query, gap, score_matrix) {
+
+  def push(s : String) : Unit = {
+    _strings.push(s)
+    Algorithm.SemiGlobal.extendAlign(s, _query, _gap, _score, _scoreMatrix)
+  }
+
+  def alignment() : (Int, (String, String)) =
+    Algorithm.SemiGlobal.traceback(target, _query, _gap, _score, _scoreMatrix)
+}

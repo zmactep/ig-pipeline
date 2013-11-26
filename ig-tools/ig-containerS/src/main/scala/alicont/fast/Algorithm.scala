@@ -26,14 +26,13 @@ object Algorithm {
                   alignment : Matrix) : (Int, (String, String))
   }
 
-  object NeedlemanWunsch extends AlgorithmStandard {
+  abstract class NeedlemanWunschBase extends AlgorithmStandard {
     def extendAlign(s : String, query : String,
         gap : Int, score_matrix : Array[Array[Int]],
         matrix : Matrix) : Unit
      = {
       if (matrix.height == 0) {
-        matrix.move(1)
-        (0 to query.size).foreach(i => matrix.last(i) = i * gap)
+        initMatrix(matrix, query.size, gap)
       }
       (1 to s.size).foreach(i => {
         matrix.move(1)
@@ -48,18 +47,16 @@ object Algorithm {
     def traceback(s : String, query : String,
                   gap : Int, score_matrix : Array[Array[Int]],
                   alignment : Matrix) : (Int, (String, String)) = {
-      var (i, j) = (s.size, query.size)
-      val result_s = new StringBuilder()
-      val result_q = new StringBuilder()
+      var (score, i, j, result_s, result_q) = initTraceback(alignment, s, query)
 
       while (i != 0 || j != 0) {
         val cs : Char = if (i > 0) s(i - 1) else 0
         val cq : Char = if (j > 0) query(j - 1) else 0
-        if (i != 0 && alignment(i)(j) == alignment(i - 1)(j) + gap) {
+        if (j == 0 || (i != 0 && alignment(i)(j) == alignment(i - 1)(j) + gap)) {
           i -= 1
           result_s.append(cs)
           result_q.append('-')
-        } else if (j != 0 && alignment(i)(j) == alignment(i)(j - 1) + gap) {
+        } else if (i == 0 || (j != 0 && alignment(i)(j) == alignment(i)(j - 1) + gap)) {
           j -= 1
           result_s.append('-')
           result_q.append(cq)
@@ -72,9 +69,23 @@ object Algorithm {
           assert(false)
         }
       }
-      (alignment.last.last, (result_q.reverse.toString(), result_s.reverse.toString()))
+      (score, (result_q.reverse.toString(), result_s.reverse.toString()))
+    }
+    protected def initMatrix(matrix : Matrix, n : Int, gap : Int) : Unit
+    protected def initTraceback(alignment : Matrix, s : String, q : String)
+    : (Int, Int, Int, StringBuilder, StringBuilder)
+  }
+  object NeedlemanWunsch extends NeedlemanWunschBase {
+    protected def initMatrix(matrix : Matrix, n : Int, gap : Int) = {
+      matrix.move(1)
+      (0 to n).foreach(i => matrix.last(i) = i * gap)
+    }
+
+    protected def initTraceback(alignment : Matrix, s : String, q : String) = {
+      (alignment.last.last, s.size, q.size, new StringBuilder(), new StringBuilder())
     }
   }
+
   object SmithWaterman extends AlgorithmStandard {
     def extendAlign(s : String, query : String,
                     gap : Int, score_matrix : Array[Array[Int]],
@@ -133,6 +144,51 @@ object Algorithm {
       }
 
       (score, (result_q.reverse.toString(), result_s.reverse.toString()))
+    }
+  }
+  object SemiGlobal extends NeedlemanWunschBase {
+
+    protected def initMatrix(matrix : Matrix, n : Int, gap : Int) = {
+      matrix.move(1)
+      (0 to n).foreach(i => matrix.last(i) = 0)
+    }
+
+    protected def initTraceback(alignment : Matrix, s : String, query : String) = {
+      var result_s = new StringBuilder()
+      var result_q = new StringBuilder()
+      var ind_s = 0
+      var ind_q = 0
+
+      var best_score_s_end = alignment(s.size)(0)
+      var best_score_q_end = alignment(0)(query.size)
+
+      for(i <- 1 to s.size) {
+        if(alignment(i)(query.size) > best_score_q_end) {
+          ind_s = i
+          best_score_q_end = alignment(i)(query.size)
+        }
+      }
+
+      for(j <- 1 to query.size) {
+         if(alignment(s.size)(j) > best_score_s_end) {
+           ind_q = j
+           best_score_s_end = alignment(s.size)(j)
+         }
+      }
+
+      var score = 0
+
+      if(best_score_q_end > best_score_s_end) {
+        score = best_score_q_end
+        ind_q = query.size
+        (ind_s to s.size - 1).foreach(i => {result_q.append('-'); result_s.append(s(i))})
+      } else {
+        score = best_score_s_end
+        ind_s = s.size
+        (ind_q to query.size - 1).foreach(i => {result_s.append('-'); result_q.append(query(i))})
+      }
+
+      (score, ind_s, ind_q, result_s.reverse, result_q.reverse)
     }
   }
 }
