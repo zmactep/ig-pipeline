@@ -1,4 +1,5 @@
-import alicont.fast.Alicont
+import alicont.slow.Alicont
+import alicont.fast.{AlicontSemiGlobal, AlicontLocal, AlicontGlobal}
 import alicont.Scoring
 import igcont.anno.Anno
 import org.scalatest.FlatSpec
@@ -30,7 +31,7 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
 
   "Alignment" should "count right score" in {
     val path : String = "../../data/BLOSUM62.txt"
-    val a = new Alicont(11, "MEANLY", -5, Scoring.loadMatrix(path))
+    val a = new AlicontGlobal(11, "MEANLY", -5, Scoring.loadMatrix(path))
     a.push("PLE")
     a.push("ASANT")
     a.push("LY")
@@ -38,5 +39,36 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (score, _) = a.alignment()
 
     score should be (8)
+
+    val b = new AlicontLocal(11, "MEANLYLY", -5, Scoring.loadMatrix(path))
+    b.push("PLE")
+    b.push("ASANT")
+    b.push("LY")
+
+    val (score1, _) = b.alignment()
+    score1 should be (16)
+
+    val c = new AlicontLocal(11, "MEANLY", -5, Scoring.loadMatrix(path))
+    c.push("PLE")
+    c.push("ASANT")
+    c.push("LY")
+
+    val (score2, _) = c.alignment()
+    score2 should be (16)
+
+    val d = new AlicontLocal(11, "MEANLY", -5, Scoring.loadMatrix(path))
+    d.push("ME")
+    d.push("A")
+    d.push("L")
+    d.push("Y")
+
+    val (score3, _) = d.alignment()
+    score3 should be (20)
+
+    val e = new AlicontSemiGlobal(11, "EASPTMEALYLY", -5, Scoring.loadMatrix(path))
+    e.push("EAS")
+    e.push("LY")
+    val (score4, _) = e.alignment()
+    score4 should be (15)
   }
 }
