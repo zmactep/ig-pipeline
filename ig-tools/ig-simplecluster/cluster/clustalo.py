@@ -117,6 +117,8 @@ def run(src, out, minlen=None):
     align_file = os.path.join(abs_out, common.ALIGNMENT_FILE)
 
     mcp = common.split_and_save(src, minlen, copy_path, trash_path)
+    if mcp.endswith(common.CLUSTER_SPLT):
+         mcp = mcp[:-1]
     run_clustalo(copy_path, tree_path, align_file)
     #save_utree(tree_path)
     distance_matrix, alignment_dict = make_distance_matrix(align_file)
