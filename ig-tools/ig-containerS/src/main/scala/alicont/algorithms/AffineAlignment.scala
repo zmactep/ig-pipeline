@@ -1,6 +1,6 @@
 package alicont.fast.algorithms
 
-import alicont.fast.Matrix
+import alicont.Matrix
 
 /**
  * Created with IntelliJ IDEA.

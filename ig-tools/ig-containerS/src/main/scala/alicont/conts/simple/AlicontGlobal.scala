@@ -1,7 +1,7 @@
 package alicont.fast.conts.simple
 
-import alicont.fast.SimpleAlicont
 import alicont.fast.algorithms.simple.GlobalAlignment
+import alicont.SimpleAlicont
 
 /**
  * Created with IntelliJ IDEA.

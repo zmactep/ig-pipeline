@@ -4,10 +4,11 @@ import igcont.trie.Trie
 import igcont.anno.{Record, Anno}
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
-import alicont.AlignmentResult
+import alicont.{AlicontFactory, AbstractAlicont, AlignmentResult}
 import scala.collection.mutable.ArrayBuffer
 import igcont.kmer.bit.Counter
-import alicont.slow.Alicont
+
+import alicont.fast.algorithms.AlgorithmType.AlgorithmType
 
 /**
  * Created with IntelliJ IDEA.
@@ -168,9 +169,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     result
   }
 
-  def alignment_template(query : String, gap : Int, score_matrix : Array[Array[Int]],
-                         callback : (AlignmentResult) => Unit) : Unit = {
-    val alicont = new Alicont(query, gap, score_matrix)
+  def alignment_template(alicont : AbstractAlicont, callback : (AlignmentResult) => Unit) : Unit = {
     val target = new mutable.StringBuilder()
     val fork_stack = new mutable.Stack[Int]()
     var from_leaf = false
@@ -215,7 +214,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     }
   }
 
-  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Iterable[AlignmentResult] = {
+  def alignment_inner(alicont : AbstractAlicont, n : Int) : Iterable[AlignmentResult] = {
     val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => -a.score))
 
     def n_callback(align : AlignmentResult) : Unit = {
@@ -231,12 +230,12 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
       }
     }
 
-    alignment_template(query, gap, score_matrix, n_callback)
+    alignment_template(alicont, n_callback)
 
     result.dequeueAll.reverse.toIterable
   }
 
-  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]], prct : Double) : Iterable[AlignmentResult] = {
+  def alignment_inner(alicont : AbstractAlicont, prct : Double) : Iterable[AlignmentResult] = {
     val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => a.score))
 
     def n_callback(align : AlignmentResult) : Unit = {
@@ -245,14 +244,32 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
       }
     }
 
-    alignment_template(query, gap, score_matrix, n_callback)
+    alignment_template(alicont, n_callback)
 
     result.dequeueAll.reverse.toIterable
   }
 
-  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]], n : Int) : Iterable[(Char, HashMap[String, String])] = {
+  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]],
+                algo_type : AlgorithmType, n : Int) : Iterable[AlignmentResult] =
+    alignment_inner(AlicontFactory.createSimpleAlicont(_depth, query, gap, score_matrix, algo_type), n)
+
+  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]],
+                algo_type : AlgorithmType, prct : Double) : Iterable[AlignmentResult] =
+    alignment_inner(AlicontFactory.createSimpleAlicont(_depth, query, gap, score_matrix, algo_type), prct)
+
+  def affine_alignment(query : String, gap_open : Int, gap_ext : Int,
+                       score_matrix : Array[Array[Int]], algo_type : AlgorithmType, n : Int) : Iterable[AlignmentResult] =
+    alignment_inner(AlicontFactory.createAffineAlicont(_depth, query, gap_open, gap_ext, score_matrix, algo_type), n)
+
+  def affine_alignment(query : String, gap_open : Int, gap_ext : Int,
+                       score_matrix : Array[Array[Int]], algo_type : AlgorithmType, prct : Double) : Iterable[AlignmentResult] =
+    alignment_inner(AlicontFactory.createAffineAlicont(_depth, query, gap_open, gap_ext, score_matrix, algo_type), prct)
+
+
+  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]],
+               algo_type : AlgorithmType, n : Int) : Iterable[(Char, HashMap[String, String])] = {
     val result = ArrayBuffer.fill[(Char, HashMap[String, String])](query.size)(null)
-    val align_result = alignment(query, gap, score_matrix, n)
+    val align_result = alignment(query, gap, score_matrix, algo_type, n)
     val preresult = ArrayBuffer.fill[ArrayBuffer[HashMap[String, String]]](query.size)(ArrayBuffer.empty)
 
     def annotate_by_one(anno : AlignmentResult) = {

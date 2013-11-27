@@ -1,7 +1,7 @@
 package alicont.fast.algorithms.simple
 
 import alicont.fast.algorithms.SimpleAlignment
-import alicont.fast.Matrix
+import alicont.Matrix
 
 /**
  * Created with IntelliJ IDEA.

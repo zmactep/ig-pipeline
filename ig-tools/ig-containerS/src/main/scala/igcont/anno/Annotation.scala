@@ -1,6 +1,5 @@
 package igcont.anno
 
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created with IntelliJ IDEA.

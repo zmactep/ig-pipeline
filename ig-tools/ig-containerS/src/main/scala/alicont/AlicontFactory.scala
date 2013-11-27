@@ -1,4 +1,4 @@
-package alicont.fast
+package alicont
 
 import alicont.fast.algorithms.AlgorithmType
 import alicont.fast.algorithms.AlgorithmType.AlgorithmType

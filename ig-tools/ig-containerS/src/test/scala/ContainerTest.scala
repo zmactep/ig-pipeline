@@ -1,3 +1,4 @@
+import alicont.fast.algorithms.AlgorithmType
 import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
@@ -63,11 +64,13 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
     cont.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT", "Seq2")
 
     val set = new mutable.TreeSet[String]()
-    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -5, Scoring.loadMatrix(path), 2).foreach(align => set += align.name)
+    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -5, Scoring.loadMatrix(path),
+      AlgorithmType.GLOBAL, 2).foreach(align => set += align.name)
 
     set should be (mutable.TreeSet[String]("SeqA", "Seq2"))
 
-    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -5, Scoring.loadMatrix(path), 0.57).head.name should be ("Seq2")
+    cont.alignment("AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -5, Scoring.loadMatrix(path),
+      AlgorithmType.GLOBAL, 0.57).head.name should be ("Seq2")
   }
 
   it should "search with specials" in {
@@ -104,7 +107,7 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
     cont.record(0).setAnnotation(3, "A", "1")
     cont.record(1).setAnnotation(2, "A", "2")
 
-    val res = cont.annotate("CTGGC", -5, Scoring.loadMatrix(path), 3)
+    val res = cont.annotate("CTGGC", -5, Scoring.loadMatrix(path), AlgorithmType.GLOBAL, 3)
 
     res.forall(tpl => tpl._2("A") == "1") should be (true)
   }

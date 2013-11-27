@@ -1,4 +1,4 @@
-package alicont.fast
+package alicont
 
 import scala.collection.mutable
 
