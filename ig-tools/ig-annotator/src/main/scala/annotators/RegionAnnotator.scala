@@ -4,9 +4,8 @@ import igcont.{ContainerUtils, Container}
 import common.{FileUtils, SequenceTrait}
 import common.SequenceType.SequenceType
 import alicont.AlignmentResult
-import igcont.anno.Record
-import scala.collection.immutable.HashMap
 import scala.collection.mutable.ArrayBuffer
+import alicont.fast.algorithms.AlgorithmType
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,10 +47,11 @@ class RegionAnnotator(n : String, t : SequenceType) {
 
   def find(pattern : String) : Iterable[(String, Int)] = _cont.find(pattern)
 
-  def alignment(query : String, n : Int = 10) : Iterable[AlignmentResult] = _cont.alignment(query, -5, _type.score, n)
+  def alignment(query : String, n : Int = 10) : Iterable[AlignmentResult] =
+    _cont.alignment(query, -5, _type.score, AlgorithmType.GLOBAL, n)
 
   def annotate(query : String, n : Int = 3) : Iterable[Int] = {
-    val anno = _cont.annotate(query, -5, _type.score, n)
+    val anno = _cont.annotate(query, -5, _type.score, AlgorithmType.GLOBAL, n)
     val result = ArrayBuffer.fill[Int](query.size)(0)
 
     anno.zipWithIndex.foreach(tpl => {
