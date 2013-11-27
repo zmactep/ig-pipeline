@@ -1,5 +1,4 @@
-import alicont.slow.Alicont
-import alicont.fast.{AlicontSemiGlobal, AlicontLocal, AlicontGlobal}
+import alicont.fast.conts.simple.{AlicontSemiglobal, AlicontLocal, AlicontGlobal}
 import alicont.Scoring
 import igcont.anno.Anno
 import org.scalatest.FlatSpec
@@ -65,7 +64,7 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (score3, _) = d.alignment()
     score3 should be (20)
 
-    val e = new AlicontSemiGlobal(11, "EASPTMEALYLY", -5, Scoring.loadMatrix(path))
+    val e = new AlicontSemiglobal(11, "EASPTMEALYLY", -5, Scoring.loadMatrix(path))
     e.push("EAS")
     e.push("LY")
     val (score4, _) = e.alignment()
