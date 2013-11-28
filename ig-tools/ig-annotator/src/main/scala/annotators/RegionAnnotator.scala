@@ -5,9 +5,8 @@ import common.{FileUtils, SequenceTrait}
 import common.SequenceType.SequenceType
 import alicont.AlignmentResult
 import scala.collection.mutable.ArrayBuffer
-import alicont.fast.algorithms.AlgorithmType
-import alicont.fast.algorithms.AlgorithmType.AlgorithmType
-import alicont.fast.algorithms.AlgorithmType
+import alicont.algorithms.AlgorithmType.AlgorithmType
+import alicont.algorithms.AlgorithmType
 
 /**
  * Created with IntelliJ IDEA.

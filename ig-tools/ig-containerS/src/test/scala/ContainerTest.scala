@@ -1,4 +1,4 @@
-import alicont.fast.algorithms.AlgorithmType
+import alicont.algorithms.AlgorithmType
 import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 

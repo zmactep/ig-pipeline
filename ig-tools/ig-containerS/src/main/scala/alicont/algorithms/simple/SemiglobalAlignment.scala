@@ -1,6 +1,6 @@
-package alicont.fast.algorithms.simple
+package alicont.algorithms.simple
 
-import alicont.fast.algorithms.SimpleAlignment
+import alicont.algorithms.SimpleAlignment
 import alicont.Matrix
 
 /**

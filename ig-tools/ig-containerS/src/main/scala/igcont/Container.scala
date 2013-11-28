@@ -8,7 +8,7 @@ import alicont.{AlicontFactory, AbstractAlicont, AlignmentResult}
 import scala.collection.mutable.ArrayBuffer
 import igcont.kmer.bit.Counter
 
-import alicont.fast.algorithms.AlgorithmType.AlgorithmType
+import alicont.algorithms.AlgorithmType.AlgorithmType
 
 /**
  * Created with IntelliJ IDEA.
@@ -204,7 +204,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
         val (score, (q, t)) = alicont.alignment()
         val node_data = _trie.dataOf(node).asInstanceOf[ArrayBuffer[(Int, Int)]]
         node_data.foreach(tpl => {
-          val align = new AlignmentResult(score, q, t, record(tpl._1))
+          val align = new AlignmentResult(score, q, t, (seq(tpl._1), record(tpl._1)))
           // Your logic here
           callback(align)
         })

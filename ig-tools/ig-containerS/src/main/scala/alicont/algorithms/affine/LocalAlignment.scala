@@ -1,6 +1,6 @@
 package alicont.algorithms.affine
 
-import alicont.fast.algorithms.AffineAlignment
+import alicont.algorithms.AffineAlignment
 import alicont.Matrix
 
 /**
