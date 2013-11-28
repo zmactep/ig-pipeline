@@ -161,7 +161,7 @@ def _pipeline(tasks):
 def train_pipeline(args):
     """
     The pre-assembled pipeline for training of antibody region markup using WEKA. Args is a dictionary of command line
-    arguments, such as the output of argparse.
+    arguments.
     """
     chain = [
         _Stage("Checking input files ...", _get_check_files_action(
