@@ -27,8 +27,6 @@ object LocalAlignment extends SimpleAlignment {
 
   def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String)) = {
     var (i, j) = (s.size, query.size)
-    val result_s = new StringBuilder()
-    val result_q = new StringBuilder()
 
     var score = Int.MinValue
     for (it <- 0 to s.size; jt <- 0 to query.size) {
@@ -38,6 +36,30 @@ object LocalAlignment extends SimpleAlignment {
         j = jt
       }
     }
+
+    var it = i
+    var jt = j
+
+    val end_s = new StringBuilder()
+    val end_q = new StringBuilder()
+
+    while(it != s.size || jt != query.size) {
+      if (it == s.size) {
+        end_s.append('-')
+      } else {
+        end_s.append(s(it))
+        it += 1
+      }
+      if (jt == query.size){
+        end_q.append('-')
+      } else {
+        end_q.append(query(jt))
+        jt += 1
+      }
+    }
+
+    val result_s = end_s.reverse
+    val result_q = end_q.reverse
 
     while (i != 0 && j != 0 && matrix(i)(j) != 0) {
       val cs : Char = if (i > 0) s(i - 1) else 0
@@ -57,6 +79,20 @@ object LocalAlignment extends SimpleAlignment {
         result_q.append(cq)
       } else if (matrix(i)(j) != 0) {
         assert(false)
+      }
+    }
+    while (i != 0 || j != 0) {
+      if (i == 0) {
+        result_s.append('-')
+      } else {
+        result_s.append(s(i))
+        i -= 1
+      }
+      if (j == 0){
+        result_q.append('-')
+      } else {
+        result_q.append(query(j))
+        j -= 1
       }
     }
 

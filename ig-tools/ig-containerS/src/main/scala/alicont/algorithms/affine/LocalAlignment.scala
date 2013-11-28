@@ -58,6 +58,27 @@ object LocalAlignment extends AffineAlignment {
       }
     }
 
+    var it = i
+    var jt = j
+
+    val end_s = new StringBuilder()
+    val end_q = new StringBuilder()
+
+    while(it != s.size || jt != query.size) {
+      if (it == s.size) {
+        end_s.append('-')
+      } else {
+        end_s.append(s(it))
+        it += 1
+      }
+      if (jt == query.size){
+        end_q.append('-')
+      } else {
+        end_q.append(query(jt))
+        jt += 1
+      }
+    }
+
     while (i != 0 && j != 0 && matrix(i)(j) != 0) {
       val cs : Char = if (i > 0) s(i - 1) else 0
       val cq : Char = if (j > 0) query(j - 1) else 0
@@ -76,6 +97,21 @@ object LocalAlignment extends AffineAlignment {
         result_q.append(cq)
       } else if (matrix(i)(j) != 0) {
         assert(false)
+      }
+    }
+
+    while (i != 0 || j != 0) {
+      if (i == 0) {
+        result_s.append('-')
+      } else {
+        result_s.append(s(i))
+        i -= 1
+      }
+      if (j == 0){
+        result_q.append('-')
+      } else {
+        result_q.append(query(j))
+        j -= 1
       }
     }
 

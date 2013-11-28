@@ -44,9 +44,15 @@ object SemiglobalAlignment extends AffineAlignment {
     val result_q = new StringBuilder()
 
     if (i == s.size) {
-      (1 to query.size - j).foreach(k => {result_s.append("-"); result_q.append(query(query.size-k))})
+      (1 to query.size - j).foreach(k => {
+        result_s.append("-")
+        result_q.append(query(query.size-k))
+      })
     } else {
-      (1 to query.size - i).foreach(k => {result_q.append("-"); result_s.append(query(query.size-k))})
+      (1 to s.size - i).foreach(k => {
+        result_q.append("-")
+        result_s.append(s(s.size-k))
+      })
     }
 
     while (i != 0 || j != 0) {
