@@ -108,6 +108,7 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (_, (q5, t5)) = e.alignment()
     q5.replaceAll("-", "") should be ("AAAAAAGAAAAAAAATGCCAAAAAAATTGG")
     t5.replaceAll("-", "") should be ("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
+
     val f = new AlicontLocal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
     f.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
     val (score6, (q6, t6)) = f.alignment()
