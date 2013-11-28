@@ -2,7 +2,6 @@ package alicont.conts.affine
 
 import alicont.algorithms.affine.LocalAlignment
 import alicont.AffineAlicont
-import javafx.scene.transform.Affine
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,12 +15,10 @@ class AlicontLocal(maxheight : Int, query : String, gap_open : Int, gap_ext : In
 
   def push(s : String) : Unit = {
     _strings.push(s)
-    LocalAlignment.extendMatrix(s, _query, _gap_open, _gap_ext, _score, _scoreMatrix, _insertionMatrix
-      , _deletionMatrix)
+    LocalAlignment.extendMatrix(s, _query, _gap_open, _gap_ext, _score, _scoreMatrix, _insertionMatrix, _deletionMatrix)
   }
 
   def alignment() : (Int, (String, String)) = {
-    LocalAlignment.traceback(target, _query, _score, _scoreMatrix, _insertionMatrix
-      , _deletionMatrix)
+    LocalAlignment.traceback(target, _query, _score, _scoreMatrix, _insertionMatrix, _deletionMatrix)
   }
 }

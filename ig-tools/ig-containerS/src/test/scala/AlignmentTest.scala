@@ -1,35 +1,18 @@
 import alicont.conts.simple.{AlicontSemiglobal, AlicontLocal, AlicontGlobal}
 import alicont.Scoring
-import igcont.anno.Anno
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
 /**
  * Created with IntelliJ IDEA.
- * User: mactep
- * Date: 30.10.13
- * Time: 20:23
+ * User: pavel
+ * Date: 28.11.13
+ * Time: 20:39
  */
-class AlgoTest extends FlatSpec with ShouldMatchers {
+class AlignmentTest extends FlatSpec with ShouldMatchers {
+  val path : String = "../../data/BLOSUM62.txt"
 
-  "Annotations" should "store right" in {
-    val anno = new Anno(Array("Regions", "Genes", "Sites"))
-
-    val rec = anno.createRecord("First", 20)
-
-    val i = rec.setAnnotation(0, "Regions", "FR1")
-    rec.setAnnotation(1, i._1, i._2)
-    rec.setAnnotation(2, "Regions", "CDR1")
-    rec.setAnnotation(3, "Genes", "V")
-
-    rec.annotationOf(0)("Regions") should be ("FR1")
-    rec.annotationOf(1)("Regions") should be ("FR1")
-    rec.annotationOf(2)("Regions") should be ("CDR1")
-    rec.annotationOf(3)("Genes") should be ("V")
-  }
-
-  "Alignment" should "count right score" in {
-    val path : String = "../../data/BLOSUM62.txt"
+  "SimpleGlobal" should "count right score" in {
     val a = new AlicontGlobal(11, "MEANLY", -5, Scoring.loadMatrix(path))
     a.push("PLE")
     a.push("ASANT")
@@ -38,7 +21,9 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (score, _) = a.alignment()
 
     score should be (8)
+  }
 
+  "SimpleLocal" should "count right score" in {
     val b = new AlicontLocal(11, "MEANLYLY", -5, Scoring.loadMatrix(path))
     b.push("PLE")
     b.push("ASANT")
@@ -63,7 +48,19 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
 
     val (score3, _) = d.alignment()
     score3 should be (20)
+  }
 
+  it should "make right alignment" in {
+    val path : String = "../../data/NUC_simple.txt"
+
+    val f = new AlicontLocal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
+    f.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
+    val (_, (q6, t6)) = f.alignment()
+    q6.replaceAll("-", "") should be ("AAAAAAGAAAAAAAATGCCAAAAAAATTGG")
+    t6.replaceAll("-", "") should be ("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
+  }
+
+  "SimpleSemiglobal" should "count right score" in {
     val e = new AlicontSemiglobal(11, "EASPTMEALYLY", -5, Scoring.loadMatrix(path))
     e.push("EAS")
     e.push("LY")
@@ -71,7 +68,7 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     score4 should be (15)
   }
 
-  "Semiglobal" should "count right score" in {
+  it should "count right score with NUC matrix" in {
     val path : String = "../../data/NUC_simple.txt"
 
     val a = new AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
@@ -101,19 +98,15 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     score4 should be (2)
     q4.replaceAll("-", "") should be ("ACAGATA")
     t4.replaceAll("-", "") should be ("AGT")
+  }
 
+  it should "make right alignment" in {
+    val path : String = "../../data/NUC_simple.txt"
 
     val e = new AlicontSemiglobal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
     e.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
     val (_, (q5, t5)) = e.alignment()
     q5.replaceAll("-", "") should be ("AAAAAAGAAAAAAAATGCCAAAAAAATTGG")
     t5.replaceAll("-", "") should be ("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
-
-    val f = new AlicontLocal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
-    f.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
-    val (score6, (q6, t6)) = f.alignment()
-    q6.replaceAll("-", "") should be ("AAAAAAGAAAAAAAATGCCAAAAAAATTGG")
-    t6.replaceAll("-", "") should be ("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
-
   }
 }

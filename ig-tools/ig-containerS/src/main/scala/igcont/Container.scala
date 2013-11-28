@@ -215,6 +215,10 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   }
 
   def alignment_inner(alicont : AbstractAlicont, n : Int) : Iterable[AlignmentResult] = {
+    if (alicont == null) {
+      return null
+    }
+
     val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => -a.score))
 
     def n_callback(align : AlignmentResult) : Unit = {
@@ -236,6 +240,10 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
   }
 
   def alignment_inner(alicont : AbstractAlicont, prct : Double) : Iterable[AlignmentResult] = {
+    if (alicont == null) {
+      return null
+    }
+
     val result = new mutable.PriorityQueue[AlignmentResult]()(Ordering.by(a => a.score))
 
     def n_callback(align : AlignmentResult) : Unit = {
