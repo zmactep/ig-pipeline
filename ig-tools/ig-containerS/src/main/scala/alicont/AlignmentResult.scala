@@ -18,19 +18,18 @@ class AlignmentResult(s : Int, q : String, t : String) {
   private val _similarity = 1.0 * q.zip(t).foldRight(0)((c, acc) => acc + (if (c._1 == c._2) 1 else 0)) / q.size
   private var _tname : String = null
 
-  def this(s : Int, q : String, target_a : String, target : Record) = {
+  def this(s : Int, q : String, target_a : String, target : (String, Record)) = {
     this(s, q, target_a)
-    _tname = target.name
-    var i = 0
-    val assert_flag = target_a.replaceAll("-", "").size == target.size
-    if (!assert_flag) {
-      assert(false)
-    }
+    _tname = target._2.name
+    var i = target._1.indexOf(target_a.replaceAll("-", ""))
+
+    assert(target._1.size == target._2.size)
+
     target_a.foreach(c => {
       if (c == '-') {
         _result += (('-', null))
       } else {
-        _result += ((c, target.annotationOf(i)))
+        _result += ((c, target._2.annotationOf(i)))
         i += 1
       }
     })

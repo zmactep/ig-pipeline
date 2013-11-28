@@ -1,4 +1,4 @@
-package alicont.fast.algorithms
+package alicont.algorithms
 
 /**
  * Created with IntelliJ IDEA.

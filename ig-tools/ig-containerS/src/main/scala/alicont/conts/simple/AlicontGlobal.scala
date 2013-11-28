@@ -1,6 +1,6 @@
-package alicont.fast.conts.simple
+package alicont.conts.simple
 
-import alicont.fast.algorithms.simple.GlobalAlignment
+import alicont.algorithms.simple.GlobalAlignment
 import alicont.SimpleAlicont
 
 /**

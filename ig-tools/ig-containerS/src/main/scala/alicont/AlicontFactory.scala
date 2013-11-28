@@ -1,8 +1,8 @@
 package alicont
 
-import alicont.fast.algorithms.AlgorithmType
-import alicont.fast.algorithms.AlgorithmType.AlgorithmType
-import alicont.fast.conts.simple.{AlicontSemiglobal, AlicontLocal, AlicontGlobal}
+import alicont.algorithms.AlgorithmType
+import alicont.algorithms.AlgorithmType.AlgorithmType
+import alicont.conts.simple.{AlicontSemiglobal, AlicontLocal, AlicontGlobal}
 
 /**
  * Created with IntelliJ IDEA.
