@@ -70,7 +70,8 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (score4, _) = e.alignment()
     score4 should be (15)
   }
-  "Semiglobal align tests" should "count right score" in {
+
+  "Semiglobal" should "count right score" in {
     val path : String = "../../data/NUC_simple.txt"
     val a = new AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
     a.push("CAGCGTGG")
@@ -89,8 +90,13 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
 
     val d = new AlicontSemiglobal(11, "ACAGATA", -1, Scoring.loadMatrix(path))
     d.push("AGT")
-    val (score4, align) = d.alignment()
-    val s = 0
+    val (score4, _) = d.alignment()
     score4 should be (2)
+
+
+    // FIXME: Killer sample! Semiglobal and local both has error when tring to align this.
+    val e = new AlicontSemiglobal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
+    e.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
+    val (score5, _) = e.alignment()
   }
 }

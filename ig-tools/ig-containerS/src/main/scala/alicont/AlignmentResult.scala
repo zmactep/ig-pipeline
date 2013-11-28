@@ -22,7 +22,10 @@ class AlignmentResult(s : Int, q : String, t : String) {
     this(s, q, target_a)
     _tname = target.name
     var i = 0
-    assert(target_a.replaceAll("-", "").size == target.size)
+    val assert_flag = target_a.replaceAll("-", "").size == target.size
+    if (!assert_flag) {
+      assert(false)
+    }
     target_a.foreach(c => {
       if (c == '-') {
         _result += (('-', null))
