@@ -34,9 +34,9 @@ object LocalAlignment extends AffineAlignment {
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
 
-        insertion_matrix.last(j) = (insertion_matrix.pred(j) - gapExtend :: matrix.pred(j) - (gapOpen + gapExtend) ::
+        insertion_matrix.last(j) = (insertion_matrix.pred(j) + gapExtend :: matrix.pred(j) + (gapOpen + gapExtend) ::
           0 :: Nil).max
-        deletion_matrix.last(j) = (deletion_matrix.last(j-1) - gapExtend :: matrix.last(j-1) - (gapOpen + gapExtend) ::
+        deletion_matrix.last(j) = (deletion_matrix.last(j-1) + gapExtend :: matrix.last(j-1) + (gapOpen + gapExtend) ::
           0 :: Nil).max
         matrix.last(j) = (matrix.pred(j - 1) + score :: insertion_matrix.last(j) :: deletion_matrix.last(j) :: Nil).max
       })
@@ -46,8 +46,6 @@ object LocalAlignment extends AffineAlignment {
   def traceback(s : String, query : String, score_matrix : Array[Array[Int]],
                 deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Int, (String, String)) = {
     var (i, j) = (s.size, query.size)
-    val result_s = new StringBuilder()
-    val result_q = new StringBuilder()
 
     var score = Int.MinValue
     for (it <- 0 to s.size; jt <- 0 to query.size) {
@@ -79,6 +77,9 @@ object LocalAlignment extends AffineAlignment {
       }
     }
 
+    val result_s = end_s.reverse
+    val result_q = end_q.reverse
+
     while (i != 0 && j != 0 && matrix(i)(j) != 0) {
       val cs : Char = if (i > 0) s(i - 1) else 0
       val cq : Char = if (j > 0) query(j - 1) else 0
@@ -104,13 +105,13 @@ object LocalAlignment extends AffineAlignment {
       if (i == 0) {
         result_s.append('-')
       } else {
-        result_s.append(s(i))
+        result_s.append(s(i - 1))
         i -= 1
       }
       if (j == 0){
         result_q.append('-')
       } else {
-        result_q.append(query(j))
+        result_q.append(query(j - 1))
         j -= 1
       }
     }

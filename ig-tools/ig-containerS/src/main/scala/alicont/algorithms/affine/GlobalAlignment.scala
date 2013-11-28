@@ -34,10 +34,10 @@ object GlobalAlignment extends AffineAlignment {
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
 
-        insertion_matrix.last(j) = Math.max(insertion_matrix.pred(j) - gapExtend,
-          matrix.pred(j) - (gapOpen + gapExtend))
-        deletion_matrix.last(j) = Math.max(deletion_matrix.last(j-1) - gapExtend,
-          matrix.last(j-1) - (gapOpen + gapExtend)
+        insertion_matrix.last(j) = Math.max(insertion_matrix.pred(j) + gapExtend,
+          matrix.pred(j) + (gapOpen + gapExtend))
+        deletion_matrix.last(j) = Math.max(deletion_matrix.last(j-1) + gapExtend,
+          matrix.last(j-1) + (gapOpen + gapExtend)
         )
         matrix.last(j) = (matrix.pred(j - 1) + score :: insertion_matrix.last(j) :: deletion_matrix.last(j) :: Nil).max
       })

@@ -22,15 +22,21 @@ object SemiglobalAlignment extends AffineAlignment {
       (0 to query.size).foreach(i => matrix.last(i) = 0)
     }
     (1 to s.size).foreach(i => {
+      insertion_matrix.move(1)
+      deletion_matrix.move(1)
       matrix.move(1)
+
+      insertion_matrix.last(0) = insertion_matrix.pred(0)
+      deletion_matrix.last(0) = deletion_matrix.pred(0)
       matrix.last(0) = matrix.pred(0)
+
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
 
-        insertion_matrix.last(j) = Math.max(insertion_matrix.pred(j) - gapExtend,
-          matrix.pred(j) - (gapOpen + gapExtend))
-        deletion_matrix.last(j) = Math.max(deletion_matrix.last(j-1) - gapExtend,
-          matrix.last(j-1) - (gapOpen + gapExtend)
+        insertion_matrix.last(j) = Math.max(insertion_matrix.pred(j) + gapExtend,
+          matrix.pred(j) + (gapOpen + gapExtend))
+        deletion_matrix.last(j) = Math.max(deletion_matrix.last(j-1) + gapExtend,
+          matrix.last(j-1) + (gapOpen + gapExtend)
         )
         matrix.last(j) = (matrix.pred(j - 1) + score :: insertion_matrix.last(j) :: deletion_matrix.last(j) :: Nil).max
       })

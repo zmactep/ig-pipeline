@@ -85,13 +85,13 @@ object LocalAlignment extends SimpleAlignment {
       if (i == 0) {
         result_s.append('-')
       } else {
-        result_s.append(s(i))
+        result_s.append(s(i - 1))
         i -= 1
       }
       if (j == 0){
         result_q.append('-')
       } else {
-        result_q.append(query(j))
+        result_q.append(query(j - 1))
         j -= 1
       }
     }
