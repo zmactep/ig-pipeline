@@ -70,4 +70,27 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
     val (score4, _) = e.alignment()
     score4 should be (15)
   }
+  "Semiglobal align tests" should "count right score" in {
+    val path : String = "../../data/NUC_simple.txt"
+    val a = new AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
+    a.push("CAGCGTGG")
+    val (score, _) = a.alignment()
+    score should be (4)
+
+    val b = new AlicontSemiglobal(11, "CAGCGAACACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
+    b.push("CAGCGTGG")
+    val (score2, _) = b.alignment()
+    score2 should be (4)
+
+    val c = new AlicontSemiglobal(11, "ACGTCAT", -1, Scoring.loadMatrix(path))
+    c.push("TCATGCA")
+    val (score3, _) = c.alignment()
+    score3 should be (4)
+
+    val d = new AlicontSemiglobal(11, "ACAGATA", -1, Scoring.loadMatrix(path))
+    d.push("AGT")
+    val (score4, align) = d.alignment()
+    val s = 0
+    score4 should be (2)
+  }
 }

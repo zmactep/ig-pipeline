@@ -30,6 +30,12 @@ object SemiglobalAlignment extends SimpleAlignment {
     val result_s = new StringBuilder()
     val result_q = new StringBuilder()
 
+    if (i == s.size) {
+      (1 to query.size - j).foreach(k => {result_s.append("-"); result_q.append(query(query.size-k))})
+    } else {
+      (1 to query.size - i).foreach(k => {result_q.append("-"); result_s.append(query(query.size-k))})
+    }
+
     while (i != 0 || j != 0) {
       val cs : Char = if (i > 0) s(i - 1) else 0
       val cq : Char = if (j > 0) query(j - 1) else 0
