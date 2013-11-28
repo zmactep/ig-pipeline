@@ -11,8 +11,7 @@ import alicont.Matrix
  */
 object SemiglobalAlignment extends AffineAlignment {
   def extendMatrix(s : String, query : String, gapOpen : Int, gapExtend : Int, score_matrix : Array[Array[Int]],
-                   insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix)
-  : Unit = {
+                   insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : Unit = {
     if (matrix.height == 0) {
       insertion_matrix.move(1)
       deletion_matrix.move(1)
