@@ -1,18 +1,24 @@
-package alicont.fast.algorithms.simple
+package alicont.algorithms.affine
 
-import alicont.fast.algorithms.SimpleAlignment
+import alicont.fast.algorithms.AffineAlignment
 import alicont.Matrix
 
 /**
  * Created with IntelliJ IDEA.
- * User: pavel
- * Date: 27.11.13
- * Time: 15:40
+ * User: Sergey Knyazev (sergey.n.knyazev@gmail.com)
+ * Date: 28.11.13
+ * Time: 15:11
  */
-object SemiglobalAlignment extends SimpleAlignment {
-  def extendMatrix(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : Unit = {
+object SemiglobalAlignment extends AffineAlignment {
+  def extendMatrix(s : String, query : String, gapOpen : Int, gapExtend : Int, score_matrix : Array[Array[Int]],
+                   insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix)
+  : Unit = {
     if (matrix.height == 0) {
+      insertion_matrix.move(1)
+      deletion_matrix.move(1)
       matrix.move(1)
+      (0 to query.size).foreach(i => insertion_matrix.last(i) = 0)
+      (0 to query.size).foreach(i => deletion_matrix.last(i) = 0)
       (0 to query.size).foreach(i => matrix.last(i) = 0)
     }
     (1 to s.size).foreach(i => {
@@ -20,26 +26,27 @@ object SemiglobalAlignment extends SimpleAlignment {
       matrix.last(0) = matrix.pred(0)
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
-        matrix.last(j) = (matrix.pred(j - 1) + score :: matrix.pred(j) + gap :: matrix.last(j - 1) + gap :: Nil).max
+
+        insertion_matrix.last(j) = Math.max(insertion_matrix.pred(j) - gapExtend,
+          matrix.pred(j) - (gapOpen + gapExtend))
+        deletion_matrix.last(j) = Math.max(deletion_matrix.last(j-1) - gapExtend,
+          matrix.last(j-1) - (gapOpen + gapExtend)
+        )
+        matrix.last(j) = (matrix.pred(j - 1) + score :: insertion_matrix.last(j) :: deletion_matrix.last(j) :: Nil).max
       })
     })
   }
 
-  def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, score_matrix : Array[Array[Int]],
+                deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Int, (String, String)) = {
     var (score, i, j) = prepareIJ(s.size, query.size, matrix)
     val result_s = new StringBuilder()
     val result_q = new StringBuilder()
 
     if (i == s.size) {
-      (1 to query.size - j).foreach(k => {
-        result_s.append("-")
-        result_q.append(query(query.size-k))
-      })
+      (1 to query.size - j).foreach(k => {result_s.append("-"); result_q.append(query(query.size-k))})
     } else {
-      (1 to s.size - i).foreach(k => {
-        result_q.append("-")
-        result_s.append(s(s.size-k))
-      })
+      (1 to query.size - i).foreach(k => {result_q.append("-"); result_s.append(query(query.size-k))})
     }
 
     while (i != 0 || j != 0) {
@@ -53,11 +60,11 @@ object SemiglobalAlignment extends SimpleAlignment {
         i -= 1
         result_s.append(cs)
         result_q.append('-')
-      } else if (i != 0 && matrix(i)(j) == matrix(i - 1)(j) + gap) {
+      } else if (i != 0 && matrix(i)(j) == deletion_matrix(i)(j)) {
         i -= 1
         result_s.append(cs)
         result_q.append('-')
-      } else if (j != 0 && matrix(i)(j) == matrix(i)(j - 1) + gap) {
+      } else if (j != 0 && matrix(i)(j) == insertion_matrix(i)(j)) {
         j -= 1
         result_s.append('-')
         result_q.append(cq)
