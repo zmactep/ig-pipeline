@@ -73,30 +73,41 @@ class AlgoTest extends FlatSpec with ShouldMatchers {
 
   "Semiglobal" should "count right score" in {
     val path : String = "../../data/NUC_simple.txt"
+
     val a = new AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
     a.push("CAGCGTGG")
-    val (score, _) = a.alignment()
+    val (score, (q, t)) = a.alignment()
     score should be (4)
+    q.replaceAll("-", "").size should be ("CAGCACTTGGATTCTCGG".size)
+    t.replaceAll("-", "").size should be ("CAGCGTGG".size)
 
     val b = new AlicontSemiglobal(11, "CAGCGAACACTTGGATTCTCGG", -1, Scoring.loadMatrix(path))
     b.push("CAGCGTGG")
-    val (score2, _) = b.alignment()
+    val (score2, (q2, t2)) = b.alignment()
     score2 should be (4)
+    q2.replaceAll("-", "").size should be ("CAGCGAACACTTGGATTCTCGG".size)
+    t2.replaceAll("-", "").size should be ("CAGCGTGG".size)
 
     val c = new AlicontSemiglobal(11, "ACGTCAT", -1, Scoring.loadMatrix(path))
     c.push("TCATGCA")
-    val (score3, _) = c.alignment()
+    val (score3, (q3, t3)) = c.alignment()
     score3 should be (4)
+    q3.replaceAll("-", "").size should be ("ACGTCAT".size)
+    t3.replaceAll("-", "").size should be ("TCATGCA".size)
 
     val d = new AlicontSemiglobal(11, "ACAGATA", -1, Scoring.loadMatrix(path))
     d.push("AGT")
-    val (score4, _) = d.alignment()
+    val (score4, (q4, t4)) = d.alignment()
     score4 should be (2)
+    q4.replaceAll("-", "").size should be ("ACAGATA".size)
+    t4.replaceAll("-", "").size should be ("AGT".size)
 
 
     // FIXME: Killer sample! Semiglobal and local both has error when tring to align this.
     val e = new AlicontSemiglobal(40, "AAAAAAGAAAAAAAATGCCAAAAAAATTGG", -1, Scoring.loadMatrix(path))
     e.push("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT")
-    val (score5, _) = e.alignment()
+    val (score5, (q5, t5)) = e.alignment()
+    q5.replaceAll("-", "").size should be ("AAAAAAGAAAAAAAATGCCAAAAAAATTGG".size)
+    t5.replaceAll("-", "").size should be ("AAAAAAAAAAAAAAAAAAAAAATCTGTCGTGTTGGTTT".size)
   }
 }
