@@ -4,8 +4,9 @@ import argparse
 import os
 from Bio import SeqIO
 from simple_splitter import split_dataset
+from itertools import chain
 
-view = Client().load_balanced_view() 
+view = Client()[:] 
 
 
 def parse_args():
@@ -28,9 +29,12 @@ def merge_dicts(ds):
     for d in ds:
         for k, v in d.items():
             if k in m:
-                m[k].extend(v)
+                m[k].append(iter(v))
             else:
-                m[k] = v
+                m[k] = [iter(v)]
+    
+    for k in m:
+        m[k] = chain(*m[k])
     return m
 
 
@@ -44,8 +48,6 @@ def run_split(recs):
 
 def main():
     args = parse_args()
-
-    
 
     buckets = run_split(SeqIO.parse(args.filename, args.type))
 
