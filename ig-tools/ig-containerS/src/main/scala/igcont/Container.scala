@@ -257,24 +257,26 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     result.dequeueAll.reverse.toIterable
   }
 
-  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]],
+  def alignment(query : String, gap : Double, score_matrix : Array[Array[Double]],
                 algo_type : AlgorithmType, n : Int) : Iterable[AlignmentResult] =
     alignment_inner(AlicontFactory.createSimpleAlicont(_depth, query, gap, score_matrix, algo_type), n)
 
-  def alignment(query : String, gap : Int, score_matrix : Array[Array[Int]],
+  def alignment(query : String, gap : Double, score_matrix : Array[Array[Double]],
                 algo_type : AlgorithmType, prct : Double) : Iterable[AlignmentResult] =
     alignment_inner(AlicontFactory.createSimpleAlicont(_depth, query, gap, score_matrix, algo_type), prct)
 
-  def affine_alignment(query : String, gap_open : Int, gap_ext : Int,
-                       score_matrix : Array[Array[Int]], algo_type : AlgorithmType, n : Int) : Iterable[AlignmentResult] =
+  def affine_alignment(query : String, gap_open : Double, gap_ext : Double,
+                       score_matrix : Array[Array[Double]], algo_type : AlgorithmType, n : Int)
+  : Iterable[AlignmentResult] =
     alignment_inner(AlicontFactory.createAffineAlicont(_depth, query, gap_open, gap_ext, score_matrix, algo_type), n)
 
-  def affine_alignment(query : String, gap_open : Int, gap_ext : Int,
-                       score_matrix : Array[Array[Int]], algo_type : AlgorithmType, prct : Double) : Iterable[AlignmentResult] =
+  def affine_alignment(query : String, gap_open : Double, gap_ext : Double,
+                       score_matrix : Array[Array[Double]], algo_type : AlgorithmType, prct : Double)
+  : Iterable[AlignmentResult] =
     alignment_inner(AlicontFactory.createAffineAlicont(_depth, query, gap_open, gap_ext, score_matrix, algo_type), prct)
 
 
-  def annotate(query : String, gap : Int, score_matrix : Array[Array[Int]],
+  def annotate(query : String, gap : Double, score_matrix : Array[Array[Double]],
                algo_type : AlgorithmType, n : Int) : Iterable[(Char, HashMap[String, String])] = {
     val result = ArrayBuffer.fill[(Char, HashMap[String, String])](query.size)(null)
     val align_result = alignment(query, gap, score_matrix, algo_type, n)

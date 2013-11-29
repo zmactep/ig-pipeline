@@ -10,7 +10,8 @@ import alicont.Matrix
  * Time: 15:40
  */
 object LocalAlignment extends SimpleAlignment {
-  def extendMatrix(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : Unit = {
+  def extendMatrix(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : Unit = {
     if (matrix.height == 0) {
       matrix.move(1)
       (0 to query.size).foreach(i => matrix.last(i) = 0)
@@ -20,15 +21,17 @@ object LocalAlignment extends SimpleAlignment {
       matrix.last(0) = matrix.pred(0)
       (1 to query.size).foreach(j => {
         val score = score_matrix(s(i - 1))(query(j - 1))
-        matrix.last(j) = (matrix.pred(j - 1) + score :: matrix.pred(j) + gap :: matrix.last(j - 1) + gap :: 0 :: Nil).max
+        matrix.last(j) = (matrix.pred(j - 1) + score :: matrix.pred(j) + gap :: matrix.last(j - 1) + gap
+          :: .0 :: Nil).max
       })
     })
   }
 
-  def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : (Double, (String, String)) = {
     var (i, j) = (s.size, query.size)
 
-    var score = Int.MinValue
+    var score = Double.MinValue
     for (it <- 0 to s.size; jt <- 0 to query.size) {
       if (score < matrix(it)(jt)) {
         score = matrix(it)(jt)

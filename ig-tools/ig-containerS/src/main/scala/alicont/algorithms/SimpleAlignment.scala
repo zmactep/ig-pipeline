@@ -9,6 +9,7 @@ import alicont.Matrix
  * Time: 15:33
  */
 trait SimpleAlignment {
-  def extendMatrix(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : Unit
-  def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String))
+  def extendMatrix(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix) : Unit
+  def traceback(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : (Double, (String, String))
 }

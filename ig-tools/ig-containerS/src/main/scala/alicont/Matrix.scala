@@ -7,24 +7,24 @@ package alicont
  * Time: 15:51
  */
 class Matrix(width : Int, maxheight : Int) {
-  private val _arrays    = Array.fill[Int](maxheight + 1, width + 1)(0)
+  private val _arrays    = Array.fill[Double](maxheight + 1, width + 1)(0)
   private val _width     = width
   private val _maxheight = maxheight
   private var _current   = -1
 
   def move(i : Int) : Unit = _current += i
 
-  def apply(h : Int) : Array[Int] = _arrays(h)
+  def apply(h : Int) : Array[Double] = _arrays(h)
 
-  def apply(h : Int, w : Int) : Int = _arrays(h)(w)
+  def apply(h : Int, w : Int) : Double = _arrays(h)(w)
 
   def update(h : Int, w : Int, x : Int) : Unit = _arrays(h)(w) = x
 
-  def update(h : Int, x : Array[Int]) : Unit = _arrays(h) = x
+  def update(h : Int, x : Array[Double]) : Unit = _arrays(h) = x
 
-  def pred : Array[Int] = _arrays(_current - 1)
+  def pred : Array[Double] = _arrays(_current - 1)
 
-  def last : Array[Int] = _arrays(_current)
+  def last : Array[Double] = _arrays(_current)
 
   def height : Int = _current + 1
 

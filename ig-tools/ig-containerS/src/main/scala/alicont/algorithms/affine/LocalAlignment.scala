@@ -10,7 +10,7 @@ import alicont.Matrix
  * Time: 15:11
  */
 object LocalAlignment extends AffineAlignment {
-  def extendMatrix(s : String, query : String, gapOpen : Int, gapExtend : Int, score_matrix : Array[Array[Int]],
+  def extendMatrix(s : String, query : String, gapOpen : Double, gapExtend : Double, score_matrix : Array[Array[Double]],
                    insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : Unit = {
     if (matrix.height == 0) {
       insertion_matrix.move(1)
@@ -34,19 +34,19 @@ object LocalAlignment extends AffineAlignment {
         val score = score_matrix(s(i - 1))(query(j - 1))
 
         insertion_matrix.last(j) = (insertion_matrix.pred(j) + gapExtend :: matrix.pred(j) + (gapOpen + gapExtend) ::
-          0 :: Nil).max
+          .0 :: Nil).max
         deletion_matrix.last(j) = (deletion_matrix.last(j-1) + gapExtend :: matrix.last(j-1) + (gapOpen + gapExtend) ::
-          0 :: Nil).max
+          .0 :: Nil).max
         matrix.last(j) = (matrix.pred(j - 1) + score :: insertion_matrix.last(j) :: deletion_matrix.last(j) :: Nil).max
       })
     })
   }
 
-  def traceback(s : String, query : String, score_matrix : Array[Array[Int]],
-                deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, score_matrix : Array[Array[Double]],
+                deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Double, (String, String)) = {
     var (i, j) = (s.size, query.size)
 
-    var score = Int.MinValue
+    var score = Double.MinValue
     for (it <- 0 to s.size; jt <- 0 to query.size) {
       if (score < matrix(it)(jt)) {
         score = matrix(it)(jt)

@@ -10,7 +10,8 @@ import alicont.Matrix
  * Time: 15:39
  */
 object GlobalAlignment extends SimpleAlignment {
-  def extendMatrix(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : Unit = {
+  def extendMatrix(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]]
+                   , matrix : Matrix) : Unit = {
     if (matrix.height == 0) {
       matrix.move(1)
       (0 to query.size).foreach(i => matrix.last(i) = i * gap)
@@ -25,7 +26,8 @@ object GlobalAlignment extends SimpleAlignment {
     })
   }
 
-  def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : (Double, (String, String)) = {
     var (i, j) = (s.size, query.size)
     val result_s = new StringBuilder()
     val result_q = new StringBuilder()

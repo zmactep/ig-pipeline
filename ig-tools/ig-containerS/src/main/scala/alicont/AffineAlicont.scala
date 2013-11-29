@@ -6,7 +6,8 @@ package alicont
  * Date: 27.11.13
  * Time: 22:51
  */
-abstract class AffineAlicont(maxheight : Int, query : String, gap_open : Int, gap_ext : Int, score_matrix : Array[Array[Int]])
+abstract class AffineAlicont(maxheight : Int, query : String, gap_open : Double, gap_ext : Double,
+                             score_matrix : Array[Array[Double]])
   extends AbstractAlicont(maxheight, query, score_matrix) {
 
   protected val _gap_open = gap_open

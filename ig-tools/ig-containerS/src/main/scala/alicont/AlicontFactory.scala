@@ -13,7 +13,7 @@ import alicont.conts.affine
  */
 object AlicontFactory {
 
-  def createSimpleAlicont(maxheight : Int, query : String, gap : Int, score_matrix : Array[Array[Int]],
+  def createSimpleAlicont(maxheight : Int, query : String, gap : Double, score_matrix : Array[Array[Double]],
                           algo_type : AlgorithmType) : AbstractAlicont = {
     algo_type match {
       case AlgorithmType.GLOBAL     => new simple.AlicontGlobal(maxheight, query, gap, score_matrix)
@@ -23,8 +23,8 @@ object AlicontFactory {
     }
   }
 
-  def createAffineAlicont(maxheight : Int, query : String, gap_open : Int, gap_ext : Int,
-                          score_matrix : Array[Array[Int]], algo_type : AlgorithmType) : AbstractAlicont = {
+  def createAffineAlicont(maxheight : Int, query : String, gap_open : Double, gap_ext : Double,
+                          score_matrix : Array[Array[Double]], algo_type : AlgorithmType) : AbstractAlicont = {
     algo_type match {
       case AlgorithmType.AFFINE_GLOBAL     => new affine.AlicontGlobal(maxheight, query, gap_open, gap_ext, score_matrix)
       case AlgorithmType.AFFINE_LOCAL      => new affine.AlicontLocal(maxheight, query, gap_open, gap_ext, score_matrix)
