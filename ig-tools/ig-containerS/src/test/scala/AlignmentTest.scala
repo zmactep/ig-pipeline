@@ -11,7 +11,7 @@ import org.scalatest.matchers.ShouldMatchers
  * Time: 20:39
  */
 class AlignmentTest extends FlatSpec with ShouldMatchers {
-  "Simple global aligner" should "should pass the test" in {
+  "Alignment" should "pass simple global" in {
     val pathBlosum : String = "../../data/BLOSUM62.txt"
     val a = new simple.AlicontGlobal(11, "MEANLY", -5, Scoring.loadMatrix(pathBlosum))
     a.push("PLE")
@@ -25,9 +25,9 @@ class AlignmentTest extends FlatSpec with ShouldMatchers {
     t.replaceAll("-", "") should be ("MEANLY")
   }
 
-  "Simple local aligner" should "pass the test" in {
+  it should "pass simple local" in {
     val pathBlosum : String = "../../data/BLOSUM62.txt"
-    val pathSimple : String = "../../data/NUC_simple.txt"
+    val pathSimple : String = "../../data/NUC1.1.txt"
 
     val b = new simple.AlicontLocal(11, "MEANLYLY", -5, Scoring.loadMatrix(pathBlosum))
     b.push("PLE")
@@ -69,10 +69,10 @@ class AlignmentTest extends FlatSpec with ShouldMatchers {
 
   }
 
-  "Simple semiglobal aligner" should "pass the test" in {
+  it should "pass simple semiglobal" in {
 
     val pathBlosum : String = "../../data/BLOSUM62.txt"
-    val pathSimple : String = "../../data/NUC_simple.txt"
+    val pathSimple : String = "../../data/NUC1.1.txt"
 
     val a = new simple.AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", -1, Scoring.loadMatrix(pathSimple))
     a.push("CAGCGTGG")
@@ -117,7 +117,7 @@ class AlignmentTest extends FlatSpec with ShouldMatchers {
     t6.replaceAll("-", "") should be ("EASPTMEALYLY")
   }
 
-  "Global aligner with affine gaps" should "pass the test" in {
+  it should "pass affine global" in {
     val pathBlosum : String = "../../data/BLOSUM62.txt"
 
     val a = new affine.AlicontGlobal(11, "MEANLY", 0, -5, Scoring.loadMatrix(pathBlosum))
@@ -133,9 +133,9 @@ class AlignmentTest extends FlatSpec with ShouldMatchers {
 
   }
 
-  "Local aligner with affine gaps" should "pass the test" in {
+  it should "pass affine local" in {
     val pathBlosum : String = "../../data/BLOSUM62.txt"
-    val pathSimple : String = "../../data/NUC_simple.txt"
+    val pathSimple : String = "../../data/NUC1.1.txt"
 
     val b = new affine.AlicontLocal(11, "MEANLYLY", 0, -5, Scoring.loadMatrix(pathBlosum))
     b.push("PLE")
@@ -177,9 +177,9 @@ class AlignmentTest extends FlatSpec with ShouldMatchers {
 
   }
 
-  "Semiglobal aligner with affine gaps" should "should pass the test" in {
+  it should "pass affine semiglobal" in {
     val pathBlosum : String = "../../data/BLOSUM62.txt"
-    val pathSimple : String = "../../data/NUC_simple.txt"
+    val pathSimple : String = "../../data/NUC1.1.txt"
 
     val a = new affine.AlicontSemiglobal(11, "CAGCACTTGGATTCTCGG", 0, -1, Scoring.loadMatrix(pathSimple))
     a.push("CAGCGTGG")
