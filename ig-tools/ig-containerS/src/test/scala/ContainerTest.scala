@@ -56,7 +56,7 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
   }
 
   it should "search for alignments right" in {
-    val path : String = "../../data/NUC1.1.txt"
+    val path : String = "../../data/NUC4.4.txt"
     val cont = new Container("ACGT", 'N', Array("A1", "A2", "A3"), 7)
 
     cont.push("ACGTAGCTACGATGCGACGACGACGAGGATGTTGGTTT", "Seq1")
@@ -87,7 +87,7 @@ class ContainerTest extends FlatSpec with ShouldMatchers {
   }
 
   it should "annotate new sequences" in {
-    val path : String = "../../data/NUC1.1.txt"
+    val path : String = "../../data/NUC4.4.txt"
     val cont = new Container("ACGT", 'N', Array("A"), 3)
     cont.push("GCTGGT", "Seq1")
     cont.push("GCCGGT", "Seq2")
