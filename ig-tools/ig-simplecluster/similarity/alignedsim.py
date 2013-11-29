@@ -36,10 +36,10 @@ def save_clusters(abs_out, alignment_dict, sim_dict, mcp):
         shutil.rmtree(cluster_path)
     os.mkdir(cluster_path)
     for cluster_id, seq in enumerate(sim_dict.keys()):
+        to_write = []
         for key in sim_dict[seq]:
-            SeqIO.write(alignment_dict[key],
-                        os.path.join(cluster_path, common.CLUSTER_MASK % (mcp, cluster_id + 1) + ".fasta"),
-                        "fasta")
+            to_write.append(alignment_dict[key])
+        SeqIO.write(to_write, os.path.join(cluster_path, common.CLUSTER_MASK % (mcp, cluster_id + 1) + ".fasta"), "fasta")
 
 
 def write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp):
@@ -55,10 +55,16 @@ def write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp):
     SeqIO.write(cons, os.path.join(abs_out, common.CONSENSUS_FILE), "fasta")
 
 
-def write_info(abs_out, minlen, m, skipn, is_shortest):
+def write_info(abs_out, minlen, m, skipn, sim_dict, mcp, is_shortest):
     trash_size = len(SeqIO.to_dict(SeqIO.parse(os.path.join(abs_out, common.TRASH_FILE), "fasta")))
     with open(os.path.join(abs_out, common.INFO_FILE), "wt") as fd:
-        fd.write(json.dumps({'minlen': minlen, 'head-skip': m, 'tail-prct': skipn, 'use-short': is_shortest, "trash": trash_size}))
+        fd.write(json.dumps({'minlen': minlen,
+                             'head-skip': m,
+                             'tail-prct': skipn,
+                             'use-short': is_shortest,
+                             "trash": trash_size,
+                             "groups": {common.CLUSTER_MASK % (mcp, i + 1): sim_dict[d]
+                                        for i, d in enumerate(sim_dict.keys())}}))
 
 
 def run(src, out, minlen, m, skipn, is_shortest):
@@ -77,4 +83,4 @@ def run(src, out, minlen, m, skipn, is_shortest):
     alignment_dict, sim_dict = get_similars(align_file, m, skipn / 100.0)
     save_clusters(abs_out, alignment_dict, sim_dict, mcp)
     write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp)
-    write_info(abs_out, minlen, m, skipn, is_shortest)
+    write_info(abs_out, minlen, m, skipn, sim_dict, mcp, is_shortest)

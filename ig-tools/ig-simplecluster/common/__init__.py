@@ -38,4 +38,6 @@ def split_and_save(src, minlen, copy_path, trash_path):
             c.append(rec)
     SeqIO.write(c, copy_path, "fasta")
     SeqIO.write(t, trash_path, "fasta")
+    if maxcomprefix.endswith(CLUSTER_SPLT):
+         maxcomprefix = maxcomprefix[:-1]
     return maxcomprefix

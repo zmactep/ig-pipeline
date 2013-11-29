@@ -1,6 +1,7 @@
 __author__ = 'mactep'
 
 import os
+import json
 import shutil
 import itertools
 import difflib
@@ -109,6 +110,15 @@ def run_clustalo(src, tree_path, align_file):
     return stdout, stderr
 
 
+def write_info(abs_out, fasta_clusters, mcp):
+    trash_size = len(SeqIO.to_dict(SeqIO.parse(os.path.join(abs_out, common.TRASH_FILE), "fasta")))
+    groups = {common.CLUSTER_MASK % (mcp, cluster_id): [rec.id for rec in cluster]
+              for cluster_id, cluster in fasta_clusters.items()}
+    with open(os.path.join(abs_out, common.INFO_FILE), "wt") as fd:
+        fd.write(json.dumps({"trash": trash_size,
+                             "groups": groups}))
+
+
 def run(src, out, minlen=None):
     abs_out = os.path.abspath(out)
     trash_path = os.path.join(abs_out, common.TRASH_FILE)
@@ -117,8 +127,6 @@ def run(src, out, minlen=None):
     align_file = os.path.join(abs_out, common.ALIGNMENT_FILE)
 
     mcp = common.split_and_save(src, minlen, copy_path, trash_path)
-    if mcp.endswith(common.CLUSTER_SPLT):
-         mcp = mcp[:-1]
     run_clustalo(copy_path, tree_path, align_file)
     #save_utree(tree_path)
     distance_matrix, alignment_dict = make_distance_matrix(align_file)
@@ -127,3 +135,4 @@ def run(src, out, minlen=None):
     fasta_clusters = make_fasta_clusters(clusters, alignment_dict)
     save_clusters(abs_out, fasta_clusters, mcp)
     write_consensus(abs_out, fasta_clusters, mcp)
+    write_info(abs_out, fasta_clusters, mcp)
