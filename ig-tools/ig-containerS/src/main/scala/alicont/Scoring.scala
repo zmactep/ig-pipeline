@@ -7,8 +7,8 @@ package alicont
  * Time: 12:49
  */
 object Scoring {
-  def loadMatrix(filename : String) : Array[Array[Int]] = {
-    val result = Array.fill(256, 256)(0)
+  def loadMatrix(filename : String) : Array[Array[Double]] = {
+    val result = Array.fill(256, 256)(.0)
     var letters : String = null
 
     io.Source.fromFile(filename).getLines().foreach(line => {

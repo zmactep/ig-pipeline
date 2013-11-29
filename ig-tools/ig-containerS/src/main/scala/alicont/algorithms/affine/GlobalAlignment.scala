@@ -10,15 +10,19 @@ import alicont.Matrix
  * Time: 15:12
  */
 object GlobalAlignment extends AffineAlignment {
-  def extendMatrix(s : String, query : String, gapOpen : Int, gapExtend : Int, score_matrix : Array[Array[Int]],
+  def extendMatrix(s : String, query : String, gapOpen : Double, gapExtend : Double, score_matrix : Array[Array[Double]],
                    insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : Unit = {
     if (matrix.height == 0) {
       insertion_matrix.move(1)
       deletion_matrix.move(1)
       matrix.move(1)
-      (0 to query.size).foreach(i => insertion_matrix.last(i) = gapExtend * i)
-      (0 to query.size).foreach(i => deletion_matrix.last(i) = gapExtend * i)
-      (0 to query.size).foreach(i => matrix.last(i) = gapExtend * i)
+
+      matrix.last(0) = 0
+      deletion_matrix.last(0) = Double.NegativeInfinity
+      (1 to query.size).foreach(i => matrix.last(i) = gapOpen + gapExtend * i)
+      (1 to query.size).foreach(i => deletion_matrix.last(i) = gapOpen + gapExtend * i)
+      (0 to query.size).foreach(i => insertion_matrix.last(i) = Double.NegativeInfinity)
+
     }
     (1 to s.size).foreach(i => {
 
@@ -27,7 +31,7 @@ object GlobalAlignment extends AffineAlignment {
       matrix.move(1)
 
       insertion_matrix.last(0) = insertion_matrix.pred(0) + gapExtend
-      deletion_matrix.last(0) = deletion_matrix.pred(0) + gapExtend
+      deletion_matrix.last(0) = Double.NegativeInfinity
       matrix.last(0) = matrix.pred(0) + gapExtend
 
       (1 to query.size).foreach(j => {
@@ -43,8 +47,8 @@ object GlobalAlignment extends AffineAlignment {
     })
   }
 
-  def traceback(s : String, query : String, score_matrix : Array[Array[Int]],
-                deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, score_matrix : Array[Array[Double]],
+                deletion_matrix : Matrix, insertion_matrix : Matrix, matrix : Matrix) : (Double, (String, String)) = {
     var (i, j) = (s.size, query.size)
     val result_s = new StringBuilder()
     val result_q = new StringBuilder()
@@ -52,11 +56,19 @@ object GlobalAlignment extends AffineAlignment {
     while (i != 0 || j != 0) {
       val cs : Char = if (i > 0) s(i - 1) else 0
       val cq : Char = if (j > 0) query(j - 1) else 0
-      if (i != 0 && matrix(i)(j) == deletion_matrix(i)(j)) {
+      if (j == 0) {
         i -= 1
         result_s.append(cs)
         result_q.append('-')
-      } else if (j != 0 && matrix(i)(j) == insertion_matrix(i)(j)) {
+      } else if (i == 0) {
+        j -= 1
+        result_s.append('-')
+        result_q.append(cq)
+      } else if (matrix(i)(j) == deletion_matrix(i)(j)) {
+        i -= 1
+        result_s.append(cs)
+        result_q.append('-')
+      } else if (matrix(i)(j) == insertion_matrix(i)(j)) {
         j -= 1
         result_s.append('-')
         result_q.append(cq)

@@ -10,7 +10,8 @@ import alicont.Matrix
  * Time: 15:40
  */
 object SemiglobalAlignment extends SimpleAlignment {
-  def extendMatrix(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : Unit = {
+  def extendMatrix(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : Unit = {
     if (matrix.height == 0) {
       matrix.move(1)
       (0 to query.size).foreach(i => matrix.last(i) = 0)
@@ -25,7 +26,8 @@ object SemiglobalAlignment extends SimpleAlignment {
     })
   }
 
-  def traceback(s : String, query : String, gap : Int, score_matrix : Array[Array[Int]], matrix : Matrix) : (Int, (String, String)) = {
+  def traceback(s : String, query : String, gap : Double, score_matrix : Array[Array[Double]], matrix : Matrix)
+  : (Double, (String, String)) = {
     var (score, i, j) = prepareIJ(s.size, query.size, matrix)
     val result_s = new StringBuilder()
     val result_q = new StringBuilder()
@@ -74,8 +76,8 @@ object SemiglobalAlignment extends SimpleAlignment {
     (score, (result_q.reverse.toString(), result_s.reverse.toString()))
   }
 
-  def prepareIJ(s : Int, q: Int, matrix : Matrix) : (Int, Int, Int) = {
-    var (maxlastrow, maxlastcol) = (Int.MinValue, Int.MinValue)
+  def prepareIJ(s : Int, q: Int, matrix : Matrix) : (Double, Int, Int) = {
+    var (maxlastrow, maxlastcol) = (Double.MinValue, Double.MinValue)
     var (maxi, maxj) = (0, 0)
     for (jt <- 0 to q) {
       if (maxlastrow < matrix.last(jt)) {

@@ -9,15 +9,15 @@ import alicont.SimpleAlicont
  * Date: 27.11.13
  * Time: 23:37
  */
-class AlicontSemiglobal(maxheight : Int, query : String, gap : Int, score_matrix : Array[Array[Int]])
-  extends SimpleAlicont(maxheight : Int, query : String, gap : Int, score_matrix : Array[Array[Int]]) {
+class AlicontSemiglobal(maxheight : Int, query : String, gap : Double, score_matrix : Array[Array[Double]])
+  extends SimpleAlicont(maxheight : Int, query : String, gap : Double, score_matrix : Array[Array[Double]]) {
 
   def push(s : String) : Unit = {
     _strings.push(s)
     SemiglobalAlignment.extendMatrix(s, _query, _gap, _score, _scoreMatrix)
   }
 
-  def alignment() : (Int, (String, String)) = {
+  def alignment() : (Double, (String, String)) = {
     SemiglobalAlignment.traceback(target, _query, _gap, _score, _scoreMatrix)
   }
 }

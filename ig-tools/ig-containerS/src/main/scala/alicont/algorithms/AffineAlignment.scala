@@ -9,8 +9,8 @@ import alicont.Matrix
  * Time: 15:33
  */
 trait AffineAlignment {
-  def extendMatrix(s : String, query : String, gapOpen : Int, gapExtend : Int, score_matrix : Array[Array[Int]],
+  def extendMatrix(s : String, query : String, gapOpen : Double, gapExtend : Double, score_matrix : Array[Array[Double]],
                    insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : Unit
-  def traceback(s : String, query : String, score_matrix : Array[Array[Int]],
-                insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : (Int, (String, String))
+  def traceback(s : String, query : String, score_matrix : Array[Array[Double]],
+                insertion_matrix : Matrix, deletion_matrix : Matrix, matrix : Matrix) : (Double, (String, String))
 }

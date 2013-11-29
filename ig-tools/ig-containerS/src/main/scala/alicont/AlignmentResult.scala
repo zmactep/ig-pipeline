@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
  * Date: 28.10.13
  * Time: 17:48
  */
-class AlignmentResult(s : Int, q : String, t : String) {
+class AlignmentResult(s : Double, q : String, t : String) {
   private val _query = q
   private val _target = t
   private val _result = new ArrayBuffer[(Char, HashMap[String, String])]()
@@ -18,7 +18,7 @@ class AlignmentResult(s : Int, q : String, t : String) {
   private val _similarity = 1.0 * q.zip(t).foldRight(0)((c, acc) => acc + (if (c._1 == c._2) 1 else 0)) / q.size
   private var _tname : String = null
 
-  def this(s : Int, q : String, target_a : String, target : (String, Record)) = {
+  def this(s : Double, q : String, target_a : String, target : (String, Record)) = {
     this(s, q, target_a)
     _tname = target._2.name
     var i = target._1.indexOf(target_a.replaceAll("-", ""))
@@ -37,7 +37,7 @@ class AlignmentResult(s : Int, q : String, t : String) {
 
   def get : Iterable[(Char, HashMap[String, String])] = _result
 
-  def score : Int = _score
+  def score : Double = _score
 
   def query : String = _query
 
