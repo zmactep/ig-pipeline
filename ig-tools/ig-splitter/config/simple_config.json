@@ -1,0 +1,58 @@
+{
+    "mids": {
+        "l-vh": [
+            "TATGATACGC",
+            "TCACTCATAC"
+        ],
+        "l-vk": [
+            "TCATCGAGTC",
+            "TCGAGCTCTC"
+        ],
+        "l-vl": [
+            "TCGCAGACAC",
+            "TCTGTCTCGC"
+        ],
+        "m-vk": [
+            "CGACACTATC",
+            "CGAGACGCGC"
+        ],
+        "m-vkh": [
+            "TAGCTCTATC",
+            "TATAGACATC"
+        ],
+        "m-vl": [
+            "CGTATGCGAC",
+            "CGTCGATCTC"
+        ],
+        "m-vlh": [
+            "TAGACTGCAC",
+            "TAGCGCGCGC"
+        ]
+    },
+    "primers": {
+        "l-vh": [
+            "SARSTKCAGCTGSWGSAGTCTGG",
+            "CCTGARGAGACGGTGACCAKKGTYCC"
+        ],
+        "l-vk": [
+            "GAYRTYSWGWTGACYCAGWCTCC",
+            "TTTRATHTCCASYYKKGTCCC"
+        ],
+        "l-vl": [
+            "CWGBYTGTGYTGACKCARCC",
+            "CTGKARRACGGTSASCTKGGTCCC"
+        ],
+        "m-vh": [
+            "GCCTACGGCAGCCGCTGGATTGTTATTAC",
+            "CACAGACGGGCCTTTTGTAGAC"
+        ],
+        "m-vk": [
+            "GCTGCTGCTGGTCTGCTGCTCCTCGCTG",
+            "GGCGGGAAAATAAAAACAGACGG"
+        ],
+        "m-vl": [
+            "GCTGCTGCTGGTCTGCTGCTCCTCGCTG",
+            "GGCGGGAAAATAAAAACAGACGG"
+        ]
+    }
+}

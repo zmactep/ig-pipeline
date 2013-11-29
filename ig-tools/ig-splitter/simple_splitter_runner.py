@@ -3,7 +3,6 @@ from IPython.parallel import Client
 import argparse
 import os
 from Bio import SeqIO
-from simple_splitter import split_dataset
 from itertools import chain
 
 view = Client()[:] 
@@ -23,19 +22,20 @@ def split_dataset_parallel(recs):
     return split_dataset(recs)
 
 
-def merge_dicts(ds):
-    m = {}
+def reduce_dicts(ds):
+    r = {}
 
     for d in ds:
         for k, v in d.items():
-            if k in m:
-                m[k].append(iter(v))
+            if k in r:
+                r[k].append(iter(v))
             else:
-                m[k] = [iter(v)]
-    
-    for k in m:
-        m[k] = chain(*m[k])
-    return m
+                r[k] = [iter(v)]
+
+    for k in r:
+        r[k] = chain(*r[k])
+
+    return r
 
 
 def run_split(recs):
@@ -43,7 +43,7 @@ def run_split(recs):
 
     result.wait_interactive()
 
-    return merge_dicts(result.result)
+    return reduce_dicts(result.result)
 
 
 def main():
