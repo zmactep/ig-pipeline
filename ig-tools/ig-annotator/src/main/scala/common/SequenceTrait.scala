@@ -1,6 +1,6 @@
 package common
 
-import alicont.Scoring
+import alicont.common.Scoring
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,7 +33,7 @@ class SequenceTrait(t : SequenceType.SequenceType) {
     }
   }
 
-  def score : Array[Array[Int]] = {
+  def score : Array[Array[Double]] = {
     _type match {
       case SequenceType.NUCLEO => Scoring.loadMatrix("../../data/NUC4.4.txt")
       case SequenceType.AMINO => Scoring.loadMatrix("../../data/BLOSUM62.txt")
