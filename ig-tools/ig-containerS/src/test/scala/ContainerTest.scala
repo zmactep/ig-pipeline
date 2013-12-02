@@ -3,7 +3,7 @@ import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
 
-import alicont.Scoring
+import alicont.common.Scoring
 import igcont.Container
 import scala.collection.mutable
 

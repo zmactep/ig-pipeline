@@ -4,11 +4,13 @@ import igcont.trie.Trie
 import igcont.anno.{Record, Anno}
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
-import alicont.{AlicontFactory, AbstractAlicont, AlignmentResult}
 import scala.collection.mutable.ArrayBuffer
 import igcont.kmer.bit.Counter
 
+
 import alicont.algorithms.AlgorithmType.AlgorithmType
+import alicont.conts.AbstractAlicont
+import alicont.{AlignmentResult, AlicontFactory}
 
 /**
  * Created with IntelliJ IDEA.

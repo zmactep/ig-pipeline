@@ -3,13 +3,16 @@ package igcont.anno
 import scala.collection.mutable
 import scala.collection.immutable
 
+import alicont.common
+
 /**
  * Created with IntelliJ IDEA.
  * User: mactep
  * Date: 17.10.13
  * Time: 17:37
  */
-class Record(id : Int, n : String, s : Int, anno_types : immutable.HashMap[String, mutable.ArrayBuffer[String]]) {
+class Record(id : Int, n : String, s : Int,
+             anno_types : immutable.HashMap[String, mutable.ArrayBuffer[String]]) extends common.Record {
   private val _id     = id
   private val _name   = n
   private val _cont   = mutable.ArrayBuffer.fill[Annotation](s)(null)
