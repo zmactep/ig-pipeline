@@ -48,18 +48,8 @@
         </dependency>
         <dependency>
             <groupId>org.biojava</groupId>
-            <artifactId>core</artifactId>
-            <version>1.8.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.biojava</groupId>
             <artifactId>sequencing</artifactId>
             <version>1.8.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.biojava</groupId>
-            <artifactId>biojava3-alignment</artifactId>
-            <version>3.0.7</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
