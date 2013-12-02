@@ -1,9 +1,38 @@
 import json
-import tempfile
+import os
 from Bio import SeqIO
 from Bio.Seq import Seq
 import numpy as np
 import align
+from IPython.config import Application
+
+# keeps list of dump file names from previous split runs, to be removed by a call to cleanup()
+_dump_files = []
+
+class Split:
+    def get_dump_file(self, key):
+        name = 'dump-{0}-{1}.fasta'.format(key, os.getpid())
+        return open(name, 'w')
+
+    def __init__(self, mids):
+        keys = list(mids) + ['trash', 'other']
+        self.__buckets = {k: [] for k in keys}
+        self.__dumps = {k: self.get_dump_file(k) for k in keys}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        for dump in self.__dumps.values():
+            dump.close()
+
+    def accept(self, key, val):
+        self.__buckets[key].append(val)
+        SeqIO.write(val, self.__dumps[key], 'fasta')
+
+    def complete(self):
+        return self.__buckets, [lambda name=f.name: os.remove(name) for f in self.__dumps.values()]
+
 
 def align_test(s, m):
     S = np.array([[1 if i == j else -1 for i in range(256)] for j in range(256)], dtype=np.short)
@@ -21,13 +50,6 @@ def get_rc(rec):
                            letter_annotations={"phred_quality": rec.letter_annotations["phred_quality"][::-1]})
 
 
-def test(seq, f, r, t_max, ms=12):
-        fscore, fpos = align_test(seq, f)
-        rscore, rpos = align_test(seq, r)
-        if fpos < rpos and fscore + rscore >= ms and fscore + rscore >= t_max:
-            return fscore + rscore
-
-
 def load_mids():
     try:
         with open('config/simple_config.json', 'r') as conf:
@@ -37,28 +59,21 @@ def load_mids():
 
 
 def split_dataset(recs):
-    class Split:
-        def __init__(self, mids):
-            self.buckets = {k: [] for k in list(mids) + ['trash', 'other']}
-
-        def __enter__(self):
-            self.fasta = tempfile.NamedTemporaryFile(mode='w', suffix='.fasta')
-
-        def __exit__(self, type, value, tb):
-            self.fasta.close()
-
-        def accept(self, key, val):
-            self.buckets[key].append(val)
-            SeqIO.write(val, self.fasta, 'fasta')
+    def test(seq, f, r, t_max, ms=12):
+        fscore, fpos = align_test(seq, f)
+        rscore, rpos = align_test(seq, r)
+        if fpos < rpos and fscore + rscore >= ms and fscore + rscore >= t_max:
+            return fscore + rscore
 
     mids = load_mids()
 
     with Split(mids) as split:
+        print(split)
+
         for rec in recs:
             if len(rec) not in range(250, 551) or np.average(rec.letter_annotations["phred_quality"]) < 21:
                 split.accept("trash", rec)
                 continue
-
             seq = str(rec.seq).upper()
             rseq = str(rec.seq.reverse_complement).upper()
             t_pax = float("-inf")
@@ -82,4 +97,12 @@ def split_dataset(recs):
             else:
                 split.accept('other', rec)
 
-        return split.buckets
+        buckets, dumps = split.complete()
+        _dump_files.extend(dumps)
+        return buckets
+
+
+def cleanup():
+    if _dump_files:
+        for remover in _dump_files:
+            remover()
