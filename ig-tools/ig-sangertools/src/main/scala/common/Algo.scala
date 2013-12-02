@@ -51,6 +51,16 @@ object Algo {
     (posi - maxLen + 1, posj - maxLen + 1, maxLen)
   }
 
+  def getAlignedPattern(seq_a : String, pattern_a : String) : String = {
+    var i = 0
+    var j = seq_a.size - 1
+
+    (seq_a zip pattern_a).takeWhile(c => c._2 == '-').foreach(_ => i += 1)
+    (seq_a zip pattern_a).reverseIterator.takeWhile(c => c._2 == '-').foreach(_ => j -= 1)
+
+    seq_a.substring(i, j + 1).replace("-", "")
+  }
+
   def translateString(dna : String) : String = {
     val result = StringBuilder.newBuilder
     val codon_table = "KNKNTTTTRSRSIIMIQHQHPPPPRRRRLLLLEDEDAAAAGGGGVVVV*Y*YSSSS*CWCLFLF"

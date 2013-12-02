@@ -8,7 +8,9 @@ import sangerrun.PairSangerProcessing
  */
 object Main {
   def main(args : Array[String]) = {
-    val p = new PairSangerProcessing("/home/mactep/Data/abi-test", "/home/mactep/Data/abi-test/result", ("pLLSeqR", "H3b"), true)
+    val p = new PairSangerProcessing("/Users/pavel/BIO/TARGETS/CMET/CMETHER3_MMMP1-raw data all/RAW",
+                                     "/Users/pavel/BIO/TARGETS/CMET/CMETHER3_MMMP1-raw data all/RAW/result",
+                                     ("SeqR", "H3b"), true)
     p.process()
   }
 }

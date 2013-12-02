@@ -2,15 +2,14 @@ package sangerrun
 
 import org.biojava.bio.program.abi.ABITrace
 
-import org.biojava3.alignment.{SimpleGapPenalty, Alignments, SubstitutionMatrixHelper}
-import org.biojava3.alignment.Alignments.PairwiseSequenceAlignerType
-import org.biojava3.core.sequence.DNASequence
-
 import java.io.{FileOutputStream, FilenameFilter, File}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 import common.{FileUtils, Algo}
+import alicont.AlicontFactory
+import alicont.common.Scoring
+import alicont.algorithms.AlgorithmType
 
 
 /**
@@ -142,6 +141,7 @@ class PairSangerProcessing(input : String, output : String, primers : (String, S
       sequence = forward_seq
     }
     else if (forward_seq == null || backward_seq == null) {
+      printf("Oops! o_O (%s)\n", basename)
       return null
     }
     else {
@@ -150,6 +150,7 @@ class PairSangerProcessing(input : String, output : String, primers : (String, S
 
     val vlh = getVLH(sequence)
     if (vlh == null) {
+      printf("Oops! o_O (%s)\n", basename)
       null
     }
     else {
@@ -161,32 +162,39 @@ class PairSangerProcessing(input : String, output : String, primers : (String, S
     var vl_start = 0
     var vl_end = 0
     var vh_start = 0
+    var vl_pattern : String = null
+    var vh_pattern : String = null
     if (_local) {
-      val matrix = SubstitutionMatrixHelper.getNuc4_4
-      val vl_align = Alignments.getPairwiseAlignment(new DNASequence(VL_LEADER_DEFAULT), new DNASequence(seq),
-        PairwiseSequenceAlignerType.LOCAL, new SimpleGapPenalty(5, 2), matrix)
-      val vh_align = Alignments.getPairwiseAlignment(new DNASequence(VH_LEADER_DEFAULT), new DNASequence(seq),
-        PairwiseSequenceAlignerType.LOCAL, new SimpleGapPenalty(5, 2), matrix)
+      val alicont = AlicontFactory.createSimpleAlicont(100, seq, -5,
+                                                       Scoring.loadMatrix("../../data/NUC4.4.txt"),
+                                                       AlgorithmType.SEMIGLOBAL)
+      alicont.push(VL_LEADER_DEFAULT)
+      val (_, vl_alignment) = alicont.alignment()
+      alicont.pop()
+      alicont.push(VH_LEADER_DEFAULT)
+      val (_, vh_alignment) = alicont.alignment()
 
-      vl_start = vl_align.getIndexInTargetAt(1) + vl_align.getSize - 1
-      vl_end = vh_align.getIndexInTargetAt(1) - 1
-      vh_start = vl_end + vh_align.getSize
+      vl_pattern = Algo.getAlignedPattern(vl_alignment._1, vl_alignment._2)
+      vh_pattern = Algo.getAlignedPattern(vh_alignment._1, vh_alignment._2)
     }
     else {
-      val vl_lead_start = seq.indexOf(VL_LEADER_DEFAULT)
-      if (vl_lead_start != -1) {
-        vl_start = vl_lead_start + VL_LEADER_DEFAULT.length
-        vl_end = seq.indexOf(VH_LEADER_DEFAULT)
-        vh_start = vl_end + VH_LEADER_DEFAULT.length
-      }
-      else {
-        vl_start = -1
-        vl_end = -1
-        vh_start = -1
-      }
+      vl_pattern = VL_LEADER_DEFAULT
+      vh_pattern = VH_LEADER_DEFAULT
     }
 
-    if (vl_start < 0 || vl_end < 0 || vh_start < 0) {
+    val vl_lead_start = seq.indexOf(vl_pattern)
+    if (vl_lead_start != -1) {
+      vl_start = vl_lead_start + vl_pattern.size
+      vl_end = seq.indexOf(vh_pattern)
+      vh_start = vl_end + vh_pattern.size
+    }
+    else {
+      vl_start = -1
+      vl_end = -1
+      vh_start = -1
+    }
+
+    if (vl_start < 0 || vl_end < 0 || vh_start < 0 || vl_start >= vl_end) {
       null
     }
     else {
