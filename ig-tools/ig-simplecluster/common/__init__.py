@@ -1,6 +1,8 @@
 __author__ = 'mactep'
 
+import logging
 from Bio import SeqIO
+from Bio.Align.Applications import ClustalOmegaCommandline
 
 
 TRASH_FILE = "others.fasta"
@@ -19,8 +21,30 @@ TRASH_NAME = "other"
 CLUSTER_DIR = "clusters"
 
 
+def run_clustalo(src, tree_path, align_file):
+    cline = ClustalOmegaCommandline(infile=os.path.abspath(src),
+                                    guidetree_out=tree_path,
+                                    outfmt="fasta", outfile=align_file,
+                                    threads=4, force=True)
+    try:
+        stdout, stderr = cline()
+    except:
+        logging.error("Aligner call error")
+        raise
+
+    if stdout:
+        logging.error("Aligner internal error: %s" % stderr)
+        raise RuntimeError
+    return stdout, stderr
+
+
 def split_and_save(src, minlen, copy_path, trash_path):
-    recs = SeqIO.parse(src, "fasta")
+    logging.info("Splitting and filtering dataset.")
+    try:
+        recs = SeqIO.parse(src, "fasta")
+    except:
+        logging.error("Source file was not found in splitter action.")
+        raise
     maxcomprefix = None
 
     c, t = [], []
@@ -36,8 +60,12 @@ def split_and_save(src, minlen, copy_path, trash_path):
             t.append(rec)
         else:
             c.append(rec)
-    SeqIO.write(c, copy_path, "fasta")
-    SeqIO.write(t, trash_path, "fasta")
+    try:
+        SeqIO.write(c, copy_path, "fasta")
+        SeqIO.write(t, trash_path, "fasta")
+    except:
+        logging.error("Cannot write split step result.")
+        raise
     if maxcomprefix.endswith(CLUSTER_SPLT):
          maxcomprefix = maxcomprefix[:-1]
     return maxcomprefix

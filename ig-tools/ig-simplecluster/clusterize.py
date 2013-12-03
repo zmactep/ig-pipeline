@@ -1,6 +1,8 @@
 __author__ = 'mactep'
 
 import os
+import sys
+import logging
 import argparse
 
 from cluster import clustalo
@@ -24,8 +26,24 @@ def main():
 
     args, unknown = parser.parse_known_args()
 
-    if not os.path.isdir(os.path.abspath(args.outdir)):
-        os.mkdir(os.path.abspath(args.outdir))
+    try:
+        if not os.path.isdir(os.path.abspath(args.outdir)):
+            os.mkdir(os.path.abspath(args.outdir))
+    except:
+        logging.error("Cannot create output directory.")
+        raise
+
+    if not args.src:
+        logging.error("Source file was not found.")
+        raise FileNotFoundError
+    if not args.outdir:
+        logging.error("Output file is not specified.")
+        raise FileExistsError
+
+    logging.info("Started with right parameters.")
+    logging.info("Source: %s, Type: %s, Skip First: %s, Use: %s"
+                 "Shortest: %s, Minimal Length: %s, Out: %s" % (args.src, args.ctype, args.m, args.useprct,
+                                                                args.cons, args.minlen, args.outdir))
 
     if args.ctype == 'cluster':
         clustalo.run(args.src, args.outdir, args.minlen)
@@ -33,4 +51,9 @@ def main():
         alignedsim.run(args.src, args.outdir, args.minlen, args.m, args.useprct, args.cons)
 
 if __name__ == "__main__":
-    main()
+    FORMAT = "[%(levelname)s] %(asctime)s | %(message)s"
+    logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stderr)
+    try:
+        main()
+    except:
+        logging.critical("Terminated.")

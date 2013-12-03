@@ -1,24 +1,17 @@
 __author__ = 'mactep'
 
 import os
+import logging
 import shutil
 import json
 
 from Bio import SeqIO, AlignIO
-from Bio.Align.Applications import ClustalOmegaCommandline
 
 import common
 
 
-def run_clustalo(src, align_file):
-    cline = ClustalOmegaCommandline(infile=os.path.abspath(src),
-                                    outfmt="fasta", outfile=align_file,
-                                    threads=4, force=True)
-    stdout, stderr = cline()
-    return stdout, stderr
-
-
 def get_similars(align_file, m, skipf):
+    logging.info("Searching for similars.")
     alignment_dict = SeqIO.to_dict(AlignIO.read(align_file, "fasta"))
     sim_dict = {}
     for key in alignment_dict.keys():
@@ -31,18 +24,28 @@ def get_similars(align_file, m, skipf):
 
 
 def save_clusters(abs_out, alignment_dict, sim_dict, mcp):
+    logging.info("Saving clusters.")
     cluster_path = os.path.join(abs_out, common.CLUSTER_DIR)
-    if os.path.isdir(cluster_path):
-        shutil.rmtree(cluster_path)
-    os.mkdir(cluster_path)
+    try:
+        if os.path.isdir(cluster_path):
+            shutil.rmtree(cluster_path)
+        os.mkdir(cluster_path)
+    except:
+        logging.error("Cannot create clusters directory.")
+        raise
     for cluster_id, seq in enumerate(sim_dict.keys()):
         to_write = []
         for key in sim_dict[seq]:
             to_write.append(alignment_dict[key])
-        SeqIO.write(to_write, os.path.join(cluster_path, common.CLUSTER_MASK % (mcp, cluster_id + 1) + ".fasta"), "fasta")
+        try:
+            SeqIO.write(to_write, os.path.join(cluster_path, common.CLUSTER_MASK % (mcp, cluster_id + 1) + ".fasta"), "fasta")
+        except:
+            logging.error("Error while saving cluster %s." % common.CLUSTER_MASK % (mcp, cluster_id))
+            raise
 
 
 def write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp):
+    logging.info("Writing consensus sequences.")
     cons = []
     for cluster_id, seq in enumerate(sim_dict.keys()):
         val = None
@@ -52,10 +55,15 @@ def write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp):
                (not is_shortest and len(val) < len(alignment_dict[key])):
                 val = alignment_dict[key].seq
         cons.append(SeqIO.SeqRecord(val, common.CLUSTER_MASK % (mcp, cluster_id + 1), name="", description=""))
-    SeqIO.write(cons, os.path.join(abs_out, common.CONSENSUS_FILE), "fasta")
+    try:
+        SeqIO.write(cons, os.path.join(abs_out, common.CONSENSUS_FILE), "fasta")
+    except:
+        logging.error("Error while saving consensus.")
+        raise
 
 
 def write_info(abs_out, minlen, m, skipn, sim_dict, mcp, is_shortest):
+    logging.info("Writing JSON info")
     trash_size = len(SeqIO.to_dict(SeqIO.parse(os.path.join(abs_out, common.TRASH_FILE), "fasta")))
     with open(os.path.join(abs_out, common.INFO_FILE), "wt") as fd:
         fd.write(json.dumps({'minlen': minlen,
@@ -71,6 +79,7 @@ def run(src, out, minlen, m, skipn, is_shortest):
     abs_out = os.path.abspath(out)
     trash_path = os.path.join(abs_out, common.TRASH_FILE)
     copy_path = os.path.join(abs_out, os.path.basename(src))
+    tree_path = os.path.join(abs_out, common.TREE_FILE)
     align_file = os.path.join(abs_out, common.ALIGNMENT_FILE)
 
     if not m:
@@ -79,7 +88,7 @@ def run(src, out, minlen, m, skipn, is_shortest):
         skipn = 100
 
     mcp = common.split_and_save(src, minlen, copy_path, trash_path)
-    run_clustalo(copy_path, align_file)
+    common.run_clustalo(copy_path, tree_path, align_file)
     alignment_dict, sim_dict = get_similars(align_file, m, skipn / 100.0)
     save_clusters(abs_out, alignment_dict, sim_dict, mcp)
     write_consensus(abs_out, alignment_dict, sim_dict, is_shortest, mcp)

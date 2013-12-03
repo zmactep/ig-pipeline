@@ -4,6 +4,7 @@ import json
 from xml.etree.ElementTree import TreeBuilder, ElementTree
 import sys
 
+
 class JsonKeyError(Exception):
     def __init__(self, message):
         self.message = message
@@ -133,8 +134,8 @@ def main():
         get_xhtml_tree(builder,
                        partial(render_headers, trees=headers_forest),
                        partial(render_data, trees=data_forest),
-                       '{0} as table'.format(args.json_filename))\
-            .write(f, encoding="unicode")
+                       '{0} as table'.format(args.json_filename)
+                       ).write(f, encoding="unicode")
 
 
 if __name__ == '__main__':
