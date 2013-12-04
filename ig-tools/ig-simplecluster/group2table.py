@@ -1,8 +1,10 @@
 from argparse import ArgumentParser
 from functools import partial
 import json
+import logging
 from xml.etree.ElementTree import TreeBuilder, ElementTree
 import sys
+
 
 class JsonKeyError(Exception):
     def __init__(self, message):
@@ -119,23 +121,30 @@ def main():
     try:
         data_forest = load_data(args.json_filename)
         headers_forest = load_headers(args.headers_filename)
-    except JsonKeyError as e:
-        print(e.message)
-        sys.exit(-1)
-
-    if not data_forest:
-        print('No matching root node in input data.')
-        sys.exit(-1)
+    except JsonKeyError:
+        logging.error('Expected top-level element key not found in json.')
+        raise
+    except Exception:
+        logging.error('Error in loading data.')
+        raise
 
     builder = TreeBuilder()
 
-    with open(args.out_filename, 'w') as f:
-        get_xhtml_tree(builder,
-                       partial(render_headers, trees=headers_forest),
-                       partial(render_data, trees=data_forest),
-                       '{0} as table'.format(args.json_filename))\
-            .write(f, encoding="unicode")
+    try:
+        with open(args.out_filename, 'w') as f:
+            get_xhtml_tree(builder,
+                           partial(render_headers, trees=headers_forest),
+                           partial(render_data, trees=data_forest),
+                           '{0} as table'.format(args.json_filename))\
+                .write(f, encoding="unicode")
+    except Exception:
+        logging.error('Error in generating output.')
+        raise
 
 
 if __name__ == '__main__':
-    main()
+    logging.basicConfig(format='%(levelname)s %(asctime)s %(message)s')
+    try:
+        main()
+    except Exception:
+        logging.critical('Terminated.')

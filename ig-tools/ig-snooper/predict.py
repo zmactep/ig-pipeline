@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import sys
 from pipeline import predict_pipeline
 
@@ -34,4 +35,7 @@ def get_params():
     return params
 
 if __name__ == "__main__":
-   main()
+    try:
+        main()
+    except Exception:
+        logging.critical("Terminated.")
