@@ -46,7 +46,7 @@ def view(request):
                         try:
                             StorageItem.objects.using('ig').get(file_id=get_basename(file), group=data['group'], run=data['run'])
                         except StorageItem.DoesNotExist:
-                            item = StorageItem(file_id=get_basename(file), comment=data['comment'], path=get_basename(file), group=data['group'], run=data['run'])
+                            item = StorageItem(file_id=get_basename(file), comment=data['comment'], path=file, group=data['group'], run=data['run'])
                             item.save(using='ig')
 
                     items = StorageItem.objects.using('ig').all().order_by('group', 'run')

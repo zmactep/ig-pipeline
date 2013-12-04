@@ -65,7 +65,7 @@ object FileUtils {
       s"--db=${conf.getString("ig-backend.db_name")} --user=${conf.getString("ig-backend.db_user")} " +
       s"--password=${conf.getString("ig-backend.db_password")} --dir=$path --group=$group --run=$run"
 
-    val cmd = s"python ${new File(toolsRoot, "ig-snooper/ig_snooper_utils/scan_dir.py").toString} $params"
+    val cmd = s"python ${new File(toolsRoot, "ig-utils/scan_dir.py").toString} $params"
     Process(cmd, new java.io.File(toolsRoot)).!!
   }
 }

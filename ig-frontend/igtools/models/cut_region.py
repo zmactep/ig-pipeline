@@ -51,7 +51,7 @@ class CutRegion(models.Model):
 
     def get_backend_request(self):
 
-        request = {"executable": "ig-snooper/ig_snooper_utils/cut_region.py",
+        request = {"executable": "ig-utils/cut_region.py",
                         "input": {
                            "params": [
                                 {"name": "input", "value": self.input},
