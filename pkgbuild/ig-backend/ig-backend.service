@@ -3,5 +3,5 @@ Description=ig-backend server
 
 [Service]
 WorkingDirectory=/usr/local/ig-backend
-ExecStart=/usr/bin/java -jar -Dconfig.file=/etc/ig-config/ig-backend.conf /usr/local/ig-backend/ig-backend-1.0-SNAPSHOT.jar
+ExecStart=/etc/environmental_variables.sh && /usr/bin/java -jar -Dconfig.file=/etc/ig-config/ig-backend.conf /usr/local/ig-backend/ig-backend-1.0-SNAPSHOT.jar
 Type=simple
