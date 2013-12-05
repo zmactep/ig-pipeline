@@ -21,18 +21,18 @@ class RegionAnnotator(n : String, t : SequenceType, algo : AlgorithmType = Algor
   private val _cont = new Container(_type.alphabet, _type.special, Array("Region"), _type.k)
   private val _algo = algo
 
-  def this(n : String, t : SequenceType, fileprefix : String) = {
+  def this(n : String, t : SequenceType, fasta : String, kabat : String) = {
     this(n, t)
     _cont.addAnnotations("Region", _regs)
 
     // Load fasta
-    FileUtils.readFasta(fileprefix + ".fasta").foreach(tpl => {
+    FileUtils.readFasta(fasta).foreach(tpl => {
       val (name, seq) = tpl
       _cont.push(seq, name)
     })
 
     // Load kabat
-    FileUtils.readKabat(fileprefix + ".kabat").foreach(tpl => {
+    FileUtils.readKabat(kabat).foreach(tpl => {
       val (name, arr) = tpl
       val record = _cont.record(name)
 
