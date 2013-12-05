@@ -4,9 +4,9 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 import numpy as np
 import align
-from IPython.config import Application
 
-# keeps list of dump file names from previous split runs, to be removed by a call to cleanup()
+
+# keeps list of dump file names from previous split runs, to be removed in a call to cleanup()
 _dump_files = []
 
 class Split:
