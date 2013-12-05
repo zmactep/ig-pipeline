@@ -15,7 +15,7 @@ class SequenceTrait(t : SequenceType.SequenceType) {
   def alphabet : String = {
     _type match {
       case SequenceType.NUCLEO => "ACGTN"
-      case SequenceType.AMINO  => "ARNDCEQGHILKMFPSTWYVX"
+      case SequenceType.AMINO  => "ARNDCEQGHILKMFPSTWYVX*"
     }
   }
 
