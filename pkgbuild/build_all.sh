@@ -28,4 +28,4 @@ rm -rf ./src ./pkg ig-frontend-0.1-1-x86_64.pkg.tar.xz ig-frontend.tar.gz
 txtred='\e[0;31m' 
 txtrst='\e[0m'
 
-echo -e "${txtred}Done. All your packages are in dist folder. Now run 'su -c ./build_all.sh' to install server${txtrst}"
+echo -e "${txtred}Done. All your packages are in dist folder. Now run 'su -c ./install_all.sh' to install server${txtrst}"
