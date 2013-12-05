@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 from pipeline import train_pipeline
 import sys
 
@@ -31,4 +32,7 @@ def get_params():
     return params
 
 if __name__ == "__main__":
-   main()
+   try:
+       main()
+   except Exception:
+       logging.critical("Terminated.")
