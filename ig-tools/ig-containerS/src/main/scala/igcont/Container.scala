@@ -171,7 +171,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     result
   }
 
-  def alignment_template(alicont : AbstractAlicont, callback : (AlignmentResult) => Unit) : Unit = {
+  private[this] def alignment_template(alicont : AbstractAlicont, callback : (AlignmentResult) => Unit) : Unit = {
     val target = new mutable.StringBuilder()
     val fork_stack = new mutable.Stack[Int]()
     var from_leaf = false
@@ -216,7 +216,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     }
   }
 
-  def alignment_inner(alicont : AbstractAlicont, n : Int) : Iterable[AlignmentResult] = {
+  private[this] def alignment_inner(alicont : AbstractAlicont, n : Int) : Iterable[AlignmentResult] = {
     if (alicont == null) {
       return null
     }
@@ -241,7 +241,7 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     result.dequeueAll.reverse.toIterable
   }
 
-  def alignment_inner(alicont : AbstractAlicont, prct : Double) : Iterable[AlignmentResult] = {
+  private[this] def alignment_inner(alicont : AbstractAlicont, prct : Double) : Iterable[AlignmentResult] = {
     if (alicont == null) {
       return null
     }
@@ -278,10 +278,9 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
     alignment_inner(AlicontFactory.createAffineAlicont(_depth, query, gap_open, gap_ext, score_matrix, algo_type), prct)
 
 
-  def annotate(query : String, gap : Double, score_matrix : Array[Array[Double]],
-               algo_type : AlgorithmType, n : Int) : Iterable[(Char, HashMap[String, String])] = {
+  private[this] def annotate_inner(query : String,
+                                   align_result : Iterable[AlignmentResult]) : Iterable[(Char, HashMap[String, String])] = {
     val result = ArrayBuffer.fill[(Char, HashMap[String, String])](query.size)(null)
-    val align_result = alignment(query, gap, score_matrix, algo_type, n)
     val preresult = ArrayBuffer.fill[ArrayBuffer[HashMap[String, String]]](query.size)(ArrayBuffer.empty)
 
     def annotate_by_one(anno : AlignmentResult) = {
@@ -341,4 +340,12 @@ class Container(alphabet : String, special : Char, anno_types : Array[String], k
 
     result
   }
+
+  def affine_annotate(query : String, gap_open : Double, gap_ext : Double, score_matrix : Array[Array[Double]],
+                      algo_type : AlgorithmType, n : Int) : Iterable[(Char, HashMap[String, String])] =
+    annotate_inner(query, affine_alignment(query, gap_open, gap_ext, score_matrix, algo_type, n))
+
+  def annotate(query : String, gap : Double, score_matrix : Array[Array[Double]],
+               algo_type : AlgorithmType, n : Int) : Iterable[(Char, HashMap[String, String])] =
+    annotate_inner(query, alignment(query, gap, score_matrix, algo_type, n))
 }
