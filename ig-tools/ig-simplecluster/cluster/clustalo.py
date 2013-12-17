@@ -39,7 +39,11 @@ def save_utree(tree_path):
 
 def make_distance_matrix(align_file):
     logging.info("Copmputing distances matrix.")
-    alignment_dict = SeqIO.to_dict(AlignIO.read(align_file, "fasta"))
+    try:
+        alignment_dict = SeqIO.to_dict(AlignIO.read(align_file, "fasta"))
+    except ValueError:
+        logging.error("Input file with duplications")
+        raise
     ids = dict(enumerate(alignment_dict.keys()))
     distance_matrix = np.zeros([len(ids)] * 2)
     for i, j in itertools.combinations(range(len(ids)), r=2):
@@ -142,7 +146,7 @@ def write_info(abs_out, fasta_clusters, mcp):
 def run(src, out, minlen=None):
     abs_out = os.path.abspath(out)
     trash_path = os.path.join(abs_out, common.TRASH_FILE)
-    copy_path = os.path.join(abs_out, os.path.basename(src))
+    copy_path = os.path.join(abs_out, common.DATA_FILE)
     tree_path = os.path.join(abs_out, common.TREE_FILE)
     align_file = os.path.join(abs_out, common.ALIGNMENT_FILE)
 

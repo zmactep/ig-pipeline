@@ -12,7 +12,11 @@ import common
 
 def get_similars(align_file, m, skipf):
     logging.info("Searching for similars.")
-    alignment_dict = SeqIO.to_dict(AlignIO.read(align_file, "fasta"))
+    try:
+        alignment_dict = SeqIO.to_dict(AlignIO.read(align_file, "fasta"))
+    except ValueError:
+        logging.error("Input file with duplications")
+        raise
     sim_dict = {}
     for key in alignment_dict.keys():
         s = str(alignment_dict[key].seq)
@@ -78,7 +82,7 @@ def write_info(abs_out, minlen, m, skipn, sim_dict, mcp, is_shortest):
 def run(src, out, minlen, m, skipn, is_shortest):
     abs_out = os.path.abspath(out)
     trash_path = os.path.join(abs_out, common.TRASH_FILE)
-    copy_path = os.path.join(abs_out, os.path.basename(src))
+    copy_path = os.path.join(abs_out, common.DATA_FILE)
     tree_path = os.path.join(abs_out, common.TREE_FILE)
     align_file = os.path.join(abs_out, common.ALIGNMENT_FILE)
 

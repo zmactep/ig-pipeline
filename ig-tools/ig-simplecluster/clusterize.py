@@ -9,7 +9,7 @@ from cluster import clustalo
 from similarity import alignedsim
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(description="Small clustering utility")
     parser.add_argument('--src', action='store', help='source FASTA')
     parser.add_argument('--sim', action='store_const', metavar='ctype', dest='ctype',
@@ -23,9 +23,12 @@ def main():
     parser.add_argument('--min-len', action='store', metavar='minlen',
                         dest='minlen', type=int, help="minimal sequence length")
     parser.add_argument('--outdir', action='store', help='output directory')
+    parser.add_argument('--debug', action='store_const', default=False, const=True,
+                        help='print stacktrace in log')
+    return parser
 
-    args, unknown = parser.parse_known_args()
 
+def main(args):
     try:
         if not os.path.isdir(os.path.abspath(args.outdir)):
             os.mkdir(os.path.abspath(args.outdir))
@@ -41,7 +44,7 @@ def main():
         raise FileExistsError
 
     logging.info("Started with right parameters.")
-    logging.info("Source: %s, Type: %s, Skip First: %s, Use: %s"
+    logging.info("Source: %s, Type: %s, Skip First: %s, Use: %s, "
                  "Shortest: %s, Minimal Length: %s, Out: %s" % (args.src, args.ctype, args.m, args.useprct,
                                                                 args.cons, args.minlen, args.outdir))
 
@@ -53,7 +56,11 @@ def main():
 if __name__ == "__main__":
     FORMAT = "[%(levelname)s] %(asctime)s | %(message)s"
     logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stderr)
+    parser = get_parser()
+    args, _ = parser.parse_known_args()
     try:
-        main()
+        main(args)
     except:
         logging.critical("Terminated.")
+        if args.debug:
+            raise

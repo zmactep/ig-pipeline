@@ -1,11 +1,13 @@
 __author__ = 'mactep'
 
+import os
 import logging
 from Bio import SeqIO
 from Bio.Align.Applications import ClustalOmegaCommandline
 
 
 TRASH_FILE = "others.fasta"
+DATA_FILE = "data.fasta"
 TREE_FILE = "cluster_tree.dnd"
 ALIGNMENT_FILE = "alignment.fasta"
 CONSENSUS_FILE = "consensus.fasta"
@@ -26,6 +28,7 @@ def run_clustalo(src, tree_path, align_file):
                                     guidetree_out=tree_path,
                                     outfmt="fasta", outfile=align_file,
                                     threads=4, force=True)
+    logging.info("Aligner started")
     try:
         stdout, stderr = cline()
     except:
