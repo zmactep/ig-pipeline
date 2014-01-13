@@ -13,6 +13,10 @@ from ig_snooper_utils import svm_data_generator, fix_weka_header, parse_svm_outp
 WEKA_PATH = 'common_lib/third_party/weka-3.6.10/weka.jar'
 
 
+PREDICTOR_FIXED_ARGS = {'RandomForest': {'train': ['weka.classifiers.trees.RandomForest', '-I', '10', '-K', '0', '-S', '1'],
+                                         'predict': ['weka.classifiers.trees.RandomForest']}}
+
+
 # The following functions produce pipeline stages as closures:
 
 
@@ -48,7 +52,7 @@ def _get_weka_conversion_action(args):
     def action():
         os.environ['CLASSPATH'] = os.path.join(args['tools_root'], WEKA_PATH)
         try:
-            Popen(['java', '-Xmx1024M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
+            Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
                    os.path.join(args['outdir'], 'dataset.libsvm'), '-o',
                    os.path.join(args['outdir'], 'dataset_nominal.arff')],
                   stdout=PIPE, stderr=PIPE).communicate()
@@ -74,8 +78,8 @@ def _get_weka_conversion_action(args):
 def _get_weka_train_action(args):
     def action():
         try:
-            Popen(['java', '-Xmx1024M', 'weka.classifiers.trees.RandomForest', '-I', '10',
-                   '-K', '0', '-S', '1', '-no-cv', '-p', '0',
+            Popen(['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['train'] +
+                  ['-no-cv', '-p', '0',
                    '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
                    '-d', os.path.join(args['outdir'], 'model.model')],
                   stdout=PIPE, stderr=PIPE).communicate()
@@ -95,9 +99,11 @@ def _get_weka_train_action(args):
 def _get_weka_predict_action(args):
     def action():
         prediction_file_name = os.path.join(args['outdir'], 'prediction.txt')
+
         try:
             with open(prediction_file_name, 'w') as out:
-                Popen(['java', '-Xmx1024M', 'weka.classifiers.trees.RandomForest', '-no-cv', '-p', '0',
+                Popen(['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict'] +
+                      ['-no-cv', '-p', '0',
                        '-l', args['model_path'], '-T', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')],
                       stdout=out).wait()
         except Exception:
@@ -148,7 +154,7 @@ class _Stage():
     """
     Represents a stage in processing pipeline. Holds 'desc', a message printed before execution, and 'action', a closure
     doing the job, returning a tuple of (bool, string): the success flag and outcome message. On their meaning, read
-    the _pipeline method description.
+        the _pipeline method description.
     """
 
     def __init__(self, desc, action):

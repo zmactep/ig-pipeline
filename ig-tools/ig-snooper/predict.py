@@ -10,6 +10,7 @@ def main():
 
 def get_params():
     parser = argparse.ArgumentParser(description='Predict data given a model')
+    parser.add_argument('--predictor', default='RandomForest', help='Predictor type to use, default=RandomForest')
     parser.add_argument('--config_path', nargs='?', help='Path to config')
     parser.add_argument('--fasta', help='Predict data in fasta')
     parser.add_argument('--kabat', help='Optional kabat for benchmarking')
