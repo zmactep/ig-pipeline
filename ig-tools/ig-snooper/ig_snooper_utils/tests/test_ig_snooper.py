@@ -1,6 +1,7 @@
 __author__ = 'Kos'
 
 import argparse
+import shutil
 import json
 import sys
 import os
@@ -33,6 +34,7 @@ def run_tests(data_dir, config_path):
             train_kabat = os.path.join(train_sub_dir_abs, 'vh-train.kabat')
 
             run_single_test(train_fasta, train_kabat, test_fasta, test_kabat, config_path)
+            shutil.copyfile('/tmp/results.kabat', os.path.join(train_sub_dir_abs, 'prediction.kabat'))
 
 
 def parse_args():
