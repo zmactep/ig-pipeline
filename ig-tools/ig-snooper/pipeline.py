@@ -78,11 +78,11 @@ def _get_weka_conversion_action(args):
 def _get_weka_train_action(args):
     def action():
         try:
-            Popen(['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['train'] +
-                  ['-no-cv', '-p', '0',
-                   '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
-                   '-d', os.path.join(args['outdir'], 'model.model')],
-                  stdout=PIPE, stderr=PIPE).communicate()
+            command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['train'] + \
+                      ['-no-cv', '-p', '0', '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
+                       '-d', os.path.join(args['outdir'], 'model.model')]
+            logging.debug('Train command is: %s' % '\t'.join(command))
+            Popen(command, stdout=PIPE, stderr=PIPE).communicate()
         except Exception:
             logging.error('Error in calling weka training')
             raise
@@ -102,16 +102,17 @@ def _get_weka_predict_action(args):
 
         try:
             with open(prediction_file_name, 'w') as out:
-                Popen(['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict'] +
-                      ['-no-cv', '-p', '0',
-                       '-l', args['model_path'], '-T', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')],
-                      stdout=out).wait()
+                command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict'] + \
+                          ['-no-cv', '-p', '0', '-l', os.path.join(args['model_path'], 'model.model'), '-T',
+                           os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')]
+                logging.debug('Predict command is: %s' % '\t'.join(command))
+                Popen(command, stdout=out).wait()
         except Exception:
             logging.error('Error in running weka prediction')
             raise
 
         if not (os.path.exists(prediction_file_name) and os.path.getsize(prediction_file_name) > 0):
-            logging.error('Failed to predict: output file is missing or empty')
+            logging.error('Failed to predict: output file %s is missing or empty' % prediction_file_name)
             raise RuntimeError()
 
         try:
@@ -202,9 +203,9 @@ def train_pipeline(args):
         _Stage('Applying NumericToNominal conversion', _get_weka_conversion_action(args)),
         _Stage('Training', _get_weka_train_action(args))]
     if 'clean_up' in args:
-        chain += _Stage('Deleting temporary files', _get_cleanup_action(
+        chain += [_Stage('Deleting temporary files', _get_cleanup_action(
             [os.path.join(args['outdir'], f)
-             for f in ['dataset.libsvm', 'dataset_nominal.arff', 'dataset_nominal_fixed.arff']]))
+             for f in ['dataset.libsvm', 'dataset_nominal.arff', 'dataset_nominal_fixed.arff']]))]
     return _pipeline(chain)
 
 
@@ -219,10 +220,10 @@ def predict_pipeline(args):
         _Stage('Applying NumericToNominal conversion', _get_weka_conversion_action(args)),
         _Stage('Predicting', _get_weka_predict_action(args))]
     if 'kabat' in args:
-        chain += _Stage('Evaluating quality metrics', _get_kabat_quality_metrics_action(args))
+        chain += [_Stage('Evaluating quality metrics', _get_kabat_quality_metrics_action(args))]
     if 'clean_up' in args:
-        chain += _Stage('Deleting unnecessary files', _get_cleanup_action(
+        chain += [_Stage('Deleting unnecessary files', _get_cleanup_action(
             [os.path.join(args['outdir'], f)
              for f in ['dataset.libsvm', 'dataset_nominal.arff', 'dataset_nominal_fixed.arff', 'read_names.txt',
-                       'prediction.txt', 'debug_prediction.txt', 'debug_prediction_avg.txt']]))
+                       'prediction.txt', 'debug_prediction.txt', 'debug_prediction_avg.txt']]))]
     return _pipeline(chain)
