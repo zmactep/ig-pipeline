@@ -7,9 +7,11 @@ import sys
 import os
 from pipeline import train_pipeline
 from pipeline import predict_pipeline
+from diff_info import get_diff
+from compare_marking import compare_marking
 
 
-def run_single_test(train_fasta, train_kabat, test_fasta, test_kabat, config_path):
+def run_single_prediction(train_fasta, train_kabat, test_fasta, test_kabat, config_path):
     print('Running test for (%s, %s, %s, %s)' % (train_fasta, train_kabat, test_fasta, test_kabat))
 
     params = json.load(open(config_path))
@@ -20,21 +22,86 @@ def run_single_test(train_fasta, train_kabat, test_fasta, test_kabat, config_pat
     predict_pipeline(params)
 
 
+def run_diff_info(result_kabat, test_kabat):
+    d, error_list = get_diff(result_kabat, test_kabat, False, 0)
+    metrics_line = []
+    with open(os.path.join(os.path.dirname(result_kabat), 'diff_info.txt'), 'a') as f:
+        print("REGIONS:\terrors\t(signed\t/ unsigned)\t(signed\t/ unsigned)\t error rate", file=f)
+        for name, (v, s, u, se, ue, er) in d:
+            print("%s:\t%d\t(%.3f\t/ %.3f)\t(%.3f\t/ %.3f)\t%.4f" % (name, v, s, u, se, ue, er), file=f)
+            metrics_line += [v, s, u, se, ue, er]
+        print("Double-sequence list:", file=f)
+        for e in error_list:
+            print(e, file=f)
+    return metrics_line
+
+
+def run_compare_metrics(result_kabat, test_kabat):
+    total_error, seq_error,  misfit_error, total = compare_marking(result_kabat, test_kabat, False, 0)
+    d = {
+        'wrong_rate': (total_error / total) if total else 0,
+        'error_rate': (seq_error / total) if total else 0,
+        'misfit_rate': (misfit_error / total) if total else 0,
+        'error_wrong_rate': (seq_error / total_error) if total_error else 0,
+        'misfit_wrong_rate': (misfit_error / total_error) if total_error else 0
+    }
+    with open(os.path.join(os.path.dirname(result_kabat), 'compare_info.txt'), 'a') as f:
+        print("Wrong sequence annotation rate: %.4f" % d['wrong_rate'], file=f)
+        print("Average error rate per sequence: %.4f" % d['error_rate'], file=f)
+        print("Average region misfit per sequence: %.4f" % d['misfit_rate'], file=f)
+        print("Average error rate per wrong sequence: %.4f" % d['error_wrong_rate'], file=f)
+        print("Average region misfit per wrong sequence: %.4f" % d['misfit_wrong_rate'], file=f)
+    return d
+
+
+def get_data_paths(test_reference_data_dir, train_sub_dir_abs):
+    test_fasta = os.path.join(test_reference_data_dir, 'vh-test.fasta')
+    test_kabat = os.path.join(test_reference_data_dir, 'vh-test.kabat')
+    train_fasta = os.path.join(train_sub_dir_abs, 'vh-train.fasta')
+    train_kabat = os.path.join(train_sub_dir_abs, 'vh-train.kabat')
+    return train_fasta, train_kabat, test_fasta, test_kabat
+
+
+def print_stat_header(test_dir_abs):
+    rates = ['test_dir', 'wrong_rate', 'error_rate', 'misfit_rate', 'error_wrong_rate', 'misfit_wrong_rate']
+    regions = ["%s%d %s %s" % (r, n, se, err) for n in range(1, 5) for r in ["FR", "CDR"] for se in ["start", "end"]
+               for err in ["errors", "signed", "unsigned", "signed", "unsigned", "error rate"]]
+    header = rates + regions
+
+    with open(os.path.join(test_dir_abs, 'stat.txt'), 'a') as f:
+        f.write('\t'.join(header) + '\n')
+
+
+def dump_stat(test_dir_abs, train_sub_dir, metrics_diff, metrics_compare):
+    data = [train_sub_dir, metrics_compare['wrong_rate'], metrics_compare['error_rate'],
+            metrics_compare['misfit_rate'], metrics_compare['error_wrong_rate'],
+            metrics_compare['misfit_wrong_rate']]
+    data += metrics_diff
+
+    with open(os.path.join(test_dir_abs, 'stat.txt'), 'a') as f:
+        f.write(data[0] + '\t' + '\t'.join(map(lambda x: '%.4f' % x, data[1:])) + '\n')
+
+
 def run_tests(data_dir, config_path):
     for test_dir in filter(lambda x: x.startswith('test-'), os.listdir(data_dir)):
         test_dir_abs = os.path.join(data_dir, test_dir)
         test_reference_data_dir = os.path.join(test_dir_abs, 'test-data')
-        test_fasta = os.path.join(test_reference_data_dir, 'vh-test.fasta')
-        test_kabat = os.path.join(test_reference_data_dir, 'vh-test.kabat')
+
+        print_stat_header(test_dir_abs)
 
         for train_sub_dir in filter(lambda x: x.startswith('train-'), os.listdir(test_dir_abs)):
             train_sub_dir_abs = os.path.join(test_dir_abs, train_sub_dir)
             print('Running tests from %s' % train_sub_dir_abs)
-            train_fasta = os.path.join(train_sub_dir_abs, 'vh-train.fasta')
-            train_kabat = os.path.join(train_sub_dir_abs, 'vh-train.kabat')
 
-            run_single_test(train_fasta, train_kabat, test_fasta, test_kabat, config_path)
-            shutil.copyfile('/tmp/results.kabat', os.path.join(train_sub_dir_abs, 'prediction.kabat'))
+            train_fasta, train_kabat, test_fasta, test_kabat = get_data_paths(test_reference_data_dir, train_sub_dir_abs)
+            try:
+                run_single_prediction(train_fasta, train_kabat, test_fasta, test_kabat, config_path)
+                result_kabat = os.path.join(train_sub_dir_abs, 'prediction.kabat')
+                shutil.copyfile('/tmp/results.kabat', result_kabat)
+                dump_stat(test_dir_abs, train_sub_dir, run_diff_info(result_kabat, test_kabat), run_compare_metrics(result_kabat, test_kabat))
+            except:
+                (type, value, traceback) = sys.exc_info()
+                print("Unexpected error: ", value)
 
 
 def parse_args():
