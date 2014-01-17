@@ -2,6 +2,7 @@ __author__ = 'Kos'
 
 import argparse
 import shutil
+import multiprocessing
 import json
 import sys
 import os
@@ -11,11 +12,13 @@ from diff_info import get_diff
 from compare_marking import compare_marking
 
 
-def run_single_prediction(train_fasta, train_kabat, test_fasta, test_kabat, config_path):
+def run_single_prediction(working_dir, train_fasta, train_kabat, test_fasta, test_kabat, config_path):
     print('Running test for (%s, %s, %s, %s)' % (train_fasta, train_kabat, test_fasta, test_kabat))
 
     params = json.load(open(config_path))
     params.update({'fasta': train_fasta, 'kabat': train_kabat})
+    params['model_path'] = working_dir
+    params['outdir'] = working_dir
     train_pipeline(params)
 
     params.update({'fasta': test_fasta, 'kabat': test_kabat})
@@ -82,26 +85,45 @@ def dump_stat(test_dir_abs, train_sub_dir, metrics_diff, metrics_compare):
         f.write(data[0] + '\t' + '\t'.join(map(lambda x: '%.4f' % x, data[1:])) + '\n')
 
 
+def run_job(data):
+    print('Job params: %s %s %s %s' % data)
+    index, test_dir, data_dir, config_path = data
+    test_dir_abs = os.path.join(data_dir, test_dir)
+    test_reference_data_dir = os.path.join(test_dir_abs, 'test-data')
+
+    print_stat_header(test_dir_abs)
+
+    working_dir_base = os.path.join('/tmp', test_dir)
+    if not os.path.exists(working_dir_base):
+        os.mkdir(working_dir_base)
+
+    for train_sub_dir in filter(lambda x: x.startswith('train-'), os.listdir(test_dir_abs)):
+        train_sub_dir_abs = os.path.join(test_dir_abs, train_sub_dir)
+        print('Running tests from %s' % train_sub_dir_abs)
+
+        train_fasta, train_kabat, test_fasta, test_kabat = get_data_paths(test_reference_data_dir, train_sub_dir_abs)
+        try:
+            working_dir = os.path.join(working_dir_base, train_sub_dir)
+            if not os.path.exists(working_dir):
+                os.mkdir(working_dir)
+
+            run_single_prediction(working_dir, train_fasta, train_kabat, test_fasta, test_kabat, config_path)
+            result_kabat = os.path.join(train_sub_dir_abs, 'prediction.kabat')
+            shutil.copyfile(os.path.join(working_dir, 'results.kabat'), result_kabat)
+            dump_stat(test_dir_abs, train_sub_dir, run_diff_info(result_kabat, test_kabat), run_compare_metrics(result_kabat, test_kabat))
+        except:
+            (type, value, traceback) = sys.exc_info()
+            print("Unexpected error: ", value)
+
+
 def run_tests(data_dir, config_path):
-    for test_dir in filter(lambda x: x.startswith('test-'), os.listdir(data_dir)):
-        test_dir_abs = os.path.join(data_dir, test_dir)
-        test_reference_data_dir = os.path.join(test_dir_abs, 'test-data')
+    test_dirs = [d for d in filter(lambda x: x.startswith('test-'), os.listdir(data_dir))]
+    jobs = [(index, job, data_dir, config_path) for (index, job) in enumerate(test_dirs)]
 
-        print_stat_header(test_dir_abs)
-
-        for train_sub_dir in filter(lambda x: x.startswith('train-'), os.listdir(test_dir_abs)):
-            train_sub_dir_abs = os.path.join(test_dir_abs, train_sub_dir)
-            print('Running tests from %s' % train_sub_dir_abs)
-
-            train_fasta, train_kabat, test_fasta, test_kabat = get_data_paths(test_reference_data_dir, train_sub_dir_abs)
-            try:
-                run_single_prediction(train_fasta, train_kabat, test_fasta, test_kabat, config_path)
-                result_kabat = os.path.join(train_sub_dir_abs, 'prediction.kabat')
-                shutil.copyfile('/tmp/results.kabat', result_kabat)
-                dump_stat(test_dir_abs, train_sub_dir, run_diff_info(result_kabat, test_kabat), run_compare_metrics(result_kabat, test_kabat))
-            except:
-                (type, value, traceback) = sys.exc_info()
-                print("Unexpected error: ", value)
+    po = multiprocessing.Pool()
+    po.map(run_job, jobs)
+    po.close()
+    po.join()
 
 
 def parse_args():
