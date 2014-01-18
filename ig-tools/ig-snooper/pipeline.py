@@ -13,8 +13,13 @@ from ig_snooper_utils import svm_data_generator, fix_weka_header, parse_svm_outp
 WEKA_PATH = 'common_lib/third_party/weka-3.6.10/weka.jar'
 
 
-PREDICTOR_FIXED_ARGS = {'RandomForest': {'train': ['weka.classifiers.trees.RandomForest', '-I', '10', '-K', '0', '-S', '1'],
-                                         'predict': ['weka.classifiers.trees.RandomForest']}}
+PREDICTOR_FIXED_ARGS = {'RandomForest': {'executable': ['weka.classifiers.trees.RandomForest'],
+                                         'train': ['-I', '10', '-K', '0', '-S', '1'],
+                                         'predict': ['weka.classifiers.trees.RandomForest']},
+                        'Boosting': {'executable': ['weka.classifiers.meta.ClassificationViaRegression'],
+                                     'train': ['-W', 'weka.classifiers.meta.AdditiveRegression', '--', '-S', '1.0', '-I', '5',
+                                               '-W', 'weka.classifiers.trees.M5P', '--', '-M', '4.0'],
+                                     'predict': []}}
 
 
 # The following functions produce pipeline stages as closures:
@@ -78,9 +83,9 @@ def _get_weka_conversion_action(args):
 def _get_weka_train_action(args):
     def action():
         try:
-            command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['train'] + \
+            command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
                       ['-no-cv', '-p', '0', '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
-                       '-d', os.path.join(args['outdir'], 'model.model')]
+                       '-d', os.path.join(args['outdir'], 'model.model')] + PREDICTOR_FIXED_ARGS[args['predictor']]['train']
             logging.debug('Train command is: %s' % '\t'.join(command))
             Popen(command, stdout=PIPE, stderr=PIPE).communicate()
         except Exception:
@@ -102,9 +107,9 @@ def _get_weka_predict_action(args):
 
         try:
             with open(prediction_file_name, 'w') as out:
-                command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict'] + \
+                command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
                           ['-no-cv', '-p', '0', '-l', os.path.join(args['model_path'], 'model.model'), '-T',
-                           os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')]
+                           os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict']
                 logging.debug('Predict command is: %s' % '\t'.join(command))
                 Popen(command, stdout=out).wait()
         except Exception:

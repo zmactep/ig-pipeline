@@ -8,6 +8,7 @@ from pipeline import predict_pipeline
 def main():
     predict_pipeline(get_params())
 
+
 def get_params():
     parser = argparse.ArgumentParser(description='Predict data given a model')
     parser.add_argument('--predictor', default='RandomForest', help='Predictor type to use, default=RandomForest')
