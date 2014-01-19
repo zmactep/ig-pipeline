@@ -16,9 +16,9 @@ WEKA_PATH = 'common_lib/third_party/weka-3.6.10/weka.jar'
 PREDICTOR_FIXED_ARGS = {'RandomForest': {'executable': ['weka.classifiers.trees.RandomForest'],
                                          'train': ['-I', '10', '-K', '0', '-S', '1'],
                                          'predict': ['weka.classifiers.trees.RandomForest']},
-                        'Boosting': {'executable': ['weka.classifiers.meta.ClassificationViaRegression'],
-                                     'train': ['-W', 'weka.classifiers.meta.AdditiveRegression', '--', '-S', '1.0', '-I', '5',
-                                               '-W', 'weka.classifiers.trees.M5P', '--', '-M', '4.0'],
+                        'Boosting': {'executable': ['weka.classifiers.meta.AdaBoostM1'],
+                                     'train': ['-P', '100', '-S', '1', '-I', '10',
+                                               '-W', 'weka.classifiers.trees.Id3'],
                                      'predict': []}}
 
 
@@ -57,7 +57,7 @@ def _get_weka_conversion_action(args):
     def action():
         os.environ['CLASSPATH'] = os.path.join(args['tools_root'], WEKA_PATH)
         try:
-            Popen(['java', '-Xmx4096M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
+            Popen(['java', '-Xmx1024M', 'weka.filters.unsupervised.attribute.NumericToNominal', '-i',
                    os.path.join(args['outdir'], 'dataset.libsvm'), '-o',
                    os.path.join(args['outdir'], 'dataset_nominal.arff')],
                   stdout=PIPE, stderr=PIPE).communicate()
@@ -83,7 +83,7 @@ def _get_weka_conversion_action(args):
 def _get_weka_train_action(args):
     def action():
         try:
-            command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
+            command = ['java', '-Xmx1024M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
                       ['-no-cv', '-p', '0', '-t', os.path.join(args['outdir'], 'dataset_nominal_fixed.arff'),
                        '-d', os.path.join(args['outdir'], 'model.model')] + PREDICTOR_FIXED_ARGS[args['predictor']]['train']
             logging.debug('Train command is: %s' % '\t'.join(command))
@@ -107,7 +107,7 @@ def _get_weka_predict_action(args):
 
         try:
             with open(prediction_file_name, 'w') as out:
-                command = ['java', '-Xmx4096M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
+                command = ['java', '-Xmx1024M'] + PREDICTOR_FIXED_ARGS[args['predictor']]['executable'] + \
                           ['-no-cv', '-p', '0', '-l', os.path.join(args['model_path'], 'model.model'), '-T',
                            os.path.join(args['outdir'], 'dataset_nominal_fixed.arff')] + PREDICTOR_FIXED_ARGS[args['predictor']]['predict']
                 logging.debug('Predict command is: %s' % '\t'.join(command))

@@ -120,7 +120,7 @@ def run_tests(data_dir, config_path):
     test_dirs = [d for d in filter(lambda x: x.startswith('test-'), os.listdir(data_dir))]
     jobs = [(index, job, data_dir, config_path) for (index, job) in enumerate(test_dirs)]
 
-    po = multiprocessing.Pool()
+    po = multiprocessing.Pool(processes=6)
     po.map(run_job, jobs)
     po.close()
     po.join()
