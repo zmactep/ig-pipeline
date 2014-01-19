@@ -15,8 +15,6 @@ def get_diff(marking1, marking2, part, chothia):
     hb = open(marking1, "rt")
     hp = open(marking2, "rt")
 
-    error_list = []
-
     total = 0.
     for b, p in zip(hb, hp):
         total += 1
@@ -31,15 +29,6 @@ def get_diff(marking1, marking2, part, chothia):
         elif chothia == 2:
             line_p[1] += 5
             line_p[2] += 5
-
-        f = False
-        for i, j in zip(line_b, line_p):
-            if abs(i - j) > 20:
-                f = True
-                break
-        if f:
-            error_list.append(b.strip().split('\t')[0])
-            continue
 
         indicator = [int(i != j) for i, j in zip(line_b, line_p)]
         sndicator = [i - j for i, j in zip(line_b, line_p)]
@@ -64,7 +53,7 @@ def get_diff(marking1, marking2, part, chothia):
 	
     errr = map(lambda i: i / total, diff)
 
-    return zip(x, zip(diff, stot, utot, serr, uerr, errr)), error_list
+    return zip(x, zip(diff, stot, utot, serr, uerr, errr))
 
 
 def parse_args():
@@ -79,13 +68,10 @@ def parse_args():
 
 def main():
     args = parse_args()
-    d, error_list = get_diff(args.marking1, args.marking2, args.part, args.chothia)
+    d = get_diff(args.marking1, args.marking2, args.part, args.chothia)
     print("REGIONS:\terrors\t(signed\t/ unsigned)\t(signed\t/ unsigned)\t error rate")
     for name, (v, s, u, se, ue, er) in d:
         print("%s:\t%d\t(%.3f\t/ %.3f)\t(%.3f\t/ %.3f)\t%.4f" % (name, v, s, u, se, ue, er))
-    print("Double-sequence list:")
-    for e in error_list:
-        print(e)
 
 
 if __name__ == "__main__":

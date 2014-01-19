@@ -26,16 +26,13 @@ def run_single_prediction(working_dir, train_fasta, train_kabat, test_fasta, tes
 
 
 def run_diff_info(result_kabat, test_kabat):
-    d, error_list = get_diff(result_kabat, test_kabat, False, 0)
+    d = get_diff(result_kabat, test_kabat, False, 0)
     metrics_line = []
     with open(os.path.join(os.path.dirname(result_kabat), 'diff_info.txt'), 'a') as f:
         print("REGIONS:\terrors\t(signed\t/ unsigned)\t(signed\t/ unsigned)\t error rate", file=f)
         for name, (v, s, u, se, ue, er) in d:
             print("%s:\t%d\t(%.3f\t/ %.3f)\t(%.3f\t/ %.3f)\t%.4f" % (name, v, s, u, se, ue, er), file=f)
             metrics_line += [v, s, u, se, ue, er]
-        print("Double-sequence list:", file=f)
-        for e in error_list:
-            print(e, file=f)
     return metrics_line
 
 

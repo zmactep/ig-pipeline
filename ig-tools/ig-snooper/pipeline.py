@@ -16,9 +16,13 @@ WEKA_PATH = 'common_lib/third_party/weka-3.6.10/weka.jar'
 PREDICTOR_FIXED_ARGS = {'RandomForest': {'executable': ['weka.classifiers.trees.RandomForest'],
                                          'train': ['-I', '10', '-K', '0', '-S', '1'],
                                          'predict': ['weka.classifiers.trees.RandomForest']},
-                        'Boosting': {'executable': ['weka.classifiers.meta.AdaBoostM1'],
+                        'AdaBoostID3': {'executable': ['weka.classifiers.meta.AdaBoostM1'],
                                      'train': ['-P', '100', '-S', '1', '-I', '10',
                                                '-W', 'weka.classifiers.trees.Id3'],
+                                     'predict': []},
+                        'AdaBoostJ48': {'executable': ['weka.classifiers.meta.AdaBoostM1'],
+                                     'train': ['-P', '100', '-S', '1', '-I', '20',
+                                               '-W', 'weka.classifiers.trees.J48', '--', '-C', '0.25', '-M', '2'],
                                      'predict': []}}
 
 
