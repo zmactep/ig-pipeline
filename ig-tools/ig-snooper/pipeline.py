@@ -21,10 +21,13 @@ PREDICTOR_FIXED_ARGS = {'RandomForest': {'executable': ['weka.classifiers.trees.
                                                '-W', 'weka.classifiers.trees.Id3'],
                                      'predict': []},
                         'AdaBoostJ48': {'executable': ['weka.classifiers.meta.AdaBoostM1'],
-                                     'train': ['-P', '100', '-S', '1', '-I', '20',
+                                     'train': ['-P', '100', '-S', '1', '-I', '40',
                                                '-W', 'weka.classifiers.trees.J48', '--', '-C', '0.25', '-M', '2'],
+                                     'predict': []},
+                        'BaggingREPTree': {'executable': ['weka.classifiers.meta.Bagging'],
+                                     'train': ['-P', '100', '-S', '1', '-I', '10',
+                                               '-W', 'weka.classifiers.trees.REPTree', '--', '-M', '2', '-V', '0.001', '-N', '3', '-S', '1', '-L', '-1'],
                                      'predict': []}}
-
 
 # The following functions produce pipeline stages as closures:
 
