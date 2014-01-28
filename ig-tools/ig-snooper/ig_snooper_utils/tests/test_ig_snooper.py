@@ -105,8 +105,13 @@ def run_job(data):
                 os.mkdir(working_dir)
 
             run_single_prediction(working_dir, train_fasta, train_kabat, test_fasta, test_kabat, config_path)
-            result_kabat = os.path.join(train_sub_dir_abs, 'prediction.kabat')
+            result_kabat = os.path.join(train_sub_dir_abs, 'results.kabat')
             shutil.copyfile(os.path.join(working_dir, 'results.kabat'), result_kabat)
+
+            for file in ['comparison.kabat', 'results_pic.txt', 'debug_prediction_avg.txt', 'debug_prediction.txt']:
+                shutil.copyfile(os.path.join(working_dir, file), os.path.join(train_sub_dir_abs, file))
+            shutil.rmtree(working_dir)
+
             dump_stat(test_dir_abs, train_sub_dir, run_diff_info(result_kabat, test_kabat), run_compare_metrics(result_kabat, test_kabat))
         except:
             (type, value, traceback) = sys.exc_info()

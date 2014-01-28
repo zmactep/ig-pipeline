@@ -60,7 +60,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('marking1', help='input marking [fasta]')
     parser.add_argument('marking2', help='input marking [igblast]')
-    parser.add_argument('--chothia', metavar='N', type=int, help='use chothia for markingN')
+    parser.add_argument('--chothia', metavar='N', type=int, default=0, help='use chothia for markingN')
     parser.add_argument('--part', action="store_const", default=False, const=True,
                         help='compare just till cdr3 (default: false)')
     return parser.parse_args()

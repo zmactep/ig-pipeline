@@ -4,6 +4,7 @@ import logging
 from pipeline import train_pipeline
 import sys
 
+
 def main():
     train_pipeline(get_params())
 

@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('--part', action="store_const", default=False, const=True,
                         help='compare just till cdr3 (default: false)')
     parser.add_argument('--json', help='json dump output')
-    parser.add_argument('--chothia', metavar='N', type=int, help='use chothia for markingN')
+    parser.add_argument('--chothia', metavar='N', type=int, default=0, help='use chothia for markingN')
     return parser.parse_args()
 
 

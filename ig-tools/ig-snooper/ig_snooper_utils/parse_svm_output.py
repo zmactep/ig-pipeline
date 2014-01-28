@@ -2,11 +2,13 @@
 
 import os
 import re
-from itertools import groupby, dropwhile
-from collections import Counter
+import logging
+from itertools import groupby
 from Bio import SeqIO
 from math import floor
 from utils import kmer_generator
+from ig_snooper_utils import filter_utils
+import sys, traceback
 
 
 def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size, merge_threshold):
@@ -36,24 +38,22 @@ def parse(input_fasta, input_prediction, read_names, output_dir, avg_window_size
                 # key is a seq_name, and prediction is a list of region predictions for each position in sequence
             prediction = [x[1] for x in group]
             # Post processing step: averaging, merging small regions, etc...
-            averaged_prediction = average_prediction(prediction, avg_window_size)  # list
-            debug_prediction.write("%s\n" % (key + '\t' + ''.join(prediction)))
-            debug_prediction_avg.write("%s\n" % (key + '\t' + ''.join(averaged_prediction)))
-            regions = kabat_range(averaged_prediction, merge_threshold)
-            results_kabat.write("%s\n" % (key + '\t' + '\t'.join([str(x) + '\t' + str(y) for x, y in regions])))
-            results_pic.write("%s" % print_regions(input_fasta_iterator.__next__(), regions))
+            try:
+                averaged_prediction = list(filter_utils.fix(''.join(prediction)))
+                debug_prediction.write("%s\n" % (key + '\t' + ''.join(prediction)))
+                debug_prediction_avg.write("%s\n" % (key + '\t' + ''.join(averaged_prediction)))
+                regions = kabat_range(averaged_prediction, merge_threshold)
+                results_kabat.write("%s\n" % (key + '\t' + '\t'.join([str(x) + '\t' + str(y) for x, y in regions])))
+                results_pic.write("%s" % print_regions(input_fasta_iterator.__next__(), regions))
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # traceback.print_exception(exc_type, exc_value, exc_traceback)
+                logging.critical("ERROR for %s %s %s" % (exc_value, key, ''.join(prediction)))
 
     debug_prediction.close()
     debug_prediction_avg.close()
     results_kabat.close()
     results_pic.close()
-
-
-def average_prediction(prediction_list, window_size):
-    cap = ['*' for _ in range(window_size // 2)]
-    capped_predictions = cap + prediction_list + cap
-    return [Counter(filter(lambda x: x != '*', w)).most_common()[0][0]
-            for w in kmer_generator.get_sequence_kmers(capped_predictions, window_size)]
 
 
 def kabat_range(prediction, merge_threshold):

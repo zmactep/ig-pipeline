@@ -26,7 +26,8 @@ PREDICTOR_FIXED_ARGS = {'RandomForest': {'executable': ['weka.classifiers.trees.
                                      'predict': []},
                         'BaggingREPTree': {'executable': ['weka.classifiers.meta.Bagging'],
                                      'train': ['-P', '100', '-S', '1', '-I', '10',
-                                               '-W', 'weka.classifiers.trees.REPTree', '--', '-M', '2', '-V', '0.001', '-N', '3', '-S', '1', '-L', '-1'],
+                                               '-W', 'weka.classifiers.trees.REPTree', '--', '-M', '2', '-V', '0.001',
+                                               '-N', '3', '-S', '1', '-L', '-1'],
                                      'predict': []}}
 
 # The following functions produce pipeline stages as closures:
