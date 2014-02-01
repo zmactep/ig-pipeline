@@ -93,20 +93,14 @@ def kabat_range(prediction, merge_threshold):
 
 def print_regions(seq_record, regions):
     names = ['FR1', 'CDR1', 'FR2', 'CDR2', 'FR3', 'CDR3', 'FR4']
-    min_region_len = 6  # minimal printable region len: <CDR1>
     result = []
     region_num = 0
-    unknown_region_num = 0
     for (start, stop) in regions:
         region_len = stop - start + 1
-        if region_len < min_region_len:
-            result += [('*' if unknown_region_num % 2 == 0 else '+') * region_len]
-            unknown_region_num += 1
-        else:
-            region_name = names[region_num] if region_num < len(names) else 'N/A'
-            num_of_dashes = region_len - len(region_name) - len('<>')
-            result += ['<', '-' * floor(num_of_dashes / 2), region_name,
-                       '-' * (num_of_dashes - floor(num_of_dashes / 2)), '>']
-            region_num += 1
+        region_name = names[region_num] if region_num < len(names) else 'N/A'
+        num_of_dashes = region_len - len(region_name) - len('<>')
+        result += ['<', '-' * floor(num_of_dashes / 2), region_name,
+                   '-' * (num_of_dashes - floor(num_of_dashes / 2)), '>'][:region_len]
+        region_num += 1
 
     return seq_record.id + '\n' + seq_record.seq + '\n' + ''.join(result) + '\n'
