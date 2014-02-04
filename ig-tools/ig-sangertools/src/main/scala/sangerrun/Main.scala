@@ -35,7 +35,7 @@ object Main {
         (s.substring(0, s.length - 1), direction)
       })
 
-    Try(new SangerProcessing(primers).process(config.indir, config.outdir)) recover {
+    Try(new SangerProcessing(primers, config.local).process(config.indir, config.outdir)) recover {
       case e: IOException => println(e.getMessage)
       case e: Exception => println(e.printStackTrace())
     }

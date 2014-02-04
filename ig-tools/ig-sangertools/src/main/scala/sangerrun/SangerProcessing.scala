@@ -8,11 +8,12 @@ import alicont.common.Scoring
 import alicont.algorithms.AlgorithmType
 import scala.collection.mutable.ListBuffer
 
-class SangerProcessing(primers : Seq[(String, Boolean)]) {
+class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false) {
   private val VL_LEADER_DEFAULT = "ATGAAATACCTGCTGCCGACCGCTGCTGCTGGTCTGCTGCTCCTCGCTGCCCAGCCGGCGATGGCTAGC"
   private val VH_LEADER_DEFAULT = "ATGAAATACCTATTGCCTACGGCAGCCGCTGGATTGTTATTACTCGCGGCCCAGCCGGCCATGGCC"
   private val CONTIGS_FILENAME = "contigs.fasta"
   private val CHAINS_FILENAME_TEMPLATE = "chains-%s.fasta"
+  private val _local = local
   private val _primers =
     (for (((name, reverse), idx) <- primers.zipWithIndex)
     yield name -> new {
@@ -22,7 +23,7 @@ class SangerProcessing(primers : Seq[(String, Boolean)]) {
 
   private case class Read(sequence: String, name: String, primer: String) {}
 
-  def process(indir : File, outdir : File, local : Boolean = false) : Unit = {
+  def process(indir : File, outdir : File) : Unit = {
 
     def touchDir(dir: File): Unit =
       if (dir.exists()) {
@@ -37,7 +38,7 @@ class SangerProcessing(primers : Seq[(String, Boolean)]) {
 
     writeFasta(new File(outdir, CONTIGS_FILENAME), contigs)
 
-    val chains = extract(contigs, local)
+    val chains = extract(contigs, _local)
 
     var vls = new ListBuffer[(String, String)]
     var vhs = new ListBuffer[(String, String)]
