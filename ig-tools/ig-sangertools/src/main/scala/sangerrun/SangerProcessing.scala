@@ -13,6 +13,8 @@ class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false
   private val VH_LEADER_DEFAULT = "ATGAAATACCTATTGCCTACGGCAGCCGCTGGATTGTTATTACTCGCGGCCCAGCCGGCCATGGCC"
   private val CONTIGS_FILENAME = "contigs.fasta"
   private val CHAINS_FILENAME_TEMPLATE = "chains-%s.fasta"
+  private val CHAINS_TRANSLATED_FILENAME_TEMPLATE = "chains-translated-%s.fasta"
+  private val STRIP_CHARS = ".,:/_- \t"
   private val _local = local
   private val _primers =
     (for (((name, reverse), idx) <- primers.zipWithIndex)
@@ -57,6 +59,10 @@ class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false
 
     writeFasta(new File(outdir, CHAINS_FILENAME_TEMPLATE.format("vl")), vls)
     writeFasta(new File(outdir, CHAINS_FILENAME_TEMPLATE.format("vh")), vhs)
+    writeFasta(new File(outdir, CHAINS_TRANSLATED_FILENAME_TEMPLATE.format("vl")),
+      vls.map{case (seq, name) => (Algo.translateString(seq), name)})
+    writeFasta(new File(outdir, CHAINS_TRANSLATED_FILENAME_TEMPLATE.format("vh")),
+      vhs.map{case (seq, name) => (Algo.translateString(seq), name)})
   }
 
 
@@ -69,8 +75,8 @@ class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false
   private def assemble(reads: Seq[Read]) : Seq[(String, String)] = {
     val groups = reads.groupBy{ case Read(seq, name, primer) => name }
     groups.toList.map{ case (name, groupReads) =>
-      val sortedReads = groupReads.sortWith((a, b) => _primers(a.primer).index < _primers(b.primer).index);
-      (Assembler.getContig(sortedReads.map(r => r.sequence): _*), name)
+      val sortedReads = groupReads.sortWith((a, b) => _primers(a.primer).index < _primers(b.primer).index)
+      (getContig(sortedReads: _*), name)
     }
   }
 
@@ -97,7 +103,7 @@ class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false
     None
     else {
       val (pos, primer) = primerMatches.minBy(_._1)
-      Some((name.substring(0, pos), primer))
+      Some((Algo.stripEndings(name.substring(0, pos), STRIP_CHARS), primer))
     }
   }
 
@@ -158,5 +164,28 @@ class SangerProcessing(primers : Seq[(String, Boolean)], local : Boolean = false
     }
 
     (vl, vh)
+  }
+
+  private def getContig(reads: Read*) : String = {
+    reads.length match {
+      case 0 => throw new IllegalArgumentException("Cannot assemble zero reads.")
+      case 1 =>
+        reads.head.sequence
+      case 2 =>
+        assemblePair(reads.head, reads.tail.head)
+      case _ =>
+        assembleAny(reads)
+    }
+  }
+
+  private def assemblePair(read1 : Read, read2 : Read) : String = {
+    val (pos1, pos2, len) = Algo.longestSubstr(read1.sequence, read2.sequence)
+    read1.sequence.substring(0, pos1 + len) + read2.sequence.substring(pos2 + len)
+  }
+
+  private def assembleAny(reads: Seq[Read]): String = {
+    if (reads.length % 2 != 1)
+      println ("Warning: assembling even number of reads: %s".format(reads.map(r => r.name + r.primer).mkString(", ")))
+    ConsensusAlignment.merge(reads.map(r => r.sequence): _*)
   }
 }

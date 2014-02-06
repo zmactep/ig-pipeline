@@ -8,6 +8,11 @@ package common
  * Time: 17:28
  */
 object Algo {
+  /** Strips characters found in 'chars' on string endings */
+  def stripEndings(s: String, chars: String) : String = {
+    s.dropWhile(c => chars.contains(c)).reverse.dropWhile(c => chars.contains(c)).reverse
+  }
+
   def longestSubstr(s : String, t : String) : (Int, Int, Int) = {
     if (s.isEmpty || t.isEmpty) {
       return (0, 0, 0)

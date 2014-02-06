@@ -2,7 +2,7 @@ package sangerrun
 
 import java.io.{IOException, File}
 import scopt.OptionParser
-import scala.util.{Success, Failure, Try}
+import scala.util.Try
 
 /** Created by smirnovvs on 31.01.14. */
 object Main {
@@ -10,11 +10,10 @@ object Main {
 
   private def getParser : scopt.OptionParser[Config] = new OptionParser[Config]("ig-sangertools") {
     head("ig-sangertools", "1.0-SNAPSHOT")
-    note("Required:")
-    arg[File]("indir") action { (x, c) => c.copy(indir = x) } validate { x => if (x.isDirectory) success else failure("Not a directory")} text "input directory"
-    arg[File]("outdir") action { (x, c) => c.copy(outdir = x) } text "output directory"
-    arg[String]("<primer{+,-}>...") minOccurs 1 maxOccurs 1024 action { (x, c) => c.copy(primers = c.primers :+ x)} text "Primers in order of occurrence in plasmid. Sign character indicates read direction."
+    opt[File]("indir") valueName "<dir>" action { (x, c) => c.copy(indir = x) } validate { x => if (x.isDirectory) success else failure("Not a directory")} text "input directory"
+    opt[File]("outdir") valueName "<dir>" action { (x, c) => c.copy(outdir = x) } text "output directory"
     opt[Unit]("local") action { (_, c) => c.copy(local = true) } text "use local alignment to find primers in reads"
+    arg[String]("<primer{+,-}>...") minOccurs 1 maxOccurs 1024 action { (x, c) => c.copy(primers = c.primers :+ x)} text "Primers in order of occurrence in plasmid. Sign indicates read direction."
     help("help") text "this message"
   }
 
