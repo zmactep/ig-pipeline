@@ -1,7 +1,7 @@
 package ru.biocad.ig.primer
 
 import org.biojava3.core.sequence.DNASequence
-import scala.util.Try
+import scala.util.{Failure, Try, Success}
 import org.biojava3.core.sequence.transcription.TranscriptionEngine
 import org.biojava3.core.sequence.compound.{DNACompoundSet, AminoAcidCompoundSet}
 import org.ahocorasick.trie.Trie
@@ -12,8 +12,9 @@ import scala.collection.mutable
  * Helper object with common routines
  */
 object DnaUtils {
+   type Sequence = List[Set[String]]
 
-  private val aminoAcidToCodonSet = MiscUtils.list2multimap({
+   val aminoAcid2CodonSet = MiscUtils.list2multimap({
     import scala.collection.JavaConversions._
     for {
       x <- TranscriptionEngine.getDefault.getTable.getCodons(DNACompoundSet.getDNACompoundSet, AminoAcidCompoundSet.getAminoAcidCompoundSet)
@@ -29,20 +30,27 @@ object DnaUtils {
    * @param protein string
    * @return list of sets of codons for i-th position
    */
-  def proteinToCodonSets(protein: Option[String]): Option[List[Set[String]]] = protein map { p =>
-    for {
-        acid <- p
-      } yield aminoAcidToCodonSet(acid.toString)
-  } map {_.toList}
+  def proteinToCodonSets(protein: Option[String]): Option[Sequence] = protein match {
+    case Some(p) => Try(for {
+          acid <- p
+        } yield aminoAcid2CodonSet(acid.toString)) match {
+        case Success(s) => Option(s.toList)
+        case Failure(_) => None
+      }
+    case None => None
+  }
 
   /**
    * Converts list of codons => set of distinct nucleotides in i-th position.
    * Example: Option(Set("UUU", "UUC", "UUA", "UUG")) => Some(List(Set("U"), Set("U"), Set("U", "A", "C", "G")))
+   * Actually, Strings in Set can be of any length, so this function is not limited to codons
    */
-  def flattenCodons(codon: Option[Set[String]]): Option[List[Set[String]]] = codon map { triplets =>
+  def flatten(codon: Option[Set[String]]): Option[Sequence] = codon map { triplets =>
+    //longest string in set
+    val maxSize = triplets.foldLeft(0)((acc: Int, s: String) => List(acc, s.size).max)
     for {
-      position <- 0 to 2
-    } yield triplets.groupBy(_.charAt(position)).keySet.map{_.toString}
+      position <- 0 until maxSize
+    } yield triplets.groupBy(s => Try(s.charAt(position)).getOrElse('*')).keySet.filter(_ != '*').map{_.toString}
   } map {_.toList}
 
   /**
@@ -65,7 +73,7 @@ object DnaUtils {
    * @param seqs two sequences
    * @return true if sequences are the same
    */
-  def equals(seqs: Option[(List[Set[String]], List[Set[String]])]): Boolean = seqs match {
+  def equals(seqs: Option[(Sequence, Sequence)]): Boolean = seqs match {
     case Some((s1, s2)) => s1.zip(s2) forall {case (set1, set2) => set1.size == 1 && set1 == set2}
     case None => false
   }
@@ -77,8 +85,8 @@ object DnaUtils {
    * @param interOverlapDistance non-overlapped part of primer. Non-edge primer will have length equals interOverlapDistance + 2 * overlapSize
    * @return indicies of sticky ends start
    */
-  def findOverlaps(strand: Option[List[Set[String]]], overlapSize: Int, interOverlapDistance: Int): Option[List[Int]] = strand map { s =>
-    def isUniq(seq2check: List[Set[String]], others: List[List[Set[String]]]): Boolean = {
+  def findOverlaps(strand: Option[Sequence], overlapSize: Int, interOverlapDistance: Int): Option[List[Int]] = strand map { s =>
+    def isUniq(seq2check: Sequence, others: List[Sequence]): Boolean = {
       if (others.isEmpty) true
       else others.forall(seq => !equals(Option((seq, seq2check))))
     }

@@ -1,4 +1,5 @@
 package ru.biocad.ig.primer
+import Predef.{augmentString => _, _}
 
 /**
  * Created by Kos on 22.02.14.

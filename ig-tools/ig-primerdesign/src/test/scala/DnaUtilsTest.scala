@@ -30,7 +30,16 @@ class DnaUtilsTest extends FunSpec {
     }
 
     it ("should flatten codons") {
-      DnaUtils.flattenCodons(Option(Set("UUU", "UUC", "UUA", "UUG"))) should be (Some(List(Set("U"), Set("U"), Set("U", "A", "C", "G"))))
+      DnaUtils.flatten(Option(Set("UUU", "UUC", "UUA", "UUG"))) should be (Some(List(Set("U"), Set("U"), Set("U", "A", "C", "G"))))
+      DnaUtils.flatten(Option(Set("U", "C", "A"))) should be (Some(List(Set("U", "A", "C"))))
+      DnaUtils.flatten(Option(Set("U", "C", "AA"))) should be (Some(List(Set("U", "A", "C"), Set("A"))))
+    }
+
+    it ("should ignores wrong input") {
+      val protein = "Extremely bad sequence"
+      val codons = DnaUtils.proteinToCodonSets(Option(protein))
+      val seq = codons.map(_.flatMap{codon => DnaUtils.flatten(Option(codon)).getOrElse(List())})
+      seq should be (None)
     }
 
     it ("detect hairpins") {
