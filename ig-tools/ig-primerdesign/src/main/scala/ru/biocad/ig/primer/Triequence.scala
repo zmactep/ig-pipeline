@@ -121,7 +121,7 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
 
     for (j <- 0 until index.size / 3) {
       //GraphViz cluster == amino acid. Prints square around amino acid's codons
-      sb.append(s"  subgraph cluster_${protein(j).mkString("_")}_$j {\n").append(s"""    label="${protein(j).mkString(", ")}";\n""")
+      sb.append(s"  subgraph cluster_${protein(j).mkString("_")}_$j {\n").append(s"""    label="${protein(j).mkString(", ")}";\n    graph[style=dotted];\n""")
       for (i <- 0 until 3) printClusterElement(sb, j * 3 + i, 0)
       sb.append("  }\n")
     }
