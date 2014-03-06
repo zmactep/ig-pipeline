@@ -97,7 +97,7 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
       if (j < index(i).size) {
         index(i)(j) match {
           case d: DataNode => {
-            sb.append(s"""    node [label="${d.nucl}"] ${nodeId(d, i, j)};""")
+            sb.append(s"""    node [label="${d.nucl}"] ${nodeId(d, i, j)};\n""")
             printClusterElement(sb, i, j + 1)
           }
           case _: TerminalNode.type => ()
@@ -108,7 +108,7 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
       if (j < index(i).size) {
         index(i)(j) match {
           case d: DataNode => {
-            d.next.foreach{case nxt: DataNode => sb.append(s"  ${nodeId(d, i, j)} -> ${nodeId(nxt, i + 1, index(i + 1).indexOf(nxt))};") case _: TerminalNode.type =>}
+            d.next.foreach{case nxt: DataNode => sb.append(s"  ${nodeId(d, i, j)} -> ${nodeId(nxt, i + 1, index(i + 1).indexWhere(that => that eq nxt/*reference equality*/))};\n") case _: TerminalNode.type =>}
             printLinks(sb, i, j + 1)
           }
           case _: TerminalNode.type => ()
@@ -116,17 +116,17 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
       }
 
     val sb = new StringBuilder
-    sb.append(s"digraph ${protein.mkString("_").replace("(", "_").replace(")", "_").replace(", ", "")} {").
-      append(s"""  node [fontname="verdana"];\n  fontname="Verdana";\n  rankdir="LR";""")
+    sb.append(s"digraph ${protein.mkString("_").replace("(", "_").replace(")", "_").replace(", ", "")} {\n").
+      append(s"""  node [fontname="verdana"];\n  fontname="Verdana";\n  rankdir="LR";\n""")
 
     for (j <- 0 until index.size / 3) {
       //GraphViz cluster == amino acid. Prints square around amino acid's codons
-      sb.append(s"  subgraph cluster_${protein(j).mkString("_")}_$j {").append(s"""    label="${protein(j).mkString(", ")}";""")
+      sb.append(s"  subgraph cluster_${protein(j).mkString("_")}_$j {\n").append(s"""    label="${protein(j).mkString(", ")}";\n""")
       for (i <- 0 until 3) printClusterElement(sb, j * 3 + i, 0)
-      sb.append("  }")
+      sb.append("  }\n")
     }
     for (i <- 0 until index.size) printLinks(sb, i, 0)
-    sb.append("}").toString()
+    sb.append("}\n").toString()
   }
 }
 
