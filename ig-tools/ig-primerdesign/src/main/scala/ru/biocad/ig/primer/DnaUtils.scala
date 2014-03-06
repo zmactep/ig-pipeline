@@ -21,6 +21,13 @@ object DnaUtils {
     } yield x.getAminoAcid.getShortName -> x.getShortName
   })
 
+  val codon2aminoAcid = {
+    import scala.collection.JavaConversions._
+    for {
+      x <- TranscriptionEngine.getDefault.getTable.getCodons(DNACompoundSet.getDNACompoundSet, AminoAcidCompoundSet.getAminoAcidCompoundSet)
+    } yield x.getShortName -> x.getAminoAcid.getShortName
+  }.toMap
+
   def reverseComplementDNA(strand: Option[String]): Option[String] = strand map { s => Try(new DNASequence(s).getReverseComplement.getSequenceAsString).getOrElse("") } filter(_.nonEmpty)
   def toDNA(strand: Option[String]): Option[String] = strand map {_.replace('U', 'T').replace('u', 't')}
   def getKmers(strand: Option[String], k: Int): Option[List[String]] = strand map{_.sliding(k, 1).toList}

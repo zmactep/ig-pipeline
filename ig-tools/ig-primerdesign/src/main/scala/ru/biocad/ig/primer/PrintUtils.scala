@@ -2,7 +2,8 @@ package ru.biocad.ig.primer
 import Predef.{augmentString => _, _}
 
 /**
- * Created by Kos on 22.02.14.
+ * @author kfeodorov
+ * @since 22.02.14
  */
 object PrintUtils {
   def printSeqWithOffset(seq: List[Set[String]], offset: Int) {

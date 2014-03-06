@@ -2,7 +2,6 @@ package ru.biocad.ig.primer
 
 import ru.biocad.ig.primer.DnaUtils.Sequence
 import scala.collection.mutable.ArrayBuffer
-import java.util.Collections
 
 /**
  * Created by Kos on 02.03.14.
@@ -30,8 +29,9 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
    * @param next next nucleotides (in i + 1 th position) (with possible alternatives
    *             / synonymous substitutions) in reverse transcribed protein sequence
    */
-  private final case class DataNode(nucl: String, next: ArrayBuffer[Node]) extends Node
-
+  private final case class DataNode(nucl: String, next: ArrayBuffer[Node]) extends Node {
+    override def toString = nucl
+  }
   private object TerminalNode extends Node
 
   //index is used for O(1) access to i-th nucleotides in reverse transcribed protein sequence.
@@ -84,6 +84,31 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
     indexBuffer.reverse.toVector
   }
 
+  /**
+   * Get nucleotide string that translates to protein
+   * @param strategy given list of children selects next node to go
+   * @return nucleotide string
+   */
+  def sample(strategy: DecisionStrategy): Option[String] = {
+    def getChildren(node: Node) = node match {
+      case d: DataNode => d.next
+      case _: TerminalNode.type => Seq()
+    }
+    def findNodeByNucl(nodes: Seq[Node], nucl: String): Option[Node] = nodes.find{case n: DataNode => n.nucl == nucl case _: TerminalNode.type => false}
+    def childrenAsStrings(nodes: Seq[Node]): Seq[String] = nodes.map{case n: DataNode => n.nucl case _: TerminalNode.type => "_"}.filter(_ != "_")
+
+    def go(path: ArrayBuffer[Node], i: Int): Unit = path(i) match {
+      case n: DataNode => strategy.next(path.lift(i - 1).map{_.asInstanceOf[DataNode].nucl}, n.nucl, childrenAsStrings(n.next), i) map {
+        nextNode: String => findNodeByNucl(getChildren(n), nextNode) map {nxt: Node => path += nxt; go(path, i + 1)}
+      }
+      case _: TerminalNode.type => ()
+    }
+
+    val dummyHead = DataNode("START", ArrayBuffer[Node]() ++ index.head)
+    val path: ArrayBuffer[Node] = ArrayBuffer[Node](dummyHead)
+    go(path, 0)
+    Some(path.tail.map{case n: DataNode => n.nucl case _: TerminalNode.type =>}.mkString)
+  }
 
   /**
    * prints trie as GraphViz graph. See http://www.graphviz.org/
@@ -97,7 +122,7 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
       if (j < index(i).size) {
         index(i)(j) match {
           case d: DataNode => {
-            sb.append(s"""    node [label="${d.nucl}"] ${nodeId(d, i, j)};\n""")
+            sb.append(s"""    node [label="${d.nucl}",shape=circle] ${nodeId(d, i, j)};\n""")
             printClusterElement(sb, i, j + 1)
           }
           case _: TerminalNode.type => ()
