@@ -2,8 +2,6 @@ package ru.biocad.ig.primer
 
 import ru.biocad.ig.primer.DnaUtils.Sequence
 import scala.collection.mutable.ArrayBuffer
-import java.io.File
-import org.apache.commons.io.FileUtils
 import java.util.Collections
 
 /**
@@ -91,51 +89,44 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
    * prints trie as GraphViz graph. See http://www.graphviz.org/
    * @return GraphViz-ready graph
    */
-  def toDotFile(file: File) = {
-    //make GraphViz-compatible id String based on hashCode
-    def nodeId(node: DataNode, i: Int): String = s"${node.nucl}_${node.hashCode.toString.replace("-", "_")}_$i"
+  override def toString = {
+    //make GraphViz-compatible id String based on position in index
+    def nodeId(node: DataNode, i: Int, j: Int): String = s"${node.nucl}_${i}_$j"
 
-    def printClusterElement(file: File, i: Int, j: Int): Unit =
+    def printClusterElement(sb: StringBuilder, i: Int, j: Int): Unit =
       if (j < index(i).size) {
         index(i)(j) match {
           case d: DataNode => {
-            //two appends because otherwise highlighting in idea's scala-plugin goes crazy
-            FileUtils.writeLines(file, Collections.singletonList(s"""    node [label="${d.nucl}"] ${nodeId(d, i)};"""), true)
-            printClusterElement(file, i, j + 1)
+            sb.append(s"""    node [label="${d.nucl}"] ${nodeId(d, i, j)};""")
+            printClusterElement(sb, i, j + 1)
           }
           case _: TerminalNode.type => ()
         }
       }
 
-    def printLinks(file: File, i: Int, j: Int): Unit =
+    def printLinks(sb: StringBuilder, i: Int, j: Int): Unit =
       if (j < index(i).size) {
         index(i)(j) match {
           case d: DataNode => {
-            d.next.foreach{case nxt: DataNode => FileUtils.writeLines(file, Collections.singletonList(s"  ${nodeId(d, i)} -> ${nodeId(nxt, i + 1)};"), true) case _: TerminalNode.type =>}
-            printLinks(file, i, j + 1)
+            d.next.foreach{case nxt: DataNode => sb.append(s"  ${nodeId(d, i, j)} -> ${nodeId(nxt, i + 1, index(i + 1).indexOf(nxt))};") case _: TerminalNode.type =>}
+            printLinks(sb, i, j + 1)
           }
           case _: TerminalNode.type => ()
         }
       }
 
-    val graphName = protein.mkString("_").replace("(", "_").replace(")", "_").replace(", ", "")
-    try {
-      //Do not append first line. Rewrite it first
-      FileUtils.writeLines(file, Collections.singletonList(s"digraph $graphName {"), false)
-      FileUtils.writeLines(file, Collections.singletonList(s"""  node [fontname="verdana"];\n  fontname="Verdana";\n  rankdir="LR";"""), true)
+    val sb = new StringBuilder
+    sb.append(s"digraph ${protein.mkString("_").replace("(", "_").replace(")", "_").replace(", ", "")} {").
+      append(s"""  node [fontname="verdana"];\n  fontname="Verdana";\n  rankdir="LR";""")
 
-      for (j <- 0 until index.size / 3) {
-        //GraphViz cluster == amino acid. Prints square around amino acid's codons
-        FileUtils.writeLines(file, Collections.singletonList(s"  subgraph cluster_${protein(j).mkString("_")}_$j {"), true)
-        FileUtils.writeLines(file, Collections.singletonList(s"""    label="${protein(j).mkString(", ")}";"""), true)
-        for (i <- 0 until 3) printClusterElement(file, j * 3 + i, 0)
-        FileUtils.writeLines(file, Collections.singletonList("  }"), true)
-      }
-      for (i <- 0 until index.size) printLinks(file, i, 0)
-      FileUtils.writeLines(file, Collections.singletonList("}"), true)
-    } catch {
-      case e: Exception => println(e.getMessage)
+    for (j <- 0 until index.size / 3) {
+      //GraphViz cluster == amino acid. Prints square around amino acid's codons
+      sb.append(s"  subgraph cluster_${protein(j).mkString("_")}_$j {").append(s"""    label="${protein(j).mkString(", ")}";""")
+      for (i <- 0 until 3) printClusterElement(sb, j * 3 + i, 0)
+      sb.append("  }")
     }
+    for (i <- 0 until index.size) printLinks(sb, i, 0)
+    sb.append("}").toString()
   }
 }
 
