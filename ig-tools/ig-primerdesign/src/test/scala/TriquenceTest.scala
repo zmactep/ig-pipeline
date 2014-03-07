@@ -44,8 +44,15 @@ class TriquenceTest extends FunSpec {
     it ("should correctly sample nucleotide strings") {
       val ds = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 5, "G" -> 5, "T" -> 5, "U" -> 5))
       val triq = ProteinTriequence(seq)
-      def translate(rna: String) = augmentString(rna).sliding(3, 3).toList.map{codon2aminoAcid}.mkString("")
-      (1 to 1000).foreach(_ => translate(triq.sample(ds).get) should be (protein))
+      (1 to 1000).foreach(_ => translate(triq.sample(ds)).get should be (protein))
+    }
+
+    it ("gc content depends on weights in decision strategy") {
+      val dsEquals = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 5, "G" -> 5, "T" -> 5, "U" -> 5))
+      val dsGCmax = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 105, "G" -> 105, "T" -> 5, "U" -> 5))
+      val triq = ProteinTriequence(seq)
+
+      (1 to 1000).foreach{_ => getGC(triq.sample(dsEquals)) < getGC(triq.sample(dsGCmax)) should be (true)}
     }
   }
 }

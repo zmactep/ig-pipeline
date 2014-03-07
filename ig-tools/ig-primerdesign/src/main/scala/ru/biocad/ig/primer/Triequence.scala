@@ -104,8 +104,8 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
       case _: TerminalNode.type => ()
     }
 
-    val dummyHead = DataNode("START", ArrayBuffer[Node]() ++ index.head)
-    val path: ArrayBuffer[Node] = ArrayBuffer[Node](dummyHead)
+    val dummyHead = DataNode("START", ArrayBuffer[Node]() /*to convert Vector to ArrayBuffer*/ ++ index.head)
+    val path = ArrayBuffer[Node](dummyHead)
     go(path, 0)
     Some(path.tail.map{case n: DataNode => n.nucl case _: TerminalNode.type =>}.mkString)
   }

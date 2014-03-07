@@ -6,8 +6,8 @@ package ru.biocad.ig.primer
 
 sealed trait DecisionStrategy {
   /**
-   * Choose next nucleotide. Sequence is prepended by dummyHead node with curr="START". It points to the list of first nucleotides
-   * @param prev previous nucleotide. None for dummyHead nucleotide
+   * Choose next nucleotide. Sequence is prepended by dummyHead node with nucl="START". It points to the list of first nucleotides in Triquence
+   * @param prev previous nucleotide. None if curr == dummyHead("START")
    * @param curr current nucleotide. "START" for dummyHead
    * @param next list of candidates
    * @param index current nucleotide index in protein string
@@ -17,7 +17,7 @@ sealed trait DecisionStrategy {
 }
 
 /**
- * Simple strategy. Next nucleotide is choosen only according to it's weight
+ * Simple strategy. Next nucleotide is chosen only according to it's weight
  * @param prob - map weight->nucleotide
  */
 class SimpleProbabilityDecisionStrategy(prob: Map[String, Int]) extends DecisionStrategy{

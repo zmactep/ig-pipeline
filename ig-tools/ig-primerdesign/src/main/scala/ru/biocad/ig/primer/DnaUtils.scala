@@ -1,6 +1,6 @@
 package ru.biocad.ig.primer
 
-import org.biojava3.core.sequence.DNASequence
+import org.biojava3.core.sequence.{RNASequence, DNASequence}
 import scala.util.{Failure, Try, Success}
 import org.biojava3.core.sequence.transcription.TranscriptionEngine
 import org.biojava3.core.sequence.compound.{DNACompoundSet, AminoAcidCompoundSet}
@@ -29,8 +29,11 @@ object DnaUtils {
   }.toMap
 
   def reverseComplementDNA(strand: Option[String]): Option[String] = strand map { s => Try(new DNASequence(s).getReverseComplement.getSequenceAsString).getOrElse("") } filter(_.nonEmpty)
+  def reverseComplementRNA(strand: Option[String]): Option[String] = strand map { s => Try(new RNASequence(s).getReverseComplement.getSequenceAsString).getOrElse("") } filter(_.nonEmpty)
   def toDNA(strand: Option[String]): Option[String] = strand map {_.replace('U', 'T').replace('u', 't')}
   def getKmers(strand: Option[String], k: Int): Option[List[String]] = strand map{_.sliding(k, 1).toList}
+  def translate(rna: Option[String]): Option[String] = rna.map{_.sliding(3, 3).toList.map{codon2aminoAcid}.mkString("")}
+  def getGC(strand: Option[String]): Double = {val str = strand.getOrElse(""); if (str.isEmpty) 0 else str.toUpperCase.count{p: Char => 'C' == p || 'G' == p}.toDouble / str.length}
 
   /**
    * converts aminoacid string to codons list
