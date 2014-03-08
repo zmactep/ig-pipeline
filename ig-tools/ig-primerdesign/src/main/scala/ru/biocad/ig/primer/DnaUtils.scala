@@ -1,11 +1,14 @@
 package ru.biocad.ig.primer
 
 import org.biojava3.core.sequence.{RNASequence, DNASequence}
-import scala.util.{Failure, Try, Success}
+import scala.util.{Random, Failure, Try, Success}
 import org.biojava3.core.sequence.transcription.TranscriptionEngine
 import org.biojava3.core.sequence.compound.{DNACompoundSet, AminoAcidCompoundSet}
 import org.ahocorasick.trie.Trie
 import scala.collection.mutable
+import scala.collection.immutable.SortedMap
+import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -33,7 +36,7 @@ object DnaUtils {
   def toDNA(strand: Option[String]): Option[String] = strand map {_.replace('U', 'T').replace('u', 't')}
   def getKmers(strand: Option[String], k: Int): Option[List[String]] = strand map{_.sliding(k, 1).toList}
   def translate(rna: Option[String]): Option[String] = rna.map{_.sliding(3, 3).toList.map{codon2aminoAcid}.mkString("")}
-  def getGC(strand: Option[String]): Double = {val str = strand.getOrElse(""); if (str.isEmpty) 0 else str.toUpperCase.count{p: Char => 'C' == p || 'G' == p}.toDouble / str.length}
+  def getGC(strand: Option[String]): Option[Double] = strand.map{ str => str.toUpperCase.count{p: Char => 'C' == p || 'G' == p}.toDouble / str.length}
 
   /**
    * converts aminoacid string to codons list
@@ -114,4 +117,107 @@ object DnaUtils {
     }
     ans.toList
   }
+
+  /**
+   * Splits strand into pieces of all possible sizes and calculates gc-content variance for each variant of split.
+   * @param strand strand to split
+   * @param pieces # of pieces
+   * @param minLen min len of a piece
+   * @return gc content variance -> list of borders.
+   */
+  def splitWithEqualGC(strand: Option[String], pieces: Int, minLen: Int): Option[Map[Double, Set[List[Int]]]] = {
+    /**
+     * GC content as fraction
+     * @param nom # 'G's and 'C's
+     * @param denom total len
+     */
+    case class GC(nom: Int, denom: Int) {
+      def double = nom.toDouble / denom
+    }
+
+    /**
+     * generates all possible borders, that split "strand" into #"pieces" pieces
+     * @param prev borders from previous call (splits strand for one less border). Current call will add one border to every List[Int]
+     * @param level recursive call counter
+     * @param last max (right) boundary value
+     * @param step increment size
+     * @return
+     */
+    def genBorders(prev: Set[List[Int]], level: Int, last: Int, step: Int): Set[List[Int]] =
+      if (level == 0) prev
+      else genBorders( {for {
+        list <- prev
+        i <- list.last + minLen to (last - minLen * (pieces - list.size)) by step
+      } yield list :+ (if (level > 1) i else last)}, level - 1, last, step)
+
+    def genRandomBorders(size: Int, samples: Int): Set[List[Int]] = {
+       def generate: List[Int] = {
+         val ans = ArrayBuffer[Int](0)
+           for (i <- 1 until pieces){
+              val from = ans.last + minLen
+              val to = size - minLen * (pieces - i)
+              ans += from + Random.nextInt(to - from)
+           }
+           ans += size
+         ans.toList
+       }
+      (for {i <- 0 until samples} yield generate).toSet// {
+    }
+
+    strand match {
+      case Some(s) =>
+        if (minLen * pieces > s.length) return None
+        val cumSum = s.scanLeft(0)((acc: Int, c: Char) => if (List('G', 'C').contains(c.toUpper)) acc + 1 else acc)
+        /**
+         * gets GC content of segment of strand for O(1)
+         * @param start index inclusive
+         * @param stop index exclusive
+         * @return GC content of segment
+         */
+        def getGC(start: Int, stop: Int) = GC(cumSum(stop) - cumSum(start), stop - start)
+
+        //generate all possible borders
+        val allBorders: Set[List[Int]] = genRandomBorders(s.size, 1000)
+        //calc variance of GC for borders set and store in multimap gc_variance -> list of borders
+        Some(MiscUtils.list2multimap(allBorders.toSeq.map{(list: List[Int]) => (MiscUtils.variance(for {
+          segment: List[Int] <- list.sliding(2, 1).toList
+        } yield getGC(segment.head, segment.last).double), list)}))
+      case None => None
+    }
+  }
+
+  /**
+   * given borders, tries to build list of primers. Each primer has sticky end size of "overlap",
+   * and has "body" size (primer - sticky ends) of at least bodySize.
+   * @param dna DNA
+   * @param segments splitWithEqualGC() result
+   * @param overlap sticky end size
+   * @param bodySize min primer body size
+   * @return list of primer start indicies
+   */
+  def findOverlaps(dna: Option[String], segments: Option[Map[Double, Set[List[Int]]]], overlap: Int, bodySize: Int): Option[List[Int]] = {
+    if (2 * overlap > bodySize) return None
+    dna match {
+      case Some(strand) =>
+        segments match {
+          case Some(seg) =>
+            def isOverlapUniq(start: List[Int]): Boolean = start.forall{i => MiscUtils.countSubstring(strand, strand.substring(i, i + overlap)) == 1}
+            val sMap = SortedMap[Double, Set[List[Int]]]() ++ seg.filter(_._2.nonEmpty)
+            for (entry <- sMap) {
+              for (borders: List[Int] <- entry._2) {
+                val shifted = borders.tail.map{_ - overlap / 2}.init
+                if (isOverlapUniq(shifted)) return Some(shifted)
+              }
+            }
+            None
+          case None => None
+        }
+      case None => None
+    }
+  }
+
+  def splitStrandToPrimers(strand: Option[String], indicies: Option[List[Int]], overlap: Int): Option[List[String]] =
+    strand.flatMap { s: String => indicies.map {idx: List[Int] => (0 :: idx).zip{idx :+ s.size}}.map{_.map{range: (Int, Int) => s.substring(range._1, math.min(range._2 + overlap, s.size))}} }
+
+  def calcVarGc(strands: Option[List[String]]): Option[Double] = strands.map{list => MiscUtils.variance(list.map{s => getGC(Option(s)).get})}
 }

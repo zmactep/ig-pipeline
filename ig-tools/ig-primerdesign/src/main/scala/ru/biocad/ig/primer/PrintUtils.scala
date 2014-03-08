@@ -10,7 +10,7 @@ object PrintUtils {
     val prefix = List.fill(offset)(" ").mkString("")
     for (i <- 0 until 4) {
       val data = seq.map{s => if (i < s.size) s.toList(i) else " "}.mkString("")
-      if (data.count(_ == ' ') < data.length) println(s"$prefix$data${if (i == 0) s" gc = ${DnaUtils.getGC(Option(data))}" else ""}")
+      if (data.count(_ == ' ') < data.length) println(s"$prefix$data${if (i == 0) s" gc = ${DnaUtils.getGC(Option(data)).get}" else ""}")
     }
   }
 

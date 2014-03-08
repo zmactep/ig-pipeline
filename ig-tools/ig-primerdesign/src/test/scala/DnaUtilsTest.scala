@@ -58,5 +58,13 @@ class DnaUtilsTest extends FunSpec {
     it ("find overlaps") {
       DnaUtils.findOverlaps(Option(List(Set("A"), Set("C"), Set("G"))), 1, 1) should be (Some(List(1)))
     }
+
+    it ("Split strand into pieces with least GC-content variance") {
+      val bigStrand = "GAAGUCCAACUUGUCCAGAGCGGCGCCGAGGUGAAAAAGCCGGGCAGCAGCGUCAAAGUGAGUUGCAAAGCUUCAGGCUACACGUUCACCAAUUACGUGAUAAACUGGGUGAGACAAGCACCUGGACAAGGAUUAGAAUGGAUAGGCUACAAUGACCCGU"
+      DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 4, minLen = 40).get.head._2 should be (Set(List(0, 40, 80, 120, 160)))
+      DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 4, minLen = 39).get.values.flatten.toSet should be (Set(List(0, 40, 80, 120, 160), List(0, 39, 81, 120, 160), List(0, 40, 80, 119, 160), List(0, 39, 82, 121, 160), List(0, 41, 81, 121, 160), List(0, 39, 80, 119, 160), List(0, 41, 80, 119, 160), List(0, 39, 79, 121, 160), List(0, 40, 79, 120, 160), List(0, 42, 81, 120, 160), List(0, 43, 82, 121, 160), List(0, 40, 79, 119, 160), List(0, 39, 78, 118, 160), List(0, 39, 78, 119, 160), List(0, 41, 82, 121, 160), List(0, 39, 78, 120, 160), List(0, 40, 81, 120, 160), List(0, 39, 80, 120, 160), List(0, 42, 81, 121, 160), List(0, 39, 81, 121, 160), List(0, 40, 82, 121, 160), List(0, 41, 80, 121, 160), List(0, 40, 79, 118, 160), List(0, 39, 79, 118, 160), List(0, 40, 79, 121, 160), List(0, 42, 82, 121, 160), List(0, 41, 81, 120, 160), List(0, 39, 79, 120, 160), List(0, 39, 80, 121, 160), List(0, 41, 80, 120, 160), List(0, 40, 80, 121, 160), List(0, 39, 78, 117, 160), List(0, 40, 81, 121, 160), List(0, 39, 79, 119, 160), List(0, 39, 78, 121, 160))      )
+      DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 5, minLen = 40) should be (None)
+      DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 4, minLen = 41) should be (None)
+    }
   }
 }

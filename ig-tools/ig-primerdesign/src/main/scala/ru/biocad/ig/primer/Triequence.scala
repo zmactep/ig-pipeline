@@ -110,6 +110,8 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
     Some(path.tail.map{case n: DataNode => n.nucl case _: TerminalNode.type =>}.mkString)
   }
 
+  def sampleStream(ds: DecisionStrategy): Stream[Option[String]] = Stream.cons(sample(ds), sampleStream(ds))
+
   /**
    * prints trie as GraphViz graph. See http://www.graphviz.org/
    * @return GraphViz-ready graph

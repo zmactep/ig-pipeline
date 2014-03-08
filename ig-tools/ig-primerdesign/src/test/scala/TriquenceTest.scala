@@ -52,7 +52,7 @@ class TriquenceTest extends FunSpec {
       val dsGCmax = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 105, "G" -> 105, "T" -> 5, "U" -> 5))
       val triq = ProteinTriequence(seq)
 
-      (1 to 1000).foreach{_ => getGC(triq.sample(dsEquals)) < getGC(triq.sample(dsGCmax)) should be (true)}
+      (1 to 1000).foreach{_ => getGC(triq.sample(dsEquals)).get < getGC(triq.sample(dsGCmax)).get should be (true)}
     }
   }
 }
