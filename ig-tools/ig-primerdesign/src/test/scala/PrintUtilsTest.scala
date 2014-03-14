@@ -1,5 +1,6 @@
 import org.scalatest.FunSpec
-import ru.biocad.ig.primer.{SimpleProbabilityDecisionStrategy, ProteinTriequence, DnaUtils, PrintUtils}
+import ru.biocad.ig.primer._
+import ru.biocad.ig.primer.ProteinTriequence
 
 /**
  * @author kfeodorov
@@ -48,7 +49,8 @@ class PrintUtilsTest extends FunSpec {
       for (protein <- List("DIQMTQSPSSLSASVGDRVTITCKASQSVSSDVGWYQQKPGKAPKLLIYSGSNRYSGVPSRFSGSGSGTDFTLTISSLQPEDFATYYCQQDYYSPWTFGQGTKVEIK","EVQLVQSGAEVKKPGSSVKVSCKASGYTFTNYVINWVRQAPGQGLEWIGYNDPYNDVSKYNEKFKGRATITSDKSTSTAYMELSSLRSEDTAVYYCAKEGGGKYVYAMDSWGQGTTVTVSS")) {
         println(s"Test protein is $protein")
         val triq = ProteinTriequence(protein)
-        val ds = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 5, "G" -> 5, "T" -> 5, "U" -> 5))
+//        val ds = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 5, "G" -> 5, "T" -> 5, "U" -> 5))
+        val ds = new CodonFrequencyDecisionStrategy
         val hairpinMinLen = 8
         val pieces = 10
         val bodySize = protein.length * 3 / pieces - 5

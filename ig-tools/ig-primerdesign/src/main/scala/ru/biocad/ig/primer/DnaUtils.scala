@@ -34,6 +34,7 @@ object DnaUtils {
   def reverseComplementDNA(strand: Option[String]): Option[String] = strand map { s => Try(new DNASequence(s).getReverseComplement.getSequenceAsString).getOrElse("") } filter(_.nonEmpty)
   def reverseComplementRNA(strand: Option[String]): Option[String] = strand map { s => Try(new RNASequence(s).getReverseComplement.getSequenceAsString).getOrElse("") } filter(_.nonEmpty)
   def toDNA(strand: Option[String]): Option[String] = strand map {_.replace('U', 'T').replace('u', 't')}
+  def toRNA(strand: Option[String]): Option[String] = strand map {_.replace('T', 'U').replace('t', 'u')}
   def getKmers(strand: Option[String], k: Int): Option[List[String]] = strand map{_.sliding(k, 1).toList}
   def translate(rna: Option[String]): Option[String] = rna.map{_.sliding(3, 3).toList.map{codon2aminoAcid}.mkString("")}
   def getGC(strand: Option[String]): Option[Double] = strand.map{ str => str.toUpperCase.count{p: Char => 'C' == p || 'G' == p}.toDouble / str.length}
