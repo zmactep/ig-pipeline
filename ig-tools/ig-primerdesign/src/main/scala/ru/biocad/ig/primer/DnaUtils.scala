@@ -120,7 +120,7 @@ object DnaUtils {
   }
 
   /**
-   * Splits strand into pieces of all possible sizes and calculates gc-content variance for each variant of split.
+   * Splits strand into pieces of all random sizes (> minLen) and calculates gc-content variance for each variant of split.
    * @param strand strand to split
    * @param pieces # of pieces
    * @param minLen min len of a piece
@@ -135,22 +135,13 @@ object DnaUtils {
     case class GC(nom: Int, denom: Int) {
       def double = nom.toDouble / denom
     }
-
     /**
-     * generates all possible borders, that split "strand" into #"pieces" pieces
-     * @param prev borders from previous call (splits strand for one less border). Current call will add one border to every List[Int]
-     * @param level recursive call counter
-     * @param last max (right) boundary value
-     * @param step increment size
-     * @return
+     * Randomly generates borders.
+     * ex: Border for first segment is chosen between (0 + minLen) and (size - (pieces - 1) * minLen)
+     * @param size rightmost border position / total len of all segments
+     * @param samples num of segments
+     * @return list of segments
      */
-    def genBorders(prev: Set[List[Int]], level: Int, last: Int, step: Int): Set[List[Int]] =
-      if (level == 0) prev
-      else genBorders( {for {
-        list <- prev
-        i <- list.last + minLen to (last - minLen * (pieces - list.size)) by step
-      } yield list :+ (if (level > 1) i else last)}, level - 1, last, step)
-
     def genRandomBorders(size: Int, samples: Int): Set[List[Int]] = {
        def generate: List[Int] = {
          val ans = ArrayBuffer[Int](0)

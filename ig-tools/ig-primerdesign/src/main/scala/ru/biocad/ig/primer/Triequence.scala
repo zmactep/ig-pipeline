@@ -22,18 +22,6 @@ sealed trait Triequence
 
 final case class ProteinTriequence(protein: Sequence) extends Triequence {
 
-  private sealed trait Node
-  /**
-   * Node of Trie representing nucleotide
-   * @param nucl nucleotide in this node
-   * @param next next nucleotides (in i + 1 th position) (with possible alternatives
-   *             / synonymous substitutions) in reverse transcribed protein sequence
-   */
-  private final case class DataNode(nucl: String, next: ArrayBuffer[Node]) extends Node {
-    override def toString = nucl
-  }
-  private object TerminalNode extends Node
-
   //index is used for O(1) access to i-th nucleotides in reverse transcribed protein sequence.
   //Otherwise we need to traverse graph from the beginning, which takes O(n)
   private val index: Vector[Vector[Node]] = {
@@ -90,20 +78,7 @@ final case class ProteinTriequence(protein: Sequence) extends Triequence {
    * @return nucleotide string
    */
   def sample(strategy: DecisionStrategy): Option[String] = {
-    def getChildren(node: Node) = node match {
-      case d: DataNode => d.next
-      case _: TerminalNode.type => Seq()
-    }
-    def findNodeByNucl(nodes: Seq[Node], nucl: String): Option[Node] = nodes.find{case n: DataNode => n.nucl == nucl case _: TerminalNode.type => false}
-    def childrenAsStrings(nodes: Seq[Node]): Seq[String] = nodes.map{case n: DataNode => n.nucl case _: TerminalNode.type => "_"}.filter(_ != "_")
-
-    def go(path: ArrayBuffer[Node], i: Int): Unit = path(i) match {
-      case n: DataNode => strategy.next(path.lift(i - 1).map{_.asInstanceOf[DataNode].nucl}, n.nucl, childrenAsStrings(n.next), i) map {
-        nextNode: String => findNodeByNucl(getChildren(n), nextNode) map {nxt: Node => path += nxt; go(path, i + 1)}
-      }
-      case _: TerminalNode.type => ()
-    }
-
+    def go(path: ArrayBuffer[Node], i: Int): Unit = strategy.next(path.lift(i - 1), path(i), i) map {nxt: Node => path += nxt; go(path, i + 1)}
     val dummyHead = DataNode("START", ArrayBuffer[Node]() /*to convert Vector to ArrayBuffer*/ ++ index.head)
     val path = ArrayBuffer[Node](dummyHead)
     go(path, 0)

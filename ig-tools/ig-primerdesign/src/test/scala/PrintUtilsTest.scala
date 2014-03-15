@@ -52,9 +52,9 @@ class PrintUtilsTest extends FunSpec {
 //        val ds = new SimpleProbabilityDecisionStrategy(Map("A" -> 5, "C" -> 5, "G" -> 5, "T" -> 5, "U" -> 5))
         val ds = new CodonFrequencyDecisionStrategy
         val hairpinMinLen = 8
-        val pieces = 10
+        val pieces = 5
         val bodySize = protein.length * 3 / pieces - 5
-        val overlap = 10
+        val overlap = 20
         val iterations = 1000
         var bestNucl: Option[String] = None
         var bestSplit: Option[List[Int]] = None
@@ -65,7 +65,7 @@ class PrintUtilsTest extends FunSpec {
           val indicies = DnaUtils.findOverlaps(nucl, DnaUtils.splitWithEqualGC(nucl, pieces, bodySize), overlap, bodySize)
           val gcVar: Double = DnaUtils.calcVarGc(DnaUtils.splitStrandToPrimers(nucl, indicies, overlap)).getOrElse(1000)
           if (gcVar < bestPrimersGcVariance) {
-            println(s"New best GC: $gcVar")
+            println(s"New min GC variance per primer: $gcVar")
             bestPrimersGcVariance = gcVar
             bestNucl = nucl
             bestSplit = indicies
