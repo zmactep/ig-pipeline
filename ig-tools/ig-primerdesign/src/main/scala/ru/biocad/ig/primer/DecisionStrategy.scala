@@ -56,33 +56,6 @@ object FreqTable {
 }
 
 /**
- * Strategy, based on codon frequency table. Chose most probable given String(prev + current) as first two nucl in codon
- */
-class FrequencyTableDecisionStrategy extends DecisionStrategy{
-  val equalsWeights = Map("A" -> 1000, "C" -> 1000, "G" -> 1000, "U" -> 1000)
-
-  override def next(prev: Option[Node], curr: Node, index: Int): Option[Node] = {
-    curr match {
-      case d: DataNode =>
-        if (index < 2) {
-          val m = equalsWeights.filterKeys(p => d.next.map{case n: DataNode => n.nucl case _:TerminalNode.type =>}.contains(p))
-          if (m.nonEmpty) findNodeByNucl(getChildren(curr), MiscUtils.sample(m))
-          else None
-        } else {
-          DnaUtils.toRNA(prev.map{n => n.asInstanceOf[DataNode].nucl}) match {
-            case Some(pr) => val prefix = pr.toUpperCase + DnaUtils.toRNA(Some(d.nucl)).get.toUpperCase
-              val m = FreqTable.weights.filterKeys(_.startsWith(prefix)).filterKeys(p => d.next.map{case n: DataNode => n.nucl case _:TerminalNode.type =>}.contains(p.last.toString))
-              if (m.nonEmpty) findNodeByNucl(getChildren(curr), MiscUtils.sample(m).last.toUpper.toString)
-              else None
-            case None => None
-          }
-        }
-      case _ => None
-    }
-  }
-}
-
-/**
  * Strategy, based on codon frequency table. Takes into account position of Node
  */
 class CodonFrequencyDecisionStrategy extends DecisionStrategy{

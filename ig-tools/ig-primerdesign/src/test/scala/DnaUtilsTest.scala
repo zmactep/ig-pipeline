@@ -9,6 +9,7 @@ class DnaUtilsTest extends FunSpec {
   describe("DnaUtlis") {
     it ("should return correct reverse complement string") {
         DnaUtils.reverseComplementDNA(Option("A")) should be (Some("T"))
+        DnaUtils.reverseComplementDNA(Option("CGGC")) should be (Some("GCCG"))
         DnaUtils.reverseComplementDNA(Option("t")) should be (Some("a"))
         DnaUtils.reverseComplementDNA(Option("acGT")) should be (Some("ACgt"))
         DnaUtils.reverseComplementDNA(Option("ACcgGT")) should be (Some("ACcgGT"))
@@ -65,6 +66,10 @@ class DnaUtilsTest extends FunSpec {
       DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 4, minLen = 39).get.values.flatten.toSet should be (Set(List(0, 40, 80, 120, 160), List(0, 39, 81, 120, 160), List(0, 40, 80, 119, 160), List(0, 39, 82, 121, 160), List(0, 41, 81, 121, 160), List(0, 39, 80, 119, 160), List(0, 41, 80, 119, 160), List(0, 39, 79, 121, 160), List(0, 40, 79, 120, 160), List(0, 42, 81, 120, 160), List(0, 43, 82, 121, 160), List(0, 40, 79, 119, 160), List(0, 39, 78, 118, 160), List(0, 39, 78, 119, 160), List(0, 41, 82, 121, 160), List(0, 39, 78, 120, 160), List(0, 40, 81, 120, 160), List(0, 39, 80, 120, 160), List(0, 42, 81, 121, 160), List(0, 39, 81, 121, 160), List(0, 40, 82, 121, 160), List(0, 41, 80, 121, 160), List(0, 40, 79, 118, 160), List(0, 39, 79, 118, 160), List(0, 40, 79, 121, 160), List(0, 42, 82, 121, 160), List(0, 41, 81, 120, 160), List(0, 39, 79, 120, 160), List(0, 39, 80, 121, 160), List(0, 41, 80, 120, 160), List(0, 40, 80, 121, 160), List(0, 39, 78, 117, 160), List(0, 40, 81, 121, 160), List(0, 39, 79, 119, 160), List(0, 39, 78, 121, 160))      )
       DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 5, minLen = 40) should be (None)
       DnaUtils.splitWithEqualGC(Option(bigStrand), pieces = 4, minLen = 41) should be (None)
+    }
+
+    it ("split to sense and antisense primers set") {
+      DnaUtils.splitStrandToOverlappingPrimers(Option("AACGGCTT"), 4) should be (Some(List("AACG", "GCTT"), List("GCCG")))
     }
   }
 }

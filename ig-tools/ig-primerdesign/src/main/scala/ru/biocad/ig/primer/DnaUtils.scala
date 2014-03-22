@@ -212,4 +212,21 @@ object DnaUtils {
     strand.flatMap { s: String => indicies.map {idx: List[Int] => (0 :: idx).zip{idx :+ s.size}}.map{_.map{range: (Int, Int) => s.substring(range._1, math.min(range._2 + overlap, s.size))}} }
 
   def calcVarGc(strands: Option[List[String]]): Option[Double] = strands.map{list => MiscUtils.variance(list.map{s => getGC(Option(s)).get})}
+
+  /**
+   * splits strand to overlapped primers
+   * @param strand
+   * @param size primer len
+   * @return -------------- =>
+   *         -- --- --- --- sense
+   *          --- --- ---   antisense
+   *          returns (sense, antisense)
+   */
+  def splitStrandToOverlappingPrimers(strand: Option[String], size: Int): Option[(List[String], List[String])] = strand.map {
+    s =>
+      val primers = s.sliding(size, size / 2).toList
+      val sense: List[String] = primers.zipWithIndex.filter{_._2 % 2 == 0}.unzip._1
+      val antiSense: List[String] = primers.zipWithIndex.filter{_._2 % 2 == 1}.unzip._1.map{str: String => reverseComplementDNA(Option(str)).get}
+      (sense, antiSense)
+  }
 }
