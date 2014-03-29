@@ -94,7 +94,8 @@ object MetricUtils {
   }
 
   /**
-   * Splits strand to overlaped primers. Takes every consecutive pair of primers and calculates overlapScore for every other pair of primers (except current two)
+   * Takes size/2 pieces from sense/antisense strands and compares it with the rest of strand.
+   * Ensures that size/2 sticky end is unique across the strand
    * @param strand strand to parse
    * @param size primer size
    * @param coef penalty coefs for overlapScore()
