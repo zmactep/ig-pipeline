@@ -87,7 +87,9 @@ object MetricUtils {
       val m1 = s1.get.size / 2
       val m2 = s2.get.size / 2
       //TODO take substr len into account
-      Option(score * {if (i1 < m1 && i2 > m2 || i1 > m1 && i2 < m2) coef._1 else coef._2})
+      Option(score * {
+        if (i1 < m1 && i2 > m2 || i1 > m1 && i2 < m2) coef._1 else coef._2
+      })
     case None => None
   }
 
@@ -99,12 +101,11 @@ object MetricUtils {
    * @return
    */
   def primersOverlapScore(strand: Option[String], size: Int, coef: (Double, Double)): Option[Double] = strand map { s =>
-    def listOverlapScore(l: List[String]): Double = (for {
-      s1 <- l
-      s2 <- l if s1 != s2
-    } yield overlapScore(Option(s1), Option(s2), coef)).map{_.get}.sum
-    val primers: List[String] = s.sliding(size, size / 2).toList.zipWithIndex.map{p => if (p._2 % 2 == 1) DnaUtils.reverseComplementRNA(Option(p._1)).get else p._1}
-    (for {i <- 0 until primers.length - 1}
-    yield listOverlapScore(primers.take(i) ++ primers.drop(i + 2)/*cut 2 elements: i-th and i + 1 th*/)).sum
+    val rc = DnaUtils.reverseComplementRNA(strand).get
+
+    def score(i: Int): Double = List(rc.take(i), rc.drop(i + size/2), s.take(i), s.drop(i + size/2)).filter(_.nonEmpty).
+      map{ str => overlapScore(Option(str), Option(s.slice(i, i + size/2)), coef).get +
+                  overlapScore(Option(str), Option(rc.slice(i, i + size/2)), coef).get}.sum
+    (for {i <- 0 until s.length by size/2} yield score(i)).sum
   }
 }
