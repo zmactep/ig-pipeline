@@ -74,13 +74,13 @@ class AlgoTest extends FunSpec {
         println(s"Test protein is $protein")
         val triq = ProteinTriequence(protein)
         val ds = new CodonFrequencyDecisionStrategy
-        val primerSize = 21
+        val primerSize = 50
         val genSize = 10
         val m = 10 //top m sequences are taken from generation
         val hairpinThreshold = 1000000000
         val overlapThreshold = 1000000000
         val iterations = 5
-        val coef = (1., 1000.)
+        val coef = (1., 1.)
         implicit val ord: Ordering[(Double, String)] = Ordering.by(_._1)
         var queue = mutable.PriorityQueue[(Double, String)]()
 
@@ -117,6 +117,13 @@ class AlgoTest extends FunSpec {
         println(augmentString(s).sliding(primerSize, primerSize).mkString("|"))
         print(List.fill(primerSize/2)(" ").mkString(""))
         println(augmentString(rcCut).sliding(primerSize, primerSize).mkString("|"))
+        println("Primers:")
+        val primers = augmentString(s).sliding(primerSize, primerSize).toList ++ augmentString(rcCut).sliding(primerSize, primerSize).map{s => augmentString(s).reverse}
+        for (i <- 0 until s.length/primerSize) {
+          println(s"p${2*i} ${primers(i)}")
+          println(s"p${2*i + 1} ${primers(i + s.length/primerSize + 1)}")
+        }
+        println(s"p${2*(s.length/primerSize)} ${primers(s.length/primerSize)}")
       }
     }
   }

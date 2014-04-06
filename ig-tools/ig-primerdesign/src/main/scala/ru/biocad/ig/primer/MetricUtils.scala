@@ -37,7 +37,7 @@ object MetricUtils {
 //    m.foreach(v => println(v.mkString("\t")))
 //    println()
 
-    val ans = m.map{_.max}.max
+    val ans = m.flatten.max
     //find common substr given max score in matrix
     m.foreach{v: Vector[Int] =>
       val pos = v.indexOf(ans)
@@ -51,7 +51,8 @@ object MetricUtils {
     None
   }
 
-  def hairpinScore(s: Option[String]): Option[Double] = similarityScore(s, DnaUtils.reverseComplementDNA(s)).flatMap{x => similarityScore(s, s) map {y => x._1.toDouble / y._1}}
+
+  def hairpinScore(s: Option[String]): Option[Double] = similarityScore(s, DnaUtils.reverseComplementDNA(s)).flatMap{x => similarityScore(s, s) map {y => if (y == x) 0.5 else x._1.toDouble / y._1}}
   /**
    *
    * @param s
