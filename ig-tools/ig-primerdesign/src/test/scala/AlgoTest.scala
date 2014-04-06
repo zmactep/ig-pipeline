@@ -120,10 +120,10 @@ class AlgoTest extends FunSpec {
         println("Primers:")
         val primers = augmentString(s).sliding(primerSize, primerSize).toList ++ augmentString(rcCut).sliding(primerSize, primerSize).map{s => augmentString(s).reverse}
         for (i <- 0 until s.length/primerSize) {
-          println(s"p${2*i} ${primers(i)}")
-          println(s"p${2*i + 1} ${primers(i + s.length/primerSize + 1)}")
+          println(s"p${2*i} ${primers(i).replace("U", "T")}")
+          println(s"p${2*i + 1} ${primers(i + s.length/primerSize + 1).replace("U", "T")}")
         }
-        println(s"p${2*(s.length/primerSize)} ${primers(s.length/primerSize)}")
+        println(s"p${2*(s.length/primerSize)} ${primers(s.length/primerSize).replace("U", "T")}")
       }
     }
   }
