@@ -98,7 +98,7 @@ class AlgoTest extends FunSpec {
           val mm = new mutable.HashMap[Int, mutable.Set[String]] with mutable.MultiMap[Int, String]
           strs.foreach{s: String => augmentString(s).sliding(primerSize, primerSize).toList.zipWithIndex.foreach{p: (String, Int) => mm.addBinding(p._2, p._1)}}
           (0 until strs.size).toList.map{_ =>
-            (for {(k, v) <- mm.toList} yield Random.shuffle(v.toList).head).mkString("")}
+            (for {(k, v) <- mm.toList.sortBy(_._1)} yield Random.shuffle(v.toList).head).mkString("")}
         }
 
         for (i <- 0 until iterations) {
@@ -111,6 +111,7 @@ class AlgoTest extends FunSpec {
         }
         val ans = queue.last
         println(s"Best Score: ${ans._1}")
+        println(s"Result is translated to ${DnaUtils.translate(Option(ans._2)).getOrElse("ERROR")}")
         val s: String = ans._2
         val rc: String = augmentString(DnaUtils.reverseComplementRNA(Option(s)).get).reverse
         val rcCut: String = augmentString(augmentString(rc).drop(primerSize/2)).dropRight(primerSize/2)
