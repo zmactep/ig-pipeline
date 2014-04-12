@@ -3,7 +3,7 @@ import org.scalatest.Matchers._
 import ru.biocad.ig.primer._
 import ru.biocad.ig.primer.ProteinTriequence
 import scala.collection.mutable
-import scala.util.Random
+import scala.util.{Success, Try, Random}
 
 /**
  * @author kfeodorov
@@ -75,14 +75,14 @@ class AlgoTest extends FunSpec {
         val triq = ProteinTriequence(protein)
         val ds = new CodonFrequencyDecisionStrategy
         val primerSize = 50
-        val genSize = 10
+        val genSize = 30
         val m = 10 //top m sequences are taken from generation
         val hairpinThreshold = 1000000000
         val overlapThreshold = 1000000000
         val iterations = 5
         val coef = (1., 1.)
-        implicit val ord: Ordering[(Double, String)] = Ordering.by(_._1)
-        var queue = mutable.PriorityQueue[(Double, String)]()
+        implicit val ord: Ordering[(Double, String)] = Ordering.fromLessThan((t1, t2) => t1._1 > t2._1)
+        val queue = mutable.PriorityQueue[(Double, String)]()
 
         def getGeneration: Stream[(Double, String)] = triq.sampleStream(ds).
           filter{s => !isHairpin(s, hairpinThreshold)}.
@@ -102,29 +102,41 @@ class AlgoTest extends FunSpec {
         }
 
         for (i <- 0 until iterations) {
-          println(s"iteration $i")
-          queue ++= getGeneration
-          queue = mutable.PriorityQueue[(Double, String)]() ++
-            mutate(queue.takeRight(m).toList.map{_._2}/*takes m seq with lowest score*/).
+          Try(queue.dequeue()) match {
+            case Success(best) =>
+              println(s"iteration $i. Best (lowest) score is: ${best._1}")
+              queue.enqueue(best)
+            case _ => println(s"iteration $i. Queue is empty")
+          }
+          getGeneration.foreach(p => queue.enqueue(p))
+          val sortedByScore = queue.dequeueAll
+
+          (sortedByScore.take(m) ++ //take best seq (with lowest score) and store them as-is for the next iteration
+            mutate(sortedByScore.take(m).toList.map{_._2}/*takes m seq with lowest score and mutate them*/).
               filter{s => !isHairpin(Option(s), hairpinThreshold)}.
-              map{s => (primersOverlapScore(Option(s), primerSize, coef).get , s)}
+              map{s => (primersOverlapScore(Option(s), primerSize, coef).get , s)}) foreach(p => queue.enqueue(p))
         }
-        val ans = queue.last
+        val ans = queue.dequeue()
         println(s"Best Score: ${ans._1}")
         println(s"Result is translated to ${DnaUtils.translate(Option(ans._2)).getOrElse("ERROR")}")
+
         val s: String = ans._2
         val rc: String = augmentString(DnaUtils.reverseComplementRNA(Option(s)).get).reverse
         val rcCut: String = augmentString(augmentString(rc).drop(primerSize/2)).dropRight(primerSize/2)
-        println(augmentString(s).sliding(primerSize, primerSize).mkString("|"))
+        def mergeLastShortPrimer(p: List[String]) = if (p.last.length < primerSize / 2) p.dropRight(2) :+ (p.init.last + p.last) else p
+        val senseStrandPrimers = mergeLastShortPrimer(augmentString(s).sliding(primerSize, primerSize).toList)
+        val antiSenseStrandPrimers = mergeLastShortPrimer(augmentString(rcCut).sliding(primerSize, primerSize).toList)
+
+        println(senseStrandPrimers.mkString("|"))
         print(List.fill(primerSize/2)(" ").mkString(""))
-        println(augmentString(rcCut).sliding(primerSize, primerSize).mkString("|"))
+        println(antiSenseStrandPrimers.mkString("|"))
         println("Primers:")
-        val primers = augmentString(s).sliding(primerSize, primerSize).toList ++ augmentString(rcCut).sliding(primerSize, primerSize).map{s => augmentString(s).reverse}
-        for (i <- 0 until s.length/primerSize) {
-          println(s"p${2*i} ${primers(i).replace("U", "T")}")
-          println(s"p${2*i + 1} ${primers(i + s.length/primerSize + 1).replace("U", "T")}")
+        val primers = senseStrandPrimers ++ antiSenseStrandPrimers.map{s => augmentString(s).reverse}
+        for (i <- 0 until senseStrandPrimers.size - 1) {
+          println(s"p${2*i} ${primers(i).replace("U", "U")}")
+          println(s"p${2*i + 1} ${primers(i + senseStrandPrimers.size).replace("U", "U")}")
         }
-        println(s"p${2*(s.length/primerSize)} ${primers(s.length/primerSize).replace("U", "T")}")
+        println(s"p${2*(senseStrandPrimers.size - 1)} ${senseStrandPrimers.last.replace("U", "U")}")
       }
     }
   }
